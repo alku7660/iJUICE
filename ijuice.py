@@ -27,11 +27,11 @@ class Ijuice:
         toler = 0.000001
         feasibility = True
         for i in range(len(feat_type)):
-            if feat_type[i] == 'bin':
+            if feat_type[i] == 'bin' or feat_type[i] == 'cat':
                 if not np.isclose(cf[i], [0,1],atol=toler).any():
                     feasibility = False
                     break
-            elif feat_type[i] == 'num-ord':
+            elif feat_type[i] == 'ord':
                 possible_val = np.linspace(0,1,int(1/feat_step[i]+1),endpoint=True)
                 if not np.isclose(cf[i],possible_val,atol=toler).any():
                     feasibility = False
@@ -138,7 +138,6 @@ class Ijuice:
                         if np.isclose(np.abs(vector_ij[nonzero_index]),(max_value - min_value)/100,atol=toler):
                             A[i,j], A[j,i] = 1, 1
         return A
-
 
 def distance_calculation(x, y, type='Euclidean'):
     """
