@@ -119,7 +119,7 @@ class Ijuice:
         A = np.zeros(shape=(len(nodes),len(nodes)))
         for i in range(len(nodes)):
             node_i = nodes[i]
-            for j in range(len(nodes)):
+            for j in range(i + 1, len(nodes)):
                 node_j = nodes[j]
                 vector_ij = node_j - node_i
                 nonzero_index = np.nonzero(vector_ij)
@@ -127,16 +127,16 @@ class Ijuice:
                     continue
                 elif len(nonzero_index) == 2:
                     if any(map(lambda x: x in data.cat_enc_cols, nonzero_index)):
-                        A[i,j] = 1
+                        A[i,j], A[j,i] = 1, 1
                 elif len(nonzero_index) == 1:
                     if nonzero_index in data.ordinal:
                         if np.isclose(np.abs(vector_ij[nonzero_index]),data.feat_step[nonzero_index],atol=toler).any():
-                            A[i,j] = 1
+                            A[i,j], A[j,i] = 1, 1
                     elif nonzero_index in data.continuous:
                         list_values = [k[nonzero_index] for k in nodes]
                         min_value, max_value = np.min(list_values), np.max(list_values)
                         if np.isclose(np.abs(vector_ij[nonzero_index]),(max_value - min_value)/100,atol=toler):
-                            A[i,j] = 1
+                            A[i,j], A[j,i] = 1, 1
         return A
 
 
