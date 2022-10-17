@@ -1,5 +1,6 @@
 import numpy as np
 from itertools import product
+from itertools import filterfalse
 
 class Ijuice:
 
@@ -10,7 +11,8 @@ class Ijuice:
         self.normal_ioi = ioi.normal_ioi
         self.ioi_label = ioi.label
         self.nn_cf = self.nn(self.normal_ioi, self.ioi_label, data, model)
-        self.nodes = self.get_nodes(data, data, model) 
+        self.C = self.get_cost(data, model) 
+        self.A = self.get_adjacency_matrix(data, model)
     
     def verify_feasibility(self, x, cf, mutable_feat, feat_type, feat_step):
         """
@@ -87,12 +89,60 @@ class Ijuice:
                     feat_checked.extend(i)
                 elif i in data.continuous:
                     max_val_i, min_val_i = max(self.normal_ioi[i],self.nn_cf[i]), min(self.normal_ioi[i],self.nn_cf[i])
-                    value = list(np.linspace(min_val_i, max_val_i, num = 100))
+                    value = list(np.linspace(min_val_i, max_val_i, num = 100, endpoint = True))
                     feat_checked.extend(i)
                 feat_possible_values.append(value)
-        permutations = np.array(product(feat_possible_values))
+        # permutations = product(*feat_possible_values)
+        # for i in permutations:
+        #     if model.predict(np.array(i).reshape(1, -1)) != self.ioi_label:
+        #         yield i
+        permutations = filterfalse(lambda x: model.predict(x) == self.ioi_label, product(*feat_possible_values))
         for i in permutations:
-            if model.predict(i.reshape(1, -1)) != self.ioi_label:
-                yield i
-    
-     
+            yield i
+
+    def get_cost(self, data, model):
+        """
+        Method that outputs the cost parameters required for optimization
+        """
+        C = []
+        nodes = self.get_nodes(data, model)
+        for node in nodes:
+            C.extend(distance_calculation(self.normal_ioi, node))
+        return C
+
+    def get_adjacency_matrix(self, data, model):
+        """
+        Method that outputs the adjacency matrix required for optimization
+        """
+        toler = 0.000001
+        nodes = list(self.get_nodes(data, model))
+        A = np.zeros(shape=(len(nodes),len(nodes)))
+        for i in range(len(nodes)):
+            node_i = nodes[i]
+            for j in range(len(nodes)):
+                node_j = nodes[j]
+                vector_ij = node_j - node_i
+                nonzero_index = np.nonzero(vector_ij)
+                if len(nonzero_index) > 2:
+                    continue
+                elif len(nonzero_index) == 2:
+                    if any(map(lambda x: x in data.cat_enc_cols, nonzero_index)):
+                        A[i,j] = 1
+                elif len(nonzero_index) == 1:
+                    if nonzero_index in data.ordinal:
+                        if np.isclose(np.abs(vector_ij[nonzero_index]),data.feat_step[nonzero_index],atol=toler).any():
+                            A[i,j] = 1
+                    elif nonzero_index in data.continuous:
+                        list_values = [k[nonzero_index] for k in nodes]
+                        min_value, max_value = np.min(list_values), np.max(list_values)
+                        if np.isclose(np.abs(vector_ij[nonzero_index]),(max_value - min_value)/100,atol=toler):
+                            A[i,j] = 1
+        return A
+
+
+def distance_calculation(x, y, type='Euclidean'):
+    """
+    Method that calculates the distance between two points. Default is Euclidean.
+    """
+    if type == 'Euclidean':
+        return np.sqrt(np.sum((x - y)**2))
