@@ -292,5 +292,5 @@ def load_dataset(data_str, train_fraction, seed, step):
         processed_df = pd.read_csv(dataset_dir+'synthetic_disease/processed_synthetic_disease.csv',index_col=0)
 
     data_obj = Dataset(data_str, seed, train_fraction, label, df,
-                   binary, categorical, ordinal, continuous)
+                   binary, categorical, ordinal, continuous, step)
     return data_obj

@@ -1,6 +1,8 @@
 import numpy as np
 from itertools import product
 from itertools import filterfalse
+import gurobipy as gp
+from gurobipy import GRB, tuplelist
 
 class Ijuice:
 
@@ -8,11 +10,12 @@ class Ijuice:
         self.name = data.name
         self.ioi_idx = ioi.idx
         self.ioi = ioi.x
-        self.normal_ioi = ioi.normal_ioi
+        self.normal_ioi = ioi.normal_x
         self.ioi_label = ioi.label
         self.nn_cf = self.nn(self.normal_ioi, self.ioi_label, data, model)
         self.C = self.get_cost(data, model) 
-        self.A = self.get_adjacency_matrix(data, model)
+        self.A = self.get_adjacency(data, model)
+        self.optimizer, self.x, self.y = self.do_optimize()
     
     def verify_feasibility(self, x, cf, mutable_feat, feat_type, feat_step):
         """
@@ -91,48 +94,69 @@ class Ijuice:
         # for i in permutations:
         #     if model.predict(np.array(i).reshape(1, -1)) != self.ioi_label:
         #         yield i
-        permutations = filterfalse(lambda x: model.model.predict(x) == self.ioi_label, product(*feat_possible_values))
-        for i in permutations:
-            yield i
+        permutations = product(*feat_possible_values)
+        permutations = filterfalse(lambda x: model.model.predict(x) == self.ioi_label, permutations)
+        permutations = filterfalse(lambda x: np.array_equal(x,self.nn_cf), permutations)
+        for i in range(len(permutations) + 1):
+            if i == 0:
+                yield self.nn_cf
+            else:
+                yield permutations[i - 1]
 
     def get_cost(self, data, model):
         """
         Method that outputs the cost parameters required for optimization
         """
-        C = []
+        C = {}
         nodes = self.get_nodes(data, model)
-        for node in nodes:
-            C.extend(distance_calculation(self.normal_ioi, node))
+        for i in range(1, len(nodes) + 1):
+            C[i] = distance_calculation(self.normal_ioi, nodes[i - 1])
         return C
 
-    def get_adjacency_matrix(self, data, model):
+    def get_adjacency(self, data, model):
         """
         Method that outputs the adjacency matrix required for optimization
         """
         toler = 0.000001
         nodes = list(self.get_nodes(data, model))
-        A = np.zeros(shape=(len(nodes),len(nodes)))
-        for i in range(len(nodes)):
-            node_i = nodes[i]
-            for j in range(i + 1, len(nodes)):
-                node_j = nodes[j]
+        A = tuplelist()
+        for i in range(1, len(nodes) + 1):
+            node_i = nodes[i - 1]
+            for j in range(i + 1, len(nodes) + 1):
+                node_j = nodes[j - 1]
                 vector_ij = node_j - node_i
                 nonzero_index = np.nonzero(vector_ij)
                 if len(nonzero_index) > 2:
                     continue
                 elif len(nonzero_index) == 2:
                     if any(map(lambda x: x in data.cat_enc_cols, nonzero_index)):
-                        A[i,j], A[j,i] = 1, 1
+                        A.append((i,j))
                 elif len(nonzero_index) == 1:
                     if nonzero_index in data.ordinal:
                         if np.isclose(np.abs(vector_ij[nonzero_index]),data.feat_step[nonzero_index],atol=toler).any():
-                            A[i,j], A[j,i] = 1, 1
+                            A.append((i,j))
                     elif nonzero_index in data.continuous:
                         list_values = [k[nonzero_index] for k in nodes]
                         min_value, max_value = np.min(list_values), np.max(list_values)
                         if np.isclose(np.abs(vector_ij[nonzero_index]),(max_value - min_value)/100,atol=toler):
-                            A[i,j], A[j,i] = 1, 1
+                            A.append((i,j))
         return A
+
+    def do_optimize(self, data, model):
+        """
+        Method that finds iJUICE CF using an optimization package
+        """
+        opt_model = gp.Model(name='iJUICE')
+        set_I = self.C.keys()
+        x = opt_model.addVars(set_I, vtype=GRB.BINARY, obj=self.C, name='iJUICE_cf')   # Function to optimize and x variables
+        y = opt_model.addVars(self.A, vtype=GRB.BINARY, name='Path') # y variables
+        for i in range(1, len(set_I) + 1): 
+            opt_model.addConstr(sum(y[i,j] for i,j in self.A.select(i,'*')) - sum(y[j,i] for j,i in self.A.select('*',i)) == (1 if i == 1 else -x[i]), f'Network {i}') # Network constraints
+            opt_model.addConstr(sum(y[j,i] for j,i in self.A.select('*',i)) <= 1, f'Entry {i}') # Single entry per node constraint
+            opt_model.addConstr(sum(y[i,j] for i,j in self.A.select(i,'*')) <= 1, f'Exit {i}') # Single exit per node constraint
+        opt_model.addConstr(sum(x) == 1, 'Single CF')  # Single CF constraint
+        opt_model.optimize()
+        return opt_model, x, y
 
 def distance_calculation(x, y, type='Euclidean'):
     """

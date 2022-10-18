@@ -8,9 +8,7 @@ from sklearn.neural_network import MLPClassifier
 class Model:
 
     def __init__(self, data) -> None:
-        self.data = data
-        self.scaler = self.data.scaler
-        self.model = self.train_model()
+        self.model = self.train_model(data)
     
     def best_model_params(self, grid_search_pd, data_str):
         """
@@ -44,11 +42,11 @@ class Model:
             best_model.fit(train_data,train_target) 
         return best_model
 
-    def train_model(self):
+    def train_model(self, data):
         """
         Constructs a model for the dataset using sklearn modules
         """
         grid_search_results = pd.read_csv(results_grid_search+'grid_search.csv', index_col = ['dataset','model'])
-        sel_model_str, params_best = self.best_model_params(grid_search_results, self.data.name)
-        global_model = self.classifier(sel_model_str, params_best, self.data.transformed_train_df, self.data.train_target)
+        sel_model_str, params_best = self.best_model_params(grid_search_results, data.name)
+        global_model = self.classifier(sel_model_str, params_best, data.transformed_train_df, data.train_target)
         return global_model
