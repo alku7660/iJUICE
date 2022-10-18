@@ -4,7 +4,7 @@ from itertools import filterfalse
 
 class Ijuice:
 
-    def __init__(self, data, ioi, model):
+    def __init__(self, data, model, ioi):
         self.name = data.name
         self.ioi_idx = ioi.idx
         self.ioi = ioi.x
@@ -47,15 +47,10 @@ class Ijuice:
     def nn(self, x, x_label, data, model):
         """
         Function that returns the nearest counterfactual with respect to instance of interest x
-        Input x: Instance of interest
-        Input x_label: Label of instance of interest x
-        Input data: Dataset object
-        Input model: Classifier trained
-        Output nn_cf: Minimum observable counterfactual to the instance of interest x
         """
         nn_cf = None
         for i in data.train_sorted:
-            if i[2] != x_label and model.predict(i[0].reshape(1,-1)) != x_label and self.verify_feasibility(x,i[0],data.feat_mutable,data.feat_type,data.feat_step) and not np.array_equal(x,i[0]):
+            if i[2] != x_label and model.model.predict(i[0].reshape(1,-1)) != x_label and self.verify_feasibility(x,i[0],data.feat_mutable,data.feat_type,data.feat_step) and not np.array_equal(x,i[0]):
                 nn_cf = i[0]
                 break
         if nn_cf is None:
@@ -96,7 +91,7 @@ class Ijuice:
         # for i in permutations:
         #     if model.predict(np.array(i).reshape(1, -1)) != self.ioi_label:
         #         yield i
-        permutations = filterfalse(lambda x: model.predict(x) == self.ioi_label, product(*feat_possible_values))
+        permutations = filterfalse(lambda x: model.model.predict(x) == self.ioi_label, product(*feat_possible_values))
         for i in permutations:
             yield i
 
