@@ -3,16 +3,14 @@ from itertools import product
 from itertools import filterfalse
 import gurobipy as gp
 from gurobipy import GRB, tuplelist
+from ioi_constructor import distance_calculation
 
 class Ijuice:
 
     def __init__(self, data, model, ioi):
         self.name = data.name
-        self.ioi_idx = ioi.idx
-        self.ioi = ioi.x
         self.normal_ioi = ioi.normal_x
-        self.ioi_label = ioi.label
-        self.nn_cf = self.nn(self.normal_ioi, self.ioi_label, data, model)
+        self.nn_cf = self.nn(ioi, data, model)
         self.C = self.get_cost(data, model) 
         self.A = self.get_adjacency(data, model)
         self.optimizer, self.x, self.y = self.do_optimize()
@@ -47,13 +45,13 @@ class Ijuice:
             feasibility = False
         return feasibility
 
-    def nn(self, x, x_label, data, model):
+    def nn(self, ioi, data, model):
         """
         Function that returns the nearest counterfactual with respect to instance of interest x
         """
         nn_cf = None
-        for i in data.train_sorted:
-            if i[2] != x_label and model.model.predict(i[0].reshape(1,-1)) != x_label and self.verify_feasibility(x,i[0],data.feat_mutable,data.feat_type,data.feat_step) and not np.array_equal(x,i[0]):
+        for i in ioi.train_sorted:
+            if i[2] != ioi.label and model.model.predict(i[0].reshape(1,-1)) != ioi.label and self.verify_feasibility(ioi.normal_x, i[0], data.feat_mutable, data.feat_type, data.feat_step) and not np.array_equal(ioi.normal_x, i[0]):
                 nn_cf = i[0]
                 break
         if nn_cf is None:
@@ -66,29 +64,30 @@ class Ijuice:
         Generator that contains all the nodes located in the space between the nn_cf and the normal_ioi (all possible, CF-labeled nodes)
         """
         v = self.normal_ioi - self.nn_cf
-        nonzero_index = np.nonzero(v)
+        nonzero_index = list(np.nonzero(v)[0])
         feat_checked = []
         feat_possible_values = []
         for i in nonzero_index:
             if i not in feat_checked:
-                if i in data.bin_enc_cols:
+                feat_i = data.processed_features[i]
+                if feat_i in data.bin_enc_cols:
                     value = [0,1]
                     feat_checked.extend(i)
-                elif i in data.cat_enc_cols:
+                elif feat_i in data.cat_enc_cols:
                     idx_cat_i = data.idx_cat_cols_dict[data.processed_features[i][:-2]]
-                    ioi_cat_idx = self.normal_ioi[idx_cat_i]
-                    nn_cat_idx = self.nn_cf[idx_cat_i]
+                    ioi_cat_idx = list(self.normal_ioi[idx_cat_i])
+                    nn_cat_idx = list(self.nn_cf[idx_cat_i])
                     value = [ioi_cat_idx,nn_cat_idx]
                     feat_checked.extend(idx_cat_i)
-                elif i in data.ordinal:
+                elif feat_i in data.ordinal:
                     values_i = list(data.processed_feat_dist[data.processed_features[i]].keys())
                     max_val_i, min_val_i = max(self.normal_ioi[i],self.nn_cf[i]), min(self.normal_ioi[i],self.nn_cf[i])
                     value = [j for j in values_i if j <= max_val_i and j >= min_val_i]
                     feat_checked.extend(i)
-                elif i in data.continuous:
+                elif feat_i in data.continuous:
                     max_val_i, min_val_i = max(self.normal_ioi[i],self.nn_cf[i]), min(self.normal_ioi[i],self.nn_cf[i])
                     value = list(np.linspace(min_val_i, max_val_i, num = 100, endpoint = True))
-                    feat_checked.extend(i)
+                    feat_checked.extend([i])
                 feat_possible_values.append(value)
         # permutations = product(*feat_possible_values)
         # for i in permutations:
@@ -109,8 +108,10 @@ class Ijuice:
         """
         C = {}
         nodes = self.get_nodes(data, model)
-        for i in range(1, len(nodes) + 1):
-            C[i] = distance_calculation(self.normal_ioi, nodes[i - 1])
+        ind = 1
+        for i in nodes:
+            C[ind] = distance_calculation(self.normal_ioi, i)
+            ind += 1
         return C
 
     def get_adjacency(self, data, model):
@@ -157,10 +158,3 @@ class Ijuice:
         opt_model.addConstr(sum(x) == 1, 'Single CF')  # Single CF constraint
         opt_model.optimize()
         return opt_model, x, y
-
-def distance_calculation(x, y, type='Euclidean'):
-    """
-    Method that calculates the distance between two points. Default is Euclidean.
-    """
-    if type == 'Euclidean':
-        return np.sqrt(np.sum((x - y)**2))

@@ -14,15 +14,14 @@ class Model:
         """
         Method that delivers the best model and its parameters according to the Grid Search done
         """
-        if data_str in ['sinusoid','bank','ionosphere','german','dutch','kdd_census','student']:
+        if data_str in ['bank','ionosphere','german','dutch','kdd_census','student']:
             best = 'rf'
-        elif data_str in ['synthetic_circle','piecewise','synthetic_diagonal_0','synthetic_diagonal_1_8','synthetic_diagonal_plane','synthetic_cubic_0','synthetic_cubic_1_8',
-                        'adult','compass','credit','diabetes','german','law','oulad']:
+        elif data_str in ['adult','compass','credit','diabetes','german','law','oulad','synthetic_athlete','synthetic_disease']:
             best = 'mlp'
         params_best = ast.literal_eval(grid_search_pd.loc[(data_str, best), 'params'])[0]
         return best, params_best
 
-    def classifier(model_str, best_params, train_data, train_target):
+    def classifier(self, model_str, best_params, train_data, train_target):
         """
         Method that outputs the best trained model according to Grid Search done
         """

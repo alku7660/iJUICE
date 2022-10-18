@@ -26,7 +26,7 @@ class Dataset:
         self.train_df, self.train_target = self.balance_train_data()
         self.bin_enc, self.cat_enc, self.scaler = self.encoder_scaler_fit()
         self.bin_enc_cols, self.cat_enc_cols = self.encoder_scaler_cols()
-        self.processed_features = self.bin_enc_cols + self.cat_enc_cols + self.ordinal + self.continuous
+        self.processed_features = list(self.bin_enc_cols) + list(self.cat_enc_cols) + self.ordinal + self.continuous
         self.transformed_train_df = self.transform_data(self.train_df)
         self.transformed_train_np = self.transformed_train_df.to_numpy()
         self.transformed_test_df = self.transform_data(self.test_df)
@@ -49,7 +49,7 @@ class Dataset:
         label_value_counts = train_data_label.value_counts()
         samples_per_class = label_value_counts.min()
         balanced_train_df = pd.concat([self.train_df[(train_data_label == 0).to_numpy()].sample(samples_per_class, random_state = self.seed),
-        self.df[(train_data_label == 1).to_numpy()].sample(samples_per_class, random_state = self.seed),]).sample(frac = 1, random_state = self.seed)
+        self.train_df[(train_data_label == 1).to_numpy()].sample(samples_per_class, random_state = self.seed),]).sample(frac = 1, random_state = self.seed)
         balanced_train_df_label = balanced_train_df[self.label_name]
         try:
             del balanced_train_df[self.label_name]
@@ -80,7 +80,9 @@ class Dataset:
         Method that transforms the input dataframe using the encoder and scaler
         """
         data_bin, data_cat, data_ord_cont = data_df[self.binary], data_df[self.categorical], data_df[self.ordinal + self.continuous]
-        enc_data_bin, enc_data_cat, sca_data_ord_cont = self.bin_enc.transform(data_bin).toarray(), self.cat_enc.transform(data_cat).toarray(), self.scaler.transform(data_ord_cont).toarray()
+        enc_data_bin = self.bin_enc.transform(data_bin).toarray()
+        enc_data_cat = self.cat_enc.transform(data_cat).toarray()
+        sca_data_ord_cont = self.scaler.transform(data_ord_cont)
         enc_data_bin_df = pd.DataFrame(enc_data_bin, index=data_bin.index, columns=self.bin_enc_cols)
         enc_data_cat_df = pd.DataFrame(enc_data_cat, index=data_cat.index, columns=self.cat_enc_cols)
         sca_data_ord_cont_df = pd.DataFrame(sca_data_ord_cont, index=data_ord_cont.index, columns=self.ordinal+self.continuous)
@@ -241,8 +243,8 @@ class Dataset:
         num_instances_processed_train = self.transformed_train_df.shape[0]
         feat_dist = {}
         processed_feat_dist = {}
-        all_non_con_feat = self.binary+self.categorical+self.ordinal
-        all_non_con_processed_feat = self.bin_enc_cols+self.cat_enc_cols+self.ordinal
+        all_non_con_feat = self.binary + self.categorical + self.ordinal
+        all_non_con_processed_feat = list(self.bin_enc_cols) + list(self.cat_enc_cols) + self.ordinal
         if len(all_non_con_feat) > 0:
             for i in all_non_con_feat:
                 feat_dist[i] = ((self.train_df[i].value_counts()+1)/(num_instances_train_df+len(np.unique(self.train_df[i])))).to_dict() # +1 for laplacian counter
@@ -289,7 +291,7 @@ def load_dataset(data_str, train_fraction, seed, step):
         ordinal = ['Weight']
         continuous = ['Age','ExerciseMinutes','SleepHours']
         label = 'Label'
-        processed_df = pd.read_csv(dataset_dir+'synthetic_disease/processed_synthetic_disease.csv',index_col=0)
+        df = pd.read_csv(dataset_dir+'synthetic_disease/processed_synthetic_disease.csv',index_col=0)
 
     data_obj = Dataset(data_str, seed, train_fraction, label, df,
                    binary, categorical, ordinal, continuous, step)

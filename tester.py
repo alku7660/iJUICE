@@ -5,16 +5,17 @@ from ijuice import Ijuice
 from address import save_obj, results_obj
 
 # datasets = ['adult','bank','compass','credit','dutch','diabetes','german','ionosphere','kdd_census','law','oulad','student','synthetic_athlete','synthetic_disease']
-datasets = ['ionosphere','synthetic_athlete','synthetic_disease']
+datasets = ['synthetic_athlete','synthetic_disease']
 seed_int = 54321
 step = 0.01
 train_fraction = 0.7
 
 for data_str in datasets:
-    data = load_dataset(data_str, seed_int, train_fraction, step)
+    data = load_dataset(data_str, train_fraction, seed_int, step)
     model = Model(data)
     num_instances = 1 # data.test_df.shape[0]
-    for idx in range(num_instances):
+    for ins in range(num_instances):
+        idx = data.test_df.index[ins]
         ioi = IOI(idx, data, model)
         ijuice_obj = Ijuice(data, model, ioi)
         
