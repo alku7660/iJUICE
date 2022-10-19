@@ -1,7 +1,6 @@
 import numpy as np
 from itertools import product
-from itertools import filterfalse
-from itertools import chain
+import networkx as nx
 import gurobipy as gp
 from gurobipy import GRB, tuplelist
 from ioi_constructor import distance_calculation
@@ -11,6 +10,7 @@ class Ijuice:
     def __init__(self, data, model, ioi):
         self.name = data.name
         self.normal_ioi = ioi.normal_x
+        self.ioi_label = ioi.label
         self.nn_cf = self.nn(ioi, data, model)
         self.feat_possible_values = self.get_feat_possible_values(data)
         self.C = self.get_cost(model) 
@@ -98,7 +98,7 @@ class Ijuice:
                 elif feat_i in data.continuous:
                     if i in nonzero_index:
                         max_val_i, min_val_i = max(self.normal_ioi[i],self.nn_cf[i]), min(self.normal_ioi[i],self.nn_cf[i])
-                        value = list(np.linspace(min_val_i, max_val_i, num = 100, endpoint = True))
+                        value = list(np.linspace(min_val_i, max_val_i, num = 101, endpoint = True))
                     else:
                         value = [self.nn_cf[i]]
                     feat_checked.extend([i])
@@ -126,7 +126,7 @@ class Ijuice:
         for i in permutations:
             perm_i = self.make_array(i)
             if model.model.predict(perm_i.reshape(1, -1)) != self.ioi_label and not np.array_equal(perm_i,self.nn_cf):
-                yield i
+                yield perm_i
 
     def get_cost(self, model):
         """
@@ -145,28 +145,33 @@ class Ijuice:
         """
         Method that outputs the adjacency matrix required for optimization
         """
-        toler = 0.000001
-        nodes = list(self.get_nodes(model))
+        toler = 0.00001
+        nodes = [self.nn_cf]
+        nodes.extend(list(self.get_nodes(model)))
         A = tuplelist()
         for i in range(1, len(nodes) + 1):
             node_i = nodes[i - 1]
             for j in range(i + 1, len(nodes) + 1):
                 node_j = nodes[j - 1]
                 vector_ij = node_j - node_i
-                nonzero_index = np.nonzero(vector_ij)
+                nonzero_index = list(np.nonzero(vector_ij)[0])
+                feat_nonzero = [data.processed_features[l] for l in nonzero_index]
                 if len(nonzero_index) > 2:
                     continue
                 elif len(nonzero_index) == 2:
-                    if any(map(lambda x: x in data.cat_enc_cols, nonzero_index)):
+                    if any(item in data.cat_enc_cols for item in feat_nonzero):
                         A.append((i,j))
                 elif len(nonzero_index) == 1:
-                    if nonzero_index in data.ordinal:
-                        if np.isclose(np.abs(vector_ij[nonzero_index]),data.feat_step[nonzero_index],atol=toler).any():
+                    if any(item in data.ordinal for item in feat_nonzero):
+                        if np.isclose(np.abs(vector_ij[nonzero_index]),data.feat_step[feat_nonzero],atol=toler).any():
                             A.append((i,j))
-                    elif nonzero_index in data.continuous:
+                    elif any(item in data.continuous for item in feat_nonzero):
                         list_values = [k[nonzero_index] for k in nodes]
                         min_value, max_value = np.min(list_values), np.max(list_values)
-                        if np.isclose(np.abs(vector_ij[nonzero_index]),(max_value - min_value)/100,atol=toler):
+                        if np.less(np.abs(vector_ij[nonzero_index]),(max_value - min_value)/100 + toler):
+                            A.append((i,j))
+                    elif any(item in data.binary for item in feat_nonzero):
+                        if np.isclose(np.abs(vector_ij[nonzero_index]),[0,1],atol=toler).any():
                             A.append((i,j))
         return A
 
@@ -175,13 +180,35 @@ class Ijuice:
         Method that finds iJUICE CF using an optimization package
         """
         opt_model = gp.Model(name='iJUICE')
-        set_I = self.C.keys()
-        x = opt_model.addVars(set_I, vtype=GRB.BINARY, obj=self.C, name='iJUICE_cf')   # Function to optimize and x variables
-        y = opt_model.addVars(self.A, vtype=GRB.BINARY, name='Path') # y variables
-        for i in range(1, len(set_I) + 1): 
-            opt_model.addConstr(sum(y[i,j] for i,j in self.A.select(i,'*')) - sum(y[j,i] for j,i in self.A.select('*',i)) == (1 if i == 1 else -x[i]), f'Network {i}') # Network constraints
-            opt_model.addConstr(sum(y[j,i] for j,i in self.A.select('*',i)) <= 1, f'Entry {i}') # Single entry per node constraint
-            opt_model.addConstr(sum(y[i,j] for i,j in self.A.select(i,'*')) <= 1, f'Exit {i}') # Single exit per node constraint
-        opt_model.addConstr(sum(x) == 1, 'Single CF')  # Single CF constraint
+        G = nx.DiGraph()
+        G.add_edges_from(self.A)
+        set_I = list(self.C.keys())   
+        x = opt_model.addVars(set_I, vtype=GRB.BINARY, obj=np.array(list(self.C.values())), name='iJUICE_cf')   # Function to optimize and x variables
+        # opt_model.setObjective(x @ np.array(list(self.C.values())), GRB.MINIMIZE)
+        y = gp.tupledict()
+        for (i,j) in G.edges:
+            y[i,j] = opt_model.addVar(vtype=GRB.BINARY, name='Path')
+        for v in G.nodes:
+            if v > 1:
+                opt_model.addConstr(gp.quicksum(y[i,v] for i in G.predecessors(v)) - gp.quicksum(y[v,j] for j in G.successors(v)) == x[v])
+            else:
+                opt_model.addConstr(gp.quicksum(y[i,v] for i in G.predecessors(v)) - gp.quicksum(y[v,j] for j in G.successors(v)) == -1)      
+        # opt_model.addConstr(sum(x) == 1, 'Single CF')  # Single CF constraint
         opt_model.optimize()
         return opt_model, x, y
+
+    # def do_optimize(self):
+    #     """
+    #     Method that finds iJUICE CF using an optimization package
+    #     """
+    #     opt_model = gp.Model(name='iJUICE')
+    #     set_I = list(self.C.keys())
+    #     x = opt_model.addVars(set_I, vtype=GRB.BINARY, obj=self.C, name='iJUICE_cf')   # Function to optimize and x variables
+    #     y = opt_model.addVars(self.A, vtype=GRB.BINARY, name='Path') # y variables
+    #     for i in set_I: 
+    #         opt_model.addConstr(sum(y[i,j] for i,j in self.A.select(i,'*')) - sum(y[j,i] for j,i in self.A.select('*',i)) == (1 if i == 1 else -x[i]), f'Network {i}') # Network constraints
+    #         opt_model.addConstr(sum(y[j,i] for j,i in self.A.select('*',i)) <= 1, f'Entry {i}') # Single entry per node constraint
+    #         opt_model.addConstr(sum(y[i,j] for i,j in self.A.select(i,'*')) <= 1, f'Exit {i}') # Single exit per node constraint
+    #     opt_model.addConstr(sum(x) == 1, 'Single CF')  # Single CF constraint
+    #     opt_model.optimize()
+    #     return opt_model, x, y

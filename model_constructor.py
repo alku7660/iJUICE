@@ -47,5 +47,5 @@ class Model:
         """
         grid_search_results = pd.read_csv(results_grid_search+'grid_search.csv', index_col = ['dataset','model'])
         sel_model_str, params_best = self.best_model_params(grid_search_results, data.name)
-        global_model = self.classifier(sel_model_str, params_best, data.transformed_train_df, data.train_target)
+        global_model = self.classifier(sel_model_str, params_best, data.transformed_train_np, data.train_target)
         return global_model
