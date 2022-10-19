@@ -1,6 +1,7 @@
 import numpy as np
 from itertools import product
 from itertools import filterfalse
+from itertools import chain
 import gurobipy as gp
 from gurobipy import GRB, tuplelist
 from ioi_constructor import distance_calculation
@@ -69,47 +70,63 @@ class Ijuice:
         feat_checked = []
         feat_possible_values = []
         for i in range(len(self.normal_ioi)):
-            if i in nonzero_index:
-                if i not in feat_checked:
-                    feat_i = data.processed_features[i]
-                    if feat_i in data.bin_enc_cols:
+            if i not in feat_checked:
+                feat_i = data.processed_features[i]
+                if feat_i in data.bin_enc_cols:
+                    if i in nonzero_index:
                         value = [self.nn_cf[i],self.normal_ioi[i]]
-                        feat_checked.extend(i)
-                    elif feat_i in data.cat_enc_cols:
-                        idx_cat_i = data.idx_cat_cols_dict[data.processed_features[i][:-2]]
-                        nn_cat_idx = list(self.nn_cf[idx_cat_i])
+                    else:
+                        value = [self.nn_cf[i]]
+                    feat_checked.extend([i])
+                elif feat_i in data.cat_enc_cols:
+                    idx_cat_i = data.idx_cat_cols_dict[data.processed_features[i][:-2]]
+                    nn_cat_idx = list(self.nn_cf[idx_cat_i])
+                    if any(item in idx_cat_i for item in nonzero_index):
                         ioi_cat_idx = list(self.normal_ioi[idx_cat_i])
                         value = [nn_cat_idx,ioi_cat_idx]
-                        feat_checked.extend(idx_cat_i)
-                    elif feat_i in data.ordinal:
+                    else:
+                        value = [nn_cat_idx]
+                    feat_checked.extend(idx_cat_i)
+                elif feat_i in data.ordinal:
+                    if i in nonzero_index:
                         values_i = list(data.processed_feat_dist[data.processed_features[i]].keys())
                         max_val_i, min_val_i = max(self.normal_ioi[i],self.nn_cf[i]), min(self.normal_ioi[i],self.nn_cf[i])
                         value = [j for j in values_i if j <= max_val_i and j >= min_val_i]
-                        feat_checked.extend(i)
-                    elif feat_i in data.continuous:
+                    else:
+                        value = [self.nn_cf[i]]
+                    feat_checked.extend([i])
+                elif feat_i in data.continuous:
+                    if i in nonzero_index:
                         max_val_i, min_val_i = max(self.normal_ioi[i],self.nn_cf[i]), min(self.normal_ioi[i],self.nn_cf[i])
                         value = list(np.linspace(min_val_i, max_val_i, num = 100, endpoint = True))
-                        feat_checked.extend([i])
-                    feat_possible_values.append(value)
-            else:
-                if i not in feat_checked:
+                    else:
+                        value = [self.nn_cf[i]]
                     feat_checked.extend([i])
-                    feat_possible_values.append([self.nn_cf[i]])
+                feat_possible_values.append(value)
         return feat_possible_values
+
+    def make_array(self, i):
+        """
+        Method that transforms a generator instance into array  
+        """
+        list_i = list(i)
+        new_list = []
+        for j in list_i:
+            if isinstance(j,list):
+                new_list.extend([k for k in j])
+            else:
+                new_list.extend([j])
+        return np.array(new_list)
 
     def get_nodes(self, model):
         """
         Generator that contains all the nodes located in the space between the nn_cf and the normal_ioi (all possible, CF-labeled nodes)
         """
-        # permutations = product(*feat_possible_values)
-        # for i in permutations:
-        #     if model.predict(np.array(i).reshape(1, -1)) != self.ioi_label:
-        #         yield i
         permutations = product(*self.feat_possible_values)
-        permutations = filterfalse(lambda x: model.model.predict(x) == self.ioi_label, permutations)
-        permutations = filterfalse(lambda x: np.array_equal(x,self.nn_cf), permutations)
         for i in permutations:
-            yield i
+            perm_i = self.make_array(i)
+            if model.model.predict(perm_i.reshape(1, -1)) != self.ioi_label and not np.array_equal(perm_i,self.nn_cf):
+                yield i
 
     def get_cost(self, model):
         """
