@@ -4,6 +4,7 @@ import ast
 from address import results_grid_search
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neural_network import MLPClassifier
+from sklearn.metrics import f1_score
 
 class Model:
 
@@ -21,7 +22,7 @@ class Model:
         params_best = ast.literal_eval(grid_search_pd.loc[(data_str, best), 'params'])[0]
         return best, params_best
 
-    def classifier(self, model_str, best_params, train_data, train_target):
+    def classifier(self, model_str, best_params, train_data, train_target, test_data, test_target):
         """
         Method that outputs the best trained model according to Grid Search done
         """
@@ -38,7 +39,8 @@ class Model:
             best_min_samples_split = best_params['min_samples_split']
             best_n_estimators = best_params['n_estimators']
             best_model = RandomForestClassifier(max_depth=best_max_depth, min_samples_leaf=best_min_samples_leaf, min_samples_split=best_min_samples_split, n_estimators=best_n_estimators)
-            best_model.fit(train_data,train_target) 
+            best_model.fit(train_data,train_target)
+        print(f'Model test F1 score: {f1_score(test_target, best_model.predict(test_data))}')
         return best_model
 
     def train_model(self, data):
@@ -47,5 +49,5 @@ class Model:
         """
         grid_search_results = pd.read_csv(results_grid_search+'grid_search.csv', index_col = ['dataset','model'])
         sel_model_str, params_best = self.best_model_params(grid_search_results, data.name)
-        global_model = self.classifier(sel_model_str, params_best, data.transformed_train_np, data.train_target)
+        global_model = self.classifier(sel_model_str, params_best, data.transformed_train_np, data.train_target, data.transformed_test_np, data.test_target)
         return global_model

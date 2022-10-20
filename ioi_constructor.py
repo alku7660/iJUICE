@@ -21,9 +21,16 @@ class IOI:
         sort_data_distance.sort(key=lambda x: x[1])
         return sort_data_distance
 
-def distance_calculation(x, y, type='Euclidean'):
+def distance_calculation(x, y, type='euclidean'):
     """
-    Method that calculates the distance between two points. Default is Euclidean.
+    Method that calculates the distance between two points. Default is 'euclidean'. Other types are 'L1', 'mixed_L1' and 'mixed_L1_Linf'
     """
-    if type == 'Euclidean':
+    if type == 'euclidean':
         return np.sqrt(np.sum((x - y)**2))
+    elif type == 'L1':
+        return np.sum(np.abs(x - y))
+    elif type == 'mixed_L1':
+        
+        return 1
+    elif type == 'mixed_L1_Linf':
+        return 1

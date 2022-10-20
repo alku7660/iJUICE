@@ -7,13 +7,13 @@ from ioi_constructor import distance_calculation
 
 class Ijuice:
 
-    def __init__(self, data, model, ioi):
+    def __init__(self, data, model, ioi, type='euclidean'):
         self.name = data.name
         self.normal_ioi = ioi.normal_x
         self.ioi_label = ioi.label
         self.nn_cf = self.nn(ioi, data, model)
         self.feat_possible_values = self.get_feat_possible_values(data)
-        self.C = self.get_cost(model) 
+        self.C = self.get_cost(model, type) 
         self.A = self.get_adjacency(data, model)
         self.optimizer, self.x, self.y = self.do_optimize()
     
@@ -128,16 +128,16 @@ class Ijuice:
             if model.model.predict(perm_i.reshape(1, -1)) != self.ioi_label and not np.array_equal(perm_i,self.nn_cf):
                 yield perm_i
 
-    def get_cost(self, model):
+    def get_cost(self, model, type):
         """
         Method that outputs the cost parameters required for optimization
         """
         C = {}
-        C[1] = distance_calculation(self.normal_ioi, self.nn_cf)
+        C[1] = distance_calculation(self.normal_ioi, self.nn_cf, type)
         nodes = self.get_nodes(model)
         ind = 2
         for i in nodes:
-            C[ind] = distance_calculation(self.normal_ioi, i)
+            C[ind] = distance_calculation(self.normal_ioi, i, type)
             ind += 1
         return C
 
@@ -184,7 +184,6 @@ class Ijuice:
         G.add_edges_from(self.A)
         set_I = list(self.C.keys())   
         x = opt_model.addVars(set_I, vtype=GRB.BINARY, obj=np.array(list(self.C.values())), name='iJUICE_cf')   # Function to optimize and x variables
-        # opt_model.setObjective(x @ np.array(list(self.C.values())), GRB.MINIMIZE)
         y = gp.tupledict()
         for (i,j) in G.edges:
             y[i,j] = opt_model.addVar(vtype=GRB.BINARY, name='Path')
@@ -193,7 +192,6 @@ class Ijuice:
                 opt_model.addConstr(gp.quicksum(y[i,v] for i in G.predecessors(v)) - gp.quicksum(y[v,j] for j in G.successors(v)) == x[v])
             else:
                 opt_model.addConstr(gp.quicksum(y[i,v] for i in G.predecessors(v)) - gp.quicksum(y[v,j] for j in G.successors(v)) == -1)      
-        # opt_model.addConstr(sum(x) == 1, 'Single CF')  # Single CF constraint
         opt_model.optimize()
         return opt_model, x, y
 
