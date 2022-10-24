@@ -267,6 +267,18 @@ class Dataset:
             test_target = self.test_target.to_numpy().reshape((len(self.test_target.to_numpy()),))
         return train_target, test_target
 
+    def inverse(self, normal_x):
+        """
+        Method that transforms an instance back into the original space
+        """
+        normal_x_df = pd.DataFrame(data=normal_x, columns=self.processed_features)
+        normal_x_df_bin, normal_x_df_cat, normal_x_df_ord_cont = normal_x_df[self.bin_enc_cols], normal_x_df[self.cat_enc_cols], normal_x_df[self.ordinal+self.continuous]
+        x_bin = self.bin_enc.inverse_transform(normal_x_df_bin).toarray()
+        x_cat = self.cat_enc.inverse_transform(normal_x_df_cat).toarray()
+        x_ord_cont = self.scaler.inverse_transform(normal_x_df_ord_cont).toarray()
+        x = np.concatenate((x_bin, x_cat, x_ord_cont), axis=1)
+        return x
+
 def load_dataset(data_str, train_fraction, seed, step):
     """
     Function to load all datasets according to data_str and train_fraction

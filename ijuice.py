@@ -3,19 +3,21 @@ from itertools import product
 import networkx as nx
 import gurobipy as gp
 from gurobipy import GRB, tuplelist
-from ioi_constructor import distance_calculation
+from evaluator_constructor import distance_calculation
 
 class Ijuice:
 
     def __init__(self, data, model, ioi, type='euclidean'):
         self.name = data.name
+        self.ioi = ioi.x
         self.normal_ioi = ioi.normal_x
         self.ioi_label = ioi.label
-        self.nn_cf = self.nn(ioi, data, model)
         self.feat_possible_values = self.get_feat_possible_values(data)
+        self.nn_cf = self.nn(ioi, data, model)
         self.C = self.get_cost(model, type) 
         self.A = self.get_adjacency(data, model)
-        self.optimizer, self.x, self.y = self.do_optimize()
+        self.optimizer, self.normal_x_cf, self.sol_y = self.do_optimize(model)
+        self.x_cf = data.inverse(self.normal_x_cf)
     
     def verify_feasibility(self, x, cf, mutable_feat, feat_type, feat_step):
         """
@@ -175,7 +177,7 @@ class Ijuice:
                             A.append((i,j))
         return A
 
-    def do_optimize(self):
+    def do_optimize(self, model):
         """
         Method that finds iJUICE CF using an optimization package
         """
@@ -193,7 +195,17 @@ class Ijuice:
             else:
                 opt_model.addConstr(gp.quicksum(y[i,v] for i in G.predecessors(v)) - gp.quicksum(y[v,j] for j in G.successors(v)) == -1)      
         opt_model.optimize()
-        return opt_model, x, y
+
+        nodes = [self.nn_cf]
+        nodes.extend(list(self.get_nodes(model)))
+        sol_y = {}
+        for i in self.C.keys():
+            if x[i].x > 0:
+                sol_x = nodes[i - 1]
+        for i,j in self.A:
+            if y[i,j].x > 0:
+                sol_y[i,j] = y[i,j].x
+        return opt_model, sol_x, sol_y
 
     # def do_optimize(self):
     #     """
