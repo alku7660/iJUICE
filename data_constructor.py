@@ -35,7 +35,7 @@ class Dataset:
         self.undesired_class = self.undesired_class_data()
         self.feat_type = self.define_feat_type()
         self.feat_mutable = self.define_feat_mutability()
-        self.feat_directionality = self.define_feat_directionality()
+        self.feat_dir = self.define_feat_directionality()
         self.feat_step = self.define_feat_step()
         self.feat_cat = self.define_feat_cat()
         self.idx_cat_cols_dict = self.idx_cat_columns()
