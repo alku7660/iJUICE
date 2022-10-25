@@ -16,8 +16,7 @@ class Ijuice:
         self.nn_cf = self.nn(ioi, data, model)
         self.C = self.get_cost(model, type) 
         self.A = self.get_adjacency(data, model, split)
-        self.optimizer, self.normal_x_cf, self.sol_y = self.do_optimize(model)
-        self.x_cf = data.inverse(self.normal_x_cf)
+        self.optimizer, self.normal_x_cf = self.do_optimize(model)
 
     def nn(self, ioi, data, model):
         """
@@ -178,17 +177,16 @@ class Ijuice:
             else:
                 opt_model.addConstr(gp.quicksum(y[i,v] for i in G.predecessors(v)) - gp.quicksum(y[v,j] for j in G.successors(v)) == -1)      
         opt_model.optimize()
-
         nodes = [self.nn_cf]
         nodes.extend(list(self.get_nodes(model)))
         sol_y = {}
         for i in self.C.keys():
             if x[i].x > 0:
                 sol_x = nodes[i - 1]
-        for i,j in self.A:
-            if y[i,j].x > 0:
-                sol_y[i,j] = y[i,j].x
-        return opt_model, sol_x, sol_y
+        # for i,j in self.A:
+        #     if y[i,j].x > 0:
+        #         sol_y[i,j] = y[i,j].x
+        return opt_model, sol_x
 
     # def do_optimize(self):
     #     """

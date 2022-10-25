@@ -6,9 +6,11 @@ from gurobipy import GRB, tuplelist
 
 class Evaluator():
 
-    def __init__(self, data, cf_method_name):
+    def __init__(self, data, cf_method_name, type, split):
         self.data_name = data.name
         self.cf_method = cf_method_name
+        self.distance_type = type
+        self.continuous_split = split
         self.feat_type = data.feat_type
         self.feat_mutable = data.feat_mutable
         self.feat_directionality = data.feat_directionality
@@ -17,9 +19,9 @@ class Evaluator():
         self.data_cols = data.processed_features
         self.x_dict, self.normal_x_dict = {}, {}
         self.normal_x_cf_dict, self.x_cf_dict = {}, {}
-        self.proximity_dict, self.feasibility_dict, self.sparsity_dict, self.time_dict = {}, {}, {}, {}
+        self.proximity_dict, self.feasibility_dict, self.sparsity_dict, self.justification_dict, self.time_dict = {}, {}, {}, {}, {}
 
-    def add_specific_x_data(self, data, ioi, cf_method):
+    def add_specific_x_data(self, data, model, ioi, cf_method):
         """
         Method to add specific data from an instance x
         """
@@ -27,9 +29,10 @@ class Evaluator():
         self.x_dict[ioi.idx] = ioi.x
         self.normal_x_dict[ioi.idx] = ioi.normal_x
         self.x_cf_dict[ioi.idx] = x_cf
-        self.proximity_dict[ioi.idx] = distance_calculation(ioi.x, cf_method.normal_x_cf, data)
+        self.proximity_dict[ioi.idx] = distance_calculation(ioi.x, cf_method.normal_x_cf, data, self.distance_type)
         self.feasibility_dict[ioi.idx] = verify_feasibility(ioi.normal_x, cf_method.normal_x_cf, data)
         self.sparsity_dict[ioi.idx] = sparsity(ioi.normal_x, cf_method.normal_x_cf, data)
+        self.justification_dict[ioi.idx] = verify_justification(cf_method.normal_x_cf, data, ioi, model, self.distance_type, self.continuous_split)
 
 def distance_calculation(x, y, data, type='euclidean'):
     """
@@ -37,15 +40,14 @@ def distance_calculation(x, y, data, type='euclidean'):
     """
     x_original, y_original = data.inverse(x), data.inverse(y)
     if type == 'euclidean':
-        return np.sqrt(np.sum((x - y)**2))
+        distance = np.sqrt(np.sum((x - y)**2))
     elif type == 'L1':
-        return np.sum(np.abs(x - y))
+        distance = np.sum(np.abs(x - y))
     elif type == 'mixed_L1':
-        return 1
+        distance = 1
     elif type == 'mixed_L1_Linf':
-        return 1
-    else:
-        return 1
+        distance = 1
+    return distance
 
 def verify_feasibility(x, cf, data):
     """
@@ -267,7 +269,7 @@ def verify_justification(cf, data, ioi, model, type, split):
             else:
                 opt_model_i.addConstr(gp.quicksum(y[i,v] for i in G.predecessors(v)) - gp.quicksum(y[v,j] for j in G.successors(v)) == -1)      
         opt_model_i.optimize()
-        nodes = cf
+        nodes = [cf]
         nodes.extend(list(get_nodes(model)))
         sol_y = {}
         for i in cost.keys():
