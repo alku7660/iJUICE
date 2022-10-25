@@ -3,55 +3,21 @@ from itertools import product
 import networkx as nx
 import gurobipy as gp
 from gurobipy import GRB, tuplelist
-from evaluator_constructor import distance_calculation
+from evaluator_constructor import distance_calculation, verify_feasibility
 
 class Ijuice:
 
-    def __init__(self, data, model, ioi, type='euclidean'):
+    def __init__(self, data, model, ioi, type='euclidean', split='100'):
         self.name = data.name
         self.ioi = ioi.x
         self.normal_ioi = ioi.normal_x
         self.ioi_label = ioi.label
-        self.feat_possible_values = self.get_feat_possible_values(data)
+        self.feat_possible_values = self.get_feat_possible_values(data, split)
         self.nn_cf = self.nn(ioi, data, model)
         self.C = self.get_cost(model, type) 
-        self.A = self.get_adjacency(data, model)
+        self.A = self.get_adjacency(data, model, split)
         self.optimizer, self.normal_x_cf, self.sol_y = self.do_optimize(model)
         self.x_cf = data.inverse(self.normal_x_cf)
-    
-    def verify_feasibility(self, x, cf, data):
-        """
-        Method that indicates whether the cf is a feasible counterfactual with respect to x, feature mutability and directionality
-        """
-        toler = 0.000001
-        feasibility = True
-        for i in range(len(data.feat_type)):
-            if data.feat_type[i] == 'bin' or data.feat_type[i] == 'cat':
-                if not np.isclose(cf[i], [0,1],atol=toler).any():
-                    feasibility = False
-                    break
-            elif data.feat_type[i] == 'ord':
-                possible_val = np.linspace(0,1,int(1/data.feat_step[i]+1),endpoint=True)
-                if not np.isclose(cf[i],possible_val,atol=toler).any():
-                    feasibility = False
-                    break  
-            else:
-                if cf[i] < 0-toler or cf[i] > 1+toler:
-                    feasibility = False
-                    break
-            vector = cf - x
-            if data.feat_dir[i] == 0 and vector[i] != 0:
-                feasibility = False
-                break
-            elif data.feat_dir[i] == 'pos' and vector[i] < 0:
-                feasibility = False
-                break
-            elif data.feat_dir[i] == 'neg' and vector[i] > 0:
-                feasibility = False
-                break
-        if not np.array_equal(x[np.where(data.feat_mutable == 0)],cf[np.where(data.feat_mutable == 0)]):
-            feasibility = False
-        return feasibility
 
     def nn(self, ioi, data, model):
         """
@@ -59,7 +25,7 @@ class Ijuice:
         """
         nn_cf = None
         for i in ioi.train_sorted:
-            if i[2] != ioi.label and model.model.predict(i[0].reshape(1,-1)) != ioi.label and self.verify_feasibility(ioi.normal_x, i[0], data) and not np.array_equal(ioi.normal_x, i[0]):
+            if i[2] != ioi.label and model.model.predict(i[0].reshape(1,-1)) != ioi.label and verify_feasibility(ioi.normal_x, i[0], data) and not np.array_equal(ioi.normal_x, i[0]):
                 nn_cf = i[0]
                 break
         if nn_cf is None:
@@ -67,7 +33,19 @@ class Ijuice:
             return nn_cf
         return nn_cf
 
-    def get_feat_possible_values(self, data):
+    def continuous_feat_values(self, i, min_val, max_val, data, split):
+        """
+        Method that defines how to discretize the continuous features
+        """
+        if split in ['2','5','10','20','50','100']:
+            value = list(np.linspace(min_val, max_val, num = int(split) + 1, endpoint = True))
+        elif split == 'train':
+            sorted_feat_i = list(np.sort(data.transformed_train_np[:,i][(data.transformed_train_np[:,i] > min_val) & (data.transformed_train_np[:,i] < max_val)]))
+            sorted_feat_i = min_val + sorted_feat_i + max_val 
+            value = list(np.unique(sorted_feat_i))
+        return value
+
+    def get_feat_possible_values(self, data, split):
         """
         Method that obtains the features possible values
         """
@@ -104,7 +82,7 @@ class Ijuice:
                 elif feat_i in data.continuous:
                     if i in nonzero_index:
                         max_val_i, min_val_i = max(self.normal_ioi[i],self.nn_cf[i]), min(self.normal_ioi[i],self.nn_cf[i])
-                        value = list(np.linspace(min_val_i, max_val_i, num = 101, endpoint = True))
+                        value = self.continuous_feat_values(i, min_val_i, max_val_i, data, split)
                     else:
                         value = [self.nn_cf[i]]
                     feat_checked.extend([i])
@@ -147,7 +125,7 @@ class Ijuice:
             ind += 1
         return C
 
-    def get_adjacency(self, data, model):
+    def get_adjacency(self, data, model, split):
         """
         Method that outputs the adjacency matrix required for optimization
         """
@@ -172,9 +150,10 @@ class Ijuice:
                         if np.isclose(np.abs(vector_ij[nonzero_index]),data.feat_step[feat_nonzero],atol=toler).any():
                             A.append((i,j))
                     elif any(item in data.continuous for item in feat_nonzero):
-                        list_values = [k[nonzero_index] for k in nodes]
-                        min_value, max_value = np.min(list_values), np.max(list_values)
-                        if np.less(np.abs(vector_ij[nonzero_index]),(max_value - min_value)/100 + toler):
+                        max_val_i, min_val_i = max(self.normal_ioi[nonzero_index],self.nn_cf[nonzero_index]), min(self.normal_ioi[nonzero_index],self.nn_cf[nonzero_index])
+                        values = self.continuous_feat_values(i, min_val_i, max_val_i, data, split)
+                        close_node_j_values = [values[max(np.where(node_i[nonzero_index] > values))], values[min(np.where(node_i[nonzero_index] <= values))]]
+                        if any(np.isclose(node_j[nonzero_index], close_node_j_values)):
                             A.append((i,j))
                     elif any(item in data.binary for item in feat_nonzero):
                         if np.isclose(np.abs(vector_ij[nonzero_index]),[0,1],atol=toler).any():
