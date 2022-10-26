@@ -33,5 +33,9 @@ class Counterfactual:
             cf_method = FT(self)
         elif self.method == 'rt':
             cf_method = RT(self)
+        elif self.method == 'gs':
+            cf_method = GS(self)
+        elif self.method == 'face':
+            cf_method = FACE(self)
         elif self.method == 'juice':
             cf_method = Juice(self)
