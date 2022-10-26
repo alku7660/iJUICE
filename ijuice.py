@@ -3,34 +3,39 @@ from itertools import product
 import networkx as nx
 import gurobipy as gp
 from gurobipy import GRB, tuplelist
-from evaluator_constructor import distance_calculation, verify_feasibility
+from evaluator_constructor import distance_calculation
+from nt import nn, nn_for_juice
+import time
 
 class Ijuice:
 
-    def __init__(self, data, model, ioi, type='euclidean', split='100'):
-        self.name = data.name
-        self.ioi = ioi.x
-        self.normal_ioi = ioi.normal_x
-        self.ioi_label = ioi.label
-        self.feat_possible_values = self.get_feat_possible_values(data, split)
-        self.nn_cf = self.nn(ioi, data, model)
-        self.C = self.get_cost(model, type) 
-        self.A = self.get_adjacency(data, model, split)
-        self.optimizer, self.normal_x_cf = self.do_optimize(model)
+    def __init__(self, counterfactual):
+        self.normal_ioi = counterfactual.ioi.normal_x
+        self.ioi_label = counterfactual.ioi.label
+        start_time = time.time()
+        self.normal_x_cf, self.justifier = self.IJUICE(counterfactual)
+        end_time = time.time()
+        self.total_time = end_time - start_time
 
-    def nn(self, ioi, data, model):
+    def IJUICE(self, counterfactual):
         """
-        Function that returns the nearest counterfactual with respect to instance of interest x
+        Improved JUICE generation method
         """
-        nn_cf = None
-        for i in ioi.train_sorted:
-            if i[2] != ioi.label and model.model.predict(i[0].reshape(1,-1)) != ioi.label and verify_feasibility(ioi.normal_x, i[0], data) and not np.array_equal(ioi.normal_x, i[0]):
-                nn_cf = i[0]
-                break
-        if nn_cf is None:
-            print(f'NT could not find a feasible and counterfactual predicted CF (None output)')
-            return nn_cf
-        return nn_cf
+        self.feat_possible_values = self.get_feat_possible_values(counterfactual.data, counterfactual.split)
+        justifier, _ = nn_for_juice(counterfactual.ioi, counterfactual.data, counterfactual.model)
+        if justifier is not None:
+            if counterfactual.model.model.predict(justifier.reshape(1, -1)) != counterfactual.ioi.label:
+                self.C = self.get_cost(counterfactual.model, counterfactual.type) 
+                self.A = self.get_adjacency(counterfactual.data, counterfactual.model, counterfactual.split)
+                self.optimizer, normal_x_cf = self.do_optimize(counterfactual.model)
+            else:
+                print(f'Justifier (NN CF instance) is not a prediction counterfactual. Returning ground truth NN counterfactual as CF')
+                normal_x_cf = justifier
+        else:
+            print(f'No justifier available: Returning NN counterfactual')
+            normal_x_cf, _ = nn(counterfactual.ioi, counterfactual.data, counterfactual.model)
+            justifier = normal_x_cf
+        return normal_x_cf, justifier 
 
     def continuous_feat_values(self, i, min_val, max_val, data, split):
         """

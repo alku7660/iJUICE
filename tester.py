@@ -7,7 +7,7 @@ from address import save_obj, results_obj
 
 # datasets = ['adult','bank','compass','credit','dutch','diabetes','german','ionosphere','kdd_census','law','oulad','student','synthetic_athlete','synthetic_disease']
 datasets = ['synthetic_athlete']
-methods = ['nn','mo','ft','rt','gs','face','dice','mace','cchvae','jce','ijce']
+methods = ['nn','mo','ft','rt','gs','face','dice','mace','cchvae','juice','ijuice']
 seed_int = 54321
 step = 0.01
 train_fraction = 0.7
