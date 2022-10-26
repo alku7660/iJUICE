@@ -18,9 +18,26 @@ class Juice:
         self.normal_ioi = counterfactual.ioi.normal_x
         self.ioi_label = counterfactual.ioi.label
         start_time = time.time()
-        self.normal_x_cf, self.justifier = JUICE(counterfactual.ioi, counterfactual.data, counterfactual.model)
+        self.normal_x_cf, self.justifier = self.JUICE(counterfactual)
         end_time = time.time()
         self.total_time = end_time - start_time
+
+    def JUICE(self, counterfactual):
+        """
+        Justified NN counterfactual generation method:
+        """
+        justifier, _ = nn_for_juice(counterfactual)
+        if justifier is not None:
+            if counterfactual.model.model.predict(justifier.reshape(1, -1)) != self.ioi.label:
+                normal_x_cf, justified = justified_search(counterfactual.ioi, justifier, counterfactual.model, counterfactual.data), 1
+            else:
+                print(f'Justifier (NN CF instance) is not a prediction counterfactual. Returning ground truth NN counterfactual as CF')
+                normal_x_cf = justifier
+        else:
+            print(f'No justifier available: Returning NN counterfactual')
+            normal_x_cf, _ = nn(counterfactual)
+            justifier = normal_x_cf
+        return normal_x_cf, justifier
 
 def verify_diff_label(label, model, v):
     """
@@ -37,22 +54,6 @@ def verify_diff_label(label, model, v):
         different = True
     return different
 
-def JUICE(ioi, data, model):
-    """
-    Justified NN counterfactual generation method:
-    """
-    justifier, _ = nn_for_juice(ioi, data, model)
-    if justifier is not None:
-        if model.model.predict(justifier.reshape(1, -1)) != ioi.label:
-            normal_x_cf, justified = justified_search(ioi, justifier, model, data), 1
-        else:
-            print(f'Justifier (NN CF instance) is not a prediction counterfactual. Returning ground truth NN counterfactual as CF')
-            normal_x_cf = justifier
-    else:
-        print(f'No justifier available: Returning NN counterfactual')
-        normal_x_cf, _ = nn(ioi, data, model)
-        justifier = normal_x_cf
-    return normal_x_cf, justifier
 
 def justified_search(x,x_label,nn_cf,model,data,priority):
     """

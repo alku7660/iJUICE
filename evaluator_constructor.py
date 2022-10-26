@@ -6,33 +6,34 @@ from gurobipy import GRB, tuplelist
 
 class Evaluator():
 
-    def __init__(self, data, cf_method_name, type, split):
-        self.data_name = data.name
-        self.cf_method = cf_method_name
-        self.distance_type = type
-        self.continuous_split = split
-        self.feat_type = data.feat_type
-        self.feat_mutable = data.feat_mutable
-        self.feat_directionality = data.feat_directionality
-        self.feat_cost = data.feat_cost
-        self.feat_step = data.feat_step
-        self.data_cols = data.processed_features
+    def __init__(self, counterfactual):
+        self.data_name = counterfactual.data.name
+        self.method_name = counterfactual.method_name
+        self.distance_type = counterfactual.type
+        self.continuous_split = counterfactual.split
+        self.feat_type = counterfactual.data.feat_type
+        self.feat_mutable = counterfactual.data.feat_mutable
+        self.feat_directionality = counterfactual.data.feat_directionality
+        self.feat_cost = counterfactual.data.feat_cost
+        self.feat_step = counterfactual.data.feat_step
+        self.data_cols = counterfactual.data.processed_features
         self.x_dict, self.normal_x_dict = {}, {}
         self.normal_x_cf_dict, self.x_cf_dict = {}, {}
         self.proximity_dict, self.feasibility_dict, self.sparsity_dict, self.justification_dict, self.time_dict = {}, {}, {}, {}, {}
 
-    def add_specific_x_data(self, data, model, ioi, cf_method):
+    def add_specific_x_data(self, counterfactual):
         """
         Method to add specific data from an instance x
         """
-        x_cf = data.inverse(cf_method.normal_x_cf)
-        self.x_dict[ioi.idx] = ioi.x
-        self.normal_x_dict[ioi.idx] = ioi.normal_x
-        self.x_cf_dict[ioi.idx] = x_cf
-        self.proximity_dict[ioi.idx] = distance_calculation(ioi.x, cf_method.normal_x_cf, data, self.distance_type)
-        self.feasibility_dict[ioi.idx] = verify_feasibility(ioi.normal_x, cf_method.normal_x_cf, data)
-        self.sparsity_dict[ioi.idx] = sparsity(ioi.normal_x, cf_method.normal_x_cf, data)
-        self.justification_dict[ioi.idx] = verify_justification(cf_method.normal_x_cf, data, ioi, model, self.distance_type, self.continuous_split)
+        x_cf = counterfactual.data.inverse(self.cf_method.normal_x_cf)
+        self.x_dict[counterfactual.ioi.idx] = counterfactual.ioi.x
+        self.normal_x_dict[counterfactual.ioi.idx] = counterfactual.ioi.normal_x
+        self.x_cf_dict[counterfactual.ioi.idx] = x_cf
+        self.proximity_dict[counterfactual.ioi.idx] = distance_calculation(counterfactual.ioi.x, self.cf_method.normal_x_cf, counterfactual.data, self.distance_type)
+        self.feasibility_dict[counterfactual.ioi.idx] = verify_feasibility(counterfactual.ioi.normal_x, self.cf_method.normal_x_cf, counterfactual.data)
+        self.sparsity_dict[counterfactual.ioi.idx] = sparsity(counterfactual.ioi.normal_x, self.cf_method.normal_x_cf, counterfactual.data)
+        self.justification_dict[counterfactual.ioi.idx] = verify_justification(self.cf_method.normal_x_cf, counterfactual)
+        self.time_dict[counterfactual.ioi.idx] = counterfactual.cf_method.total_time
 
 def distance_calculation(x, y, data, type='euclidean'):
     """
@@ -102,10 +103,16 @@ def sparsity(x, cf, data):
         cf_sparsity = np.round_(1 - n_changed/len(x),3)
     return cf_sparsity
 
-def verify_justification(cf, data, ioi, model, type, split):
+def verify_justification(cf, counterfactual):
     """
     Method that verifies justification for any given cf, and a dataset.
     """
+
+    data = counterfactual.data
+    ioi = counterfactual.ioi
+    model = counterfactual.model
+    type = counterfactual.type
+    split = counterfactual.split
 
     def nn_list():
         """
@@ -248,7 +255,7 @@ def verify_justification(cf, data, ioi, model, type, split):
                             A.append((i,j))
         return A
 
-    justified, justifier = 0, None
+    justifier = None
     train_nn_list = nn_list()
     for i in train_nn_list:
         train_nn_i = train_nn_list[i]
@@ -271,10 +278,10 @@ def verify_justification(cf, data, ioi, model, type, split):
         opt_model_i.optimize()
         nodes = [cf]
         nodes.extend(list(get_nodes(model)))
-        sol_y = {}
         for i in cost.keys():
             if x[i].x > 0:
                 sol_x = nodes[i - 1]
         if np.equal(sol_x, train_nn_i):
-            justified, justifier = 1, train_nn_i
-    return justified, justifier
+            justifier = train_nn_i
+            break
+    return justifier

@@ -22,9 +22,9 @@ class Ijuice:
         Improved JUICE generation method
         """
         self.feat_possible_values = self.get_feat_possible_values(counterfactual.data, counterfactual.split)
-        justifier, _ = nn_for_juice(counterfactual.ioi, counterfactual.data, counterfactual.model)
+        justifier, _ = nn_for_juice(counterfactual)
         if justifier is not None:
-            if counterfactual.model.model.predict(justifier.reshape(1, -1)) != counterfactual.ioi.label:
+            if counterfactual.model.model.predict(justifier.reshape(1, -1)) != self.ioi.label:
                 self.C = self.get_cost(counterfactual.model, counterfactual.type) 
                 self.A = self.get_adjacency(counterfactual.data, counterfactual.model, counterfactual.split)
                 self.optimizer, normal_x_cf = self.do_optimize(counterfactual.model)
@@ -33,7 +33,7 @@ class Ijuice:
                 normal_x_cf = justifier
         else:
             print(f'No justifier available: Returning NN counterfactual')
-            normal_x_cf, _ = nn(counterfactual.ioi, counterfactual.data, counterfactual.model)
+            normal_x_cf, _ = nn(counterfactual)
             justifier = normal_x_cf
         return normal_x_cf, justifier 
 

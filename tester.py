@@ -18,12 +18,14 @@ num_instances = 1 # data.test_df.shape[0]
 for data_str in datasets:
     data = load_dataset(data_str, train_fraction, seed_int, step)
     model = Model(data)
+    data.undesired_test(model)
+    num_instances = num_instances if num_instances <= data.undesired_transformed_test_df.shape[0] else data.undesired_transformed_test_df.shape[0]
     for method_str in methods:
         for type in distance_type:
             for split in continuous_split:
                 eval = Evaluator(data, method_str, type, split)
                 for ins in range(num_instances):
-                    idx = data.test_df.index[ins]
+                    idx = data.undesired_transformed_test_df.index[ins]
                     ioi = IOI(idx, data, model, type)
                     cf_gen = Counterfactual(data, model, method_str, ioi, type, split)
                     eval.add_specific_x_data(data, model, ioi, cf_gen)
