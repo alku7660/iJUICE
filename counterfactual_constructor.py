@@ -1,6 +1,9 @@
 from ijuice import Ijuice
 from nt import NN
 from mo import MO
+from ft import FT
+from rt import RT
+from gs import GS
 from juice import Juice
 
 
@@ -28,5 +31,7 @@ class Counterfactual:
             cf_method = MO(self)
         elif self.method == 'ft':
             cf_method = FT(self)
+        elif self.method == 'rt':
+            cf_method = RT(self)
         elif self.method == 'juice':
             cf_method = Juice(self)

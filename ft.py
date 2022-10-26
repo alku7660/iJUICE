@@ -8,6 +8,7 @@ Imports
 import time
 import numpy as np
 import copy
+from evaluator_constructor import distance_calculation
 
 # Adapted from https://github.com/upura/featureTweakPy
 
@@ -15,15 +16,6 @@ class FT:
 
     def __init__(self, counterfactual) -> None:
         self.normal_x_cf, self.run_time = feat_tweak(counterfactual)
-
-def euclidean(x1,x2):
-    """
-    Calculation of the euclidean distance between two different instances
-    Input x1: Instance 1
-    Input x2: Instance 2
-    Output euclidean distance between x1 and x2
-    """
-    return np.sqrt(np.sum((x1-x2)**2))
 
 def search_path(estimator, class_labels, aim_label):
     """
@@ -147,10 +139,15 @@ def feature_tweaking(ensemble_classifier, x, class_labels, aim_label, epsilon, c
     return x_out
 
 # Feature Tweaking method (Based on Tolomei, found in: https://github.com/upura/featureTweakPy) (ensemble_classifier, x, class_labels, aim_label, epsilon, cost_func)
-def feat_tweak(x, rf_model, epsilon):
+def feat_tweak(counterfactual):
     """
     Function that calls the feature tweaking algorithm and returns the FT counterfactual with respect to instance of interest x
     """
+
+    x = counterfactual.ioi.normal_x
+    rf_model = counterfactual.rf_model
+    epsilon = 0.01 # Epsilon corresponding to the rate of change in feature tweaking algorithm
+
     start_time = time.time()
     x_pred = rf_model.predict(x.reshape(1,-1))
     classes = [0,1]
@@ -158,7 +155,7 @@ def feat_tweak(x, rf_model, epsilon):
         aim = 1
     else:
         aim = 0
-    ft_cf = feature_tweaking(rf_model , x, classes, aim, epsilon, euclidean)
+    ft_cf = feature_tweaking(rf_model , x, classes, aim, epsilon, distance_calculation)
     end_time = time.time()
     ft_time = end_time - start_time
     return ft_cf, ft_time
