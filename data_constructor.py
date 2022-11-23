@@ -35,6 +35,7 @@ class Dataset:
         self.undesired_class = self.undesired_class_data()
         self.feat_type = self.define_feat_type()
         self.feat_mutable = self.define_feat_mutability()
+        self.immutables = self.get_immutables()
         self.feat_dir = self.define_feat_directionality()
         self.feat_step = self.define_feat_step()
         self.feat_cat = self.define_feat_cat()
@@ -160,6 +161,16 @@ class Dataset:
                 elif 'Weight' in i or 'ExerciseMinutes' in i or 'SleepHours' in i or 'Diet' in i or 'Stress' in i or 'Smokes' in i:
                     feat_mutable[i] = 1
         return feat_mutable
+    
+    def get_immutables(self):
+        """
+        Outputs the immutable features list according to the mutability property
+        """
+        immutables = []
+        for i in self.feat_mutable.keys():
+            if self.feat_mutable[i] == 0:
+                immutables.append(i)
+        return immutables
 
     def define_feat_directionality(self):
         """

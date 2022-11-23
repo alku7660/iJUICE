@@ -7,8 +7,10 @@ class IOI:
 
     def __init__(self, idx, data, model, type='euclidean') -> None:
         self.idx = idx
-        self.x = data.test_df.loc[idx].to_numpy()
-        self.normal_x = data.transformed_test_df.loc[idx].to_numpy()
+        self.x_df = data.test_df.loc[idx].to_frame().T
+        self.x = self.x_df.to_numpy()
+        self.normal_x_df = data.transformed_test_df.loc[idx].to_frame().T
+        self.normal_x = self.normal_x_df.to_numpy()
         self.label = model.model.predict(self.normal_x.reshape(1, -1))
         self.train_sorted, self.train_sorting_time = self.sorted(data, type)
     

@@ -6,17 +6,17 @@ from gurobipy import GRB, tuplelist
 
 class Evaluator():
 
-    def __init__(self, counterfactual):
-        self.data_name = counterfactual.data.name
-        self.method_name = counterfactual.method_name
-        self.distance_type = counterfactual.type
-        self.continuous_split = counterfactual.split
-        self.feat_type = counterfactual.data.feat_type
-        self.feat_mutable = counterfactual.data.feat_mutable
-        self.feat_directionality = counterfactual.data.feat_directionality
-        self.feat_cost = counterfactual.data.feat_cost
-        self.feat_step = counterfactual.data.feat_step
-        self.data_cols = counterfactual.data.processed_features
+    def __init__(self, data, method_str, type, split): # data, method_str, type, split
+        self.data_name = data.name
+        self.method_name = method_str
+        self.distance_type = type
+        self.continuous_split = split
+        self.feat_type = data.feat_type
+        self.feat_mutable = data.feat_mutable
+        self.feat_directionality = data.feat_directionality
+        self.feat_cost = data.feat_cost
+        self.feat_step = data.feat_step
+        self.data_cols = data.processed_features
         self.x_dict, self.normal_x_dict = {}, {}
         self.normal_x_cf_dict, self.x_cf_dict = {}, {}
         self.proximity_dict, self.feasibility_dict, self.sparsity_dict, self.justification_dict, self.time_dict = {}, {}, {}, {}, {}
@@ -58,12 +58,12 @@ def verify_feasibility(x, cf, data):
     feasibility = True
     for i in range(len(data.feat_type)):
         if data.feat_type[i] == 'bin' or data.feat_type[i] == 'cat':
-            if not np.isclose(cf[i], [0,1],atol=toler).any():
+            if not np.isclose(cf[i], [0,1], atol=toler).any():
                 feasibility = False
                 break
         elif data.feat_type[i] == 'ord':
-            possible_val = np.linspace(0,1,int(1/data.feat_step[i]+1),endpoint=True)
-            if not np.isclose(cf[i],possible_val,atol=toler).any():
+            possible_val = np.linspace(0, 1, int(1/data.feat_step[i]+1), endpoint=True)
+            if not np.isclose(cf[i], possible_val, atol=toler).any():
                 feasibility = False
                 break  
         else:
@@ -80,7 +80,7 @@ def verify_feasibility(x, cf, data):
         elif data.feat_dir[i] == 'neg' and vector[i] > 0:
             feasibility = False
             break
-    if not np.array_equal(x[np.where(data.feat_mutable == 0)],cf[np.where(data.feat_mutable == 0)]):
+    if not np.array_equal(x[np.where(data.feat_mutable == 0)], cf[np.where(data.feat_mutable == 0)]):
         feasibility = False
     return feasibility
 

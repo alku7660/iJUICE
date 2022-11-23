@@ -74,7 +74,6 @@ def rf_tweak(counterfactual):
     """
     Function that returns the Random Forest tweaking counterfactual with respect to instance of interest x
     """
-
     data = counterfactual.data
     x = counterfactual.ioi.normal_x
     x_label = counterfactual.ioi.label

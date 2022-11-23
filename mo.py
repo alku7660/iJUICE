@@ -7,7 +7,6 @@ Imports
 """
 import numpy as np
 import time
-from evaluator_constructor import verify_feasibility
 from evaluator_constructor import distance_calculation
 
 class MO:
@@ -34,7 +33,7 @@ def min_obs(counterfactual):
         data_distance_mo.append((all_data[i], dist, all_labels[i]))      
     data_distance_mo.sort(key=lambda x: x[1])
     for i in data_distance_mo:
-        if i[2] != ioi.label and verify_feasibility(ioi.normal_x, i[0], data) and not np.array_equal(ioi.normal_x, i[0]):
+        if i[2] != ioi.label and not np.array_equal(ioi.normal_x, i[0]):
             mo_cf = i[0]
             break
     if mo_cf is None:

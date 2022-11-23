@@ -4,6 +4,7 @@ from mo import MO
 from ft import FT
 from rt import RT
 from gs import GS
+from face import FACE
 from juice import Juice
 
 
@@ -16,9 +17,9 @@ class Counterfactual:
         self.ioi = ioi
         self.type = type
         self.split = split
-        self.cf_method = self.select_train()
+        self.cf_method = self.select_cf_method()
 
-    def select_train(self):
+    def select_cf_method(self):
         """
         Method that selects the method to find the counterfactual and stores it in "normal_x_cf"
         ['nn','mo','ft','rt','gs','face','dice','mace','cchvae','juice','ijuice']
