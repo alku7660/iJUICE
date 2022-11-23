@@ -10,7 +10,7 @@ class Dataset:
 
     def __init__(self, data_str, seed_int, train_fraction, label_str,
                  df, binary, categorical, ordinal, continuous,
-                 step) -> None:
+                 step, attributes) -> None:
         self.name = data_str
         self.seed = seed_int
         self.train_fraction = train_fraction
@@ -20,6 +20,7 @@ class Dataset:
         self.categorical = categorical
         self.ordinal = ordinal
         self.continuous = continuous
+        self.attributes_long = attributes
         self.features = self.df.columns.to_list()
         self.step = step
         self.train_df, self.test_df, self.train_target, self.test_target = train_test_split(self.df, self.df[self.label_name], train_size=self.train_fraction, random_state=self.seed)
@@ -113,6 +114,14 @@ class Dataset:
         """
         feat_type = copy.deepcopy(self.transformed_train_df.dtypes)
         feat_list = feat_type.index.tolist()
+        if self.name == 'adult':
+            for i in feat_list:
+                if 'Sex' in i or 'Native' in i or 'WorkClass' in i or 'Marital' in i or 'Occupation' in i or 'Relation' in i or 'Race' in i:
+                    feat_type.loc[i] = 'bin'
+                elif 'EducationLevel' in i or 'Age' in i:
+                    feat_type.loc[i] = 'num-ord'
+                elif 'EducationNumber' in i or 'Capital' in i or 'Hours' in i:
+                    feat_type.loc[i] = 'num-con'
         if self.name == 'ionosphere':
             for i in feat_list:
                 feat_type.loc[i] = 'cont'
@@ -142,7 +151,13 @@ class Dataset:
         """
         feat_mutable = copy.deepcopy(self.transformed_train_df.dtypes)
         feat_list = feat_mutable.index.tolist()
-        if self.name == 'ionosphere':
+        if self.name == 'adult':
+            for i in feat_list:
+                if 'Sex' in i or 'Race' in i or 'Age' in i or 'Native' in i:
+                    feat_mutable[i] = 0
+                else:
+                    feat_mutable[i] = 1
+        elif self.name == 'ionosphere':
             for i in feat_list:
                 if i == '0':
                     feat_mutable[i] = 0
@@ -297,11 +312,119 @@ class Dataset:
         x = np.concatenate((x_bin, x_cat, x_ord_cont), axis=1)
         return x
 
+    """
+    MACE Methodology methods / classes (based on Model-Agnostic Counterfactual Explanations (MACE) authors implementation: See https://github.com/amirhk/mace)
+    """
+
+    def getAttributeNames(self, allowed_node_types, long_or_kurz = 'kurz'):
+        names = []
+        # We must loop through all attributes and check attr_name
+        for attr_name in self.attributes_long.keys():
+            attr_obj = self.attributes_long[attr_name]
+            if attr_obj.node_type not in allowed_node_types:
+                continue
+            if long_or_kurz == 'long':
+                names.append(attr_obj.attr_name_long)
+            elif long_or_kurz == 'kurz':
+                names.append(attr_obj.attr_name_kurz)
+            else:
+                raise Exception(f'{long_or_kurz} not recognized as a valid `long_or_kurz`.')
+        return np.array(names)
+
+    def getInputAttributeNames(self, long_or_kurz = 'kurz'):
+        return self.getAttributeNames({'input'}, long_or_kurz)
+    
+    def getInputOutputAttributeNames(self, long_or_kurz = 'kurz'):
+        return self.getAttributeNames({'input', 'output'}, long_or_kurz)
+
 def load_dataset(data_str, train_fraction, seed, step):
     """
     Function to load all datasets according to data_str and train_fraction
     """
-    if data_str == 'ionosphere':
+    if data_str == 'adult':
+        binary = ['Sex','NativeCountry','Race']
+        categorical = ['WorkClass','MaritalStatus','Occupation','Relationship']
+        ordinal = ['EducationLevel','AgeGroup']
+        continuous = ['EducationNumber','CapitalGain','CapitalLoss','HoursPerWeek']
+        input_cols = binary + categorical + ordinal + continuous
+        label = ['label']
+        df = pd.read_csv(dataset_dir+'adult/preprocessed_adult.csv', index_col=0)
+        
+        """
+        MACE variables / attributes
+        """
+        attributes_df = {}
+        col_name = label[0]
+        attributes_df[col_name] = DatasetAttribute(attr_name_long = col_name, attr_name_kurz = 'y', attr_type = 'binary', node_type = 'output', actionability = 'none',
+                                                   mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = df[col_name].min(), upper_bound = df[col_name].max())
+        for col_idx, col_name in enumerate(input_cols):
+
+            if col_name == 'Sex':
+                attr_type = 'binary'
+                actionability = 'none' # 'none'
+                mutability = False
+            elif col_name == 'AgeGroup':
+                attr_type = 'ordinal'
+                actionability = 'none' # 'none'
+                mutability = False
+            elif col_name == 'NativeCountry':
+                attr_type = 'binary'
+                actionability = 'none' # 'none'
+                mutability = False
+            elif col_name == 'Race':
+                attr_type = 'binary'
+                actionability = 'none'
+                mutability = False
+            elif col_name == 'WorkClass':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'EducationNumber':
+                attr_type = 'numeric-int'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'EducationLevel':
+                attr_type = 'ordinal'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'MaritalStatus':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Occupation':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Relationship':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'CapitalGain':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'CapitalLoss':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'HoursPerWeek':
+                attr_type = 'numeric-int'
+                actionability = 'any'
+                mutability = True
+
+            attributes_df[col_name] = DatasetAttribute(
+                attr_name_long = col_name,
+                attr_name_kurz = f'x{col_idx}',
+                attr_type = attr_type,
+                node_type = 'input',
+                actionability = actionability,
+                mutability = mutability,
+                parent_name_long = -1,
+                parent_name_kurz = -1,
+                lower_bound = df[col_name].min(),
+                upper_bound = df[col_name].max())
+
+    elif data_str == 'ionosphere':
         binary = []
         categorical = []
         ordinal = []
@@ -322,7 +445,66 @@ def load_dataset(data_str, train_fraction, seed, step):
         continuous = ['Age','ExerciseMinutes','SleepHours']
         label = 'Label'
         df = pd.read_csv(dataset_dir+'synthetic_disease/processed_synthetic_disease.csv',index_col=0)
-
+    
     data_obj = Dataset(data_str, seed, train_fraction, label, df,
-                   binary, categorical, ordinal, continuous, step)
+                   binary, categorical, ordinal, continuous, step, attributes_df)
     return data_obj
+
+"""
+MACE Methodology methods / classes (based on Model-Agnostic Counterfactual Explanations (MACE) authors implementation: See https://github.com/amirhk/mace)
+"""
+
+class DatasetAttribute():
+
+    def __init__(self, attr_name_long, attr_name_kurz, attr_type, node_type,
+                 actionability, mutability, parent_name_long, parent_name_kurz, lower_bound,
+                 upper_bound):
+
+        if attr_type in {'sub-categorical', 'sub-ordinal'}:
+            assert parent_name_long != -1, 'Parent ID set for non-hot attribute.'
+            assert parent_name_kurz != -1, 'Parent ID set for non-hot attribute.'
+            if attr_type == 'sub-categorical':
+                assert lower_bound == 0
+                assert upper_bound == 1
+            if attr_type == 'sub-ordinal':
+                # the first elem in thermometer is always on, but the rest may be on or off
+                assert lower_bound == 0 or lower_bound == 1
+                assert upper_bound == 1
+        else:
+            assert parent_name_long == -1, 'Parent ID set for non-hot attribute.'
+            assert parent_name_kurz == -1, 'Parent ID set for non-hot attribute.'
+
+        if attr_type in {'categorical', 'ordinal'}:
+            assert lower_bound == 1 # setOneHotValue & setThermoValue assume this in their logic
+
+        if attr_type in {'binary', 'categorical', 'sub-categorical'}: # not 'ordinal' or 'sub-ordinal'
+            # IMPORTANT: surprisingly, it is OK if all sub-ordinal variables share actionability
+            #            think about it, if each sub- variable is same-or-increase, along with
+            #            the constraints that x0_ord_1 >= x0_ord_2, all variables can only stay
+            #            the same or increase. It works :)
+            assert actionability in {'none', 'any'}, f"{attr_type}'s actionability can only be in {'none', 'any'}, not `{actionability}`."
+
+        if node_type != 'input':
+            assert actionability == 'none', f'{node_type} attribute is not actionable.'
+            assert mutability == False, f'{node_type} attribute is not mutable.'
+
+        # We have introduced 3 types of variables: (actionable and mutable, non-actionable but mutable, immutable and non-actionable)
+        if actionability != 'none':
+            assert mutability == True
+        # TODO: above/below seem contradictory... (2020.04.14)
+        if mutability == False:
+            assert actionability == 'none'
+
+        if parent_name_long == -1 or parent_name_kurz == -1:
+            assert parent_name_long == parent_name_kurz == -1
+
+        self.attr_name_long = attr_name_long
+        self.attr_name_kurz = attr_name_kurz
+        self.attr_type = attr_type
+        self.node_type = node_type
+        self.actionability = actionability
+        self.mutability = mutability
+        self.parent_name_long = parent_name_long
+        self.parent_name_kurz = parent_name_kurz
+        self.lower_bound = lower_bound
+        self.upper_bound = upper_bound
