@@ -20,7 +20,6 @@ class Dataset:
         self.categorical = categorical
         self.ordinal = ordinal
         self.continuous = continuous
-        self.attributes_long = attributes
         self.features = self.df.columns.to_list()
         self.step = step
         self.train_df, self.test_df, self.train_target, self.test_target = train_test_split(self.df, self.df[self.label_name], train_size=self.train_fraction, random_state=self.seed)
@@ -42,6 +41,18 @@ class Dataset:
         self.feat_cat = self.define_feat_cat()
         self.idx_cat_cols_dict = self.idx_cat_columns()
         self.feat_dist, self.processed_feat_dist = self.feature_distribution()
+        
+        """
+        MACE attributes
+        """
+        self.is_one_hot = True # Set to True always since we always one-hot encode
+        self.data_frame_long = df
+        self.attributes_long = attributes
+        attributes_kurz = dict((attributes[key].attr_name_kurz, value) for (key, value) in attributes.items())
+        data_frame_kurz = copy.deepcopy(df)
+        data_frame_kurz.columns = self.getAllAttributeNames('kurz')
+        self.data_frame_kurz = data_frame_kurz # i.e., data_frame is indexed by attr_name_kurz
+        self.attributes_kurz = attributes_kurz # i.e., attributes is indexed by attr_name_kurz
 
     def balance_train_data(self):
         """
@@ -119,9 +130,9 @@ class Dataset:
                 if 'Sex' in i or 'Native' in i or 'WorkClass' in i or 'Marital' in i or 'Occupation' in i or 'Relation' in i or 'Race' in i:
                     feat_type.loc[i] = 'bin'
                 elif 'EducationLevel' in i or 'Age' in i:
-                    feat_type.loc[i] = 'num-ord'
+                    feat_type.loc[i] = 'ord'
                 elif 'EducationNumber' in i or 'Capital' in i or 'Hours' in i:
-                    feat_type.loc[i] = 'num-con'
+                    feat_type.loc[i] = 'cont'
         if self.name == 'ionosphere':
             for i in feat_list:
                 feat_type.loc[i] = 'cont'
@@ -193,7 +204,15 @@ class Dataset:
         """
         feat_directionality = copy.deepcopy(self.transformed_train_df.dtypes)
         feat_list = feat_directionality.index.tolist()
-        if self.name == 'ionosphere':
+        if self.name == 'adult':
+            for i in feat_list:
+                if 'Age' in i or 'Sex' in i or 'Race' in i:
+                    feat_directionality[i] = 0
+                elif 'Education' in i:
+                    feat_directionality[i] = 'pos'
+                else:
+                    feat_directionality[i] = 'any'
+        elif self.name == 'ionosphere':
             for i in feat_list:
                 feat_directionality[i] = 'any'
         elif self.name == 'synthetic_athlete':
@@ -233,7 +252,23 @@ class Dataset:
         """
         feat_cat = copy.deepcopy(self.transformed_train_df.dtypes)
         feat_list = feat_cat.index.tolist()
-        if self.name == 'ionosphere':
+        if self.name == 'adult':
+            for i in feat_list:
+                if 'Sex' in i or 'Native' in i or 'EducationLevel' in i or 'EducationNumber' in i or 'Capital' in i or 'Hours' in i or 'Race' in i:
+                    feat_cat.loc[i] = 'non'
+                elif 'Age' in i:
+                    feat_cat.loc[i] = 'cat_0'
+                elif 'WorkClass' in i:
+                    feat_cat.loc[i] = 'cat_1'
+                elif 'Marital' in i:
+                    feat_cat.loc[i] = 'cat_2'
+                elif 'Occupation' in i:
+                    feat_cat.loc[i] = 'cat_3'
+                elif 'Relation' in i:
+                    feat_cat.loc[i] = 'cat_4'
+                else:
+                    feat_cat.loc[i] = 'non'
+        elif self.name == 'ionosphere':
             for i in feat_list:
                 feat_cat[i] = 'non'
         elif self.name == 'synthetic_athlete':
@@ -315,7 +350,6 @@ class Dataset:
     """
     MACE Methodology methods / classes (based on Model-Agnostic Counterfactual Explanations (MACE) authors implementation: See https://github.com/amirhk/mace)
     """
-
     def getAttributeNames(self, allowed_node_types, long_or_kurz = 'kurz'):
         names = []
         # We must loop through all attributes and check attr_name
@@ -336,6 +370,111 @@ class Dataset:
     
     def getInputOutputAttributeNames(self, long_or_kurz = 'kurz'):
         return self.getAttributeNames({'input', 'output'}, long_or_kurz)
+    
+    def getAllAttributeNames(self, long_or_kurz = 'kurz'):
+        return self.getAttributeNames({'meta', 'input', 'output'}, long_or_kurz)
+    
+    def getDictOfSiblings(self, long_or_kurz = 'kurz'):
+        if long_or_kurz == 'long':
+            dict_of_siblings_long = {}
+            dict_of_siblings_long['cat'] = {}
+            dict_of_siblings_long['ord'] = {}
+            for attr_name_long in self.getInputAttributeNames('long'):
+                attr_obj = self.attributes_long[attr_name_long]
+                if attr_obj.attr_type == 'sub-categorical':
+                    if attr_obj.parent_name_long not in dict_of_siblings_long['cat'].keys():
+                        dict_of_siblings_long['cat'][attr_obj.parent_name_long] = [] # initiate key-value pair
+                    dict_of_siblings_long['cat'][attr_obj.parent_name_long].append(attr_obj.attr_name_long)
+                elif attr_obj.attr_type == 'sub-ordinal':
+                    if attr_obj.parent_name_long not in dict_of_siblings_long['ord'].keys():
+                        dict_of_siblings_long['ord'][attr_obj.parent_name_long] = [] # initiate key-value pair
+                    dict_of_siblings_long['ord'][attr_obj.parent_name_long].append(attr_obj.attr_name_long)
+            # sort sub-arrays
+            for key in dict_of_siblings_long['cat'].keys():
+                dict_of_siblings_long['cat'][key] = sorted(dict_of_siblings_long['cat'][key], key = lambda x : int(x.split('_')[-1]))
+            for key in dict_of_siblings_long['ord'].keys():
+                dict_of_siblings_long['ord'][key] = sorted(dict_of_siblings_long['ord'][key], key = lambda x : int(x.split('_')[-1]))
+            return dict_of_siblings_long
+        elif long_or_kurz == 'kurz':
+            dict_of_siblings_kurz = {}
+            dict_of_siblings_kurz['cat'] = {}
+            dict_of_siblings_kurz['ord'] = {}
+            for attr_name_kurz in self.getInputAttributeNames('kurz'):
+                attr_obj = self.attributes_kurz[attr_name_kurz]
+                if attr_obj.attr_type == 'sub-categorical':
+                    if attr_obj.parent_name_kurz not in dict_of_siblings_kurz['cat'].keys():
+                        dict_of_siblings_kurz['cat'][attr_obj.parent_name_kurz] = [] # initiate key-value pair
+                    dict_of_siblings_kurz['cat'][attr_obj.parent_name_kurz].append(attr_obj.attr_name_kurz)
+                elif attr_obj.attr_type == 'sub-ordinal':
+                    if attr_obj.parent_name_kurz not in dict_of_siblings_kurz['ord'].keys():
+                        dict_of_siblings_kurz['ord'][attr_obj.parent_name_kurz] = [] # initiate key-value pair
+                    dict_of_siblings_kurz['ord'][attr_obj.parent_name_kurz].append(attr_obj.attr_name_kurz)
+            # sort sub-arrays
+            for key in dict_of_siblings_kurz['cat'].keys():
+                dict_of_siblings_kurz['cat'][key] = sorted(dict_of_siblings_kurz['cat'][key], key = lambda x : int(x.split('_')[-1]))
+            for key in dict_of_siblings_kurz['ord'].keys():
+                dict_of_siblings_kurz['ord'][key] = sorted(dict_of_siblings_kurz['ord'][key], key = lambda x : int(x.split('_')[-1]))
+            return dict_of_siblings_kurz
+        else:
+            raise Exception(f'{long_or_kurz} not recognized as a valid `long_or_kurz`.')
+
+    def getSiblingsFor(self, attr_name_long_or_kurz):
+    # If attr_name_long is given, we will return siblings_long (the same length)
+    # but not siblings_kurz. Same for the opposite direction.
+        assert \
+            'cat' in attr_name_long_or_kurz or 'ord' in attr_name_long_or_kurz, \
+            'attr_name must include either `cat` or `ord`.'
+        if attr_name_long_or_kurz in self.getInputOutputAttributeNames('long'):
+            attr_name_long = attr_name_long_or_kurz
+            dict_of_siblings_long = self.getDictOfSiblings('long')
+            for parent_name_long in dict_of_siblings_long['cat']:
+                siblings_long = dict_of_siblings_long['cat'][parent_name_long]
+                if attr_name_long_or_kurz in siblings_long:
+                    return siblings_long
+            for parent_name_long in dict_of_siblings_long['ord']:
+                siblings_long = dict_of_siblings_long['ord'][parent_name_long]
+                if attr_name_long_or_kurz in siblings_long:
+                    return siblings_long
+        elif attr_name_long_or_kurz in self.getInputOutputAttributeNames('kurz'):
+            attr_name_kurz = attr_name_long_or_kurz
+            dict_of_siblings_kurz = self.getDictOfSiblings('kurz')
+            for parent_name_kurz in dict_of_siblings_kurz['cat']:
+                siblings_kurz = dict_of_siblings_kurz['cat'][parent_name_kurz]
+                if attr_name_long_or_kurz in siblings_kurz:
+                    return siblings_kurz
+            for parent_name_kurz in dict_of_siblings_kurz['ord']:
+                siblings_kurz = dict_of_siblings_kurz['ord'][parent_name_kurz]
+                if attr_name_long_or_kurz in siblings_kurz:
+                    return siblings_kurz
+        else:
+            raise Exception(f'{attr_name_long_or_kurz} not recognized as a valid `attr_name_long_or_kurz`.')
+
+    def getMutableAttributeNames(self, long_or_kurz = 'kurz'):
+        names = []
+        # We must loop through all attributes and check mutability
+        for attr_name_long in self.getInputAttributeNames('long'):
+            attr_obj = self.attributes_long[attr_name_long]
+            if attr_obj.node_type == 'input' and attr_obj.mutability != False:
+                if long_or_kurz == 'long':
+                    names.append(attr_obj.attr_name_long)
+                elif long_or_kurz == 'kurz':
+                    names.append(attr_obj.attr_name_kurz)
+                else:
+                    raise Exception(f'{long_or_kurz} not recognized as a valid `long_or_kurz`.')
+        return np.array(names)
+
+    def getOneHotAttributesNames(self, long_or_kurz = 'kurz'):
+        tmp = self.getDictOfSiblings(long_or_kurz)
+        names = []
+        for key1 in tmp.keys():
+            for key2 in tmp[key1].keys():
+                names.extend(tmp[key1][key2])
+        return np.array(names)
+
+    def getNonHotAttributesNames(self, long_or_kurz = 'kurz'):
+        a = self.getInputAttributeNames(long_or_kurz)
+        b = self.getOneHotAttributesNames(long_or_kurz)
+        return np.setdiff1d(a,b)
 
 def load_dataset(data_str, train_fraction, seed, step):
     """
