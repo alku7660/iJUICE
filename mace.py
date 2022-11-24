@@ -12,8 +12,8 @@ import time
 from pysmt.shortcuts import *
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neural_network import MLPClassifier
-from modelConversion import forest2formula, mlp2formula
-import normalizedDistance
+from mace_modelConversion import forest2formula, mlp2formula
+import mace_normalizedDistance
 
 class MACE:
 
@@ -320,7 +320,7 @@ def mace_method(counterfactual):
 
         while iters < max_iters and norm_upper_bound - norm_lower_bound >= epsilon:
 
-            print(f'\tIteration #{iters:03d}: testing norm threshold {curr_norm_threshold:.6f} in range [{norm_lower_bound:.6f}, {norm_upper_bound:.6f}]...\t', end = '', file = log_file)
+            print(f'\tIteration #{iters:03d}: testing norm threshold {curr_norm_threshold:.6f} in range [{norm_lower_bound:.6f}, {norm_upper_bound:.6f}]...\t', end = '')
             iters = iters + 1
 
             formula = And(model_formula, counterfactual_formula, plausibility_formula, distance_formula, diversity_formula)
@@ -361,9 +361,9 @@ def mace_method(counterfactual):
                     assertPrediction(counterfactual_sample, model_trained, dataset_obj)
                     # of course, there is no need to assertPrediction on the interventional_sample
 
-                    counterfactual_distance = normalizedDistance.getDistanceBetweenSamples(
+                    counterfactual_distance = mace_normalizedDistance.getDistanceBetweenSamples(
                     factual_sample, counterfactual_sample, norm_type, dataset_obj)
-                    interventional_distance = normalizedDistance.getDistanceBetweenSamples(
+                    interventional_distance = mace_normalizedDistance.getDistanceBetweenSamples(
                     factual_sample, interventional_sample, norm_type, dataset_obj)
                     counterfactual_time = iteration_end_time - iteration_start_time
                     counterfactuals.append({
