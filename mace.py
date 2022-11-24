@@ -457,7 +457,8 @@ def mace_method(counterfactual):
     factual_sample = counterfactual.ioi.normal_x_df.T.to_dict().items()[1]
     factual_sample['y'] = bool(counterfactual.ioi.label)
     norm_type = 'two_norm' # Possible values: zero_norm, one_norm, two_norm, infty_norm
-    results_dict = genExp(model_trained, dataset_obj, factual_sample, )
+
+    results_dict = genExp(model_trained, dataset_obj, factual_sample, norm_type, 'mace')
 
     
     
