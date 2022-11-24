@@ -448,6 +448,7 @@ def mace_method(counterfactual):
         if 'mace' in approach_string:
             print(f"Nearest counterfactual sample:\t {getPrettyStringForSampleDictionary(closest_counterfactual_sample['counterfactual_sample'], dataset_obj)} (verified)")
             print(f"Minimum counterfactual distance: {closest_counterfactual_sample['counterfactual_distance']:.6f}")
+        
         return {'cf_found': True, 'cf_plausible': True, 'cf_time': end_time - start_time,
         'cf_sample': closest_counterfactual_sample['counterfactual_sample'],
         'cf_distance': closest_counterfactual_sample['counterfactual_distance']}
@@ -457,8 +458,11 @@ def mace_method(counterfactual):
     factual_sample = counterfactual.ioi.normal_x_df.T.to_dict().items()[1]
     factual_sample['y'] = bool(counterfactual.ioi.label)
     norm_type = 'two_norm' # Possible values: zero_norm, one_norm, two_norm, infty_norm
+    epsilon = 1e-3
 
-    results_dict = genExp(model_trained, dataset_obj, factual_sample, norm_type, 'mace')
+    results_dict = genExp(model_trained, dataset_obj, factual_sample, norm_type, 'mace', epsilon)
+    cf, run_time = results_dict['cf_sample'], results_dict['cf_time']
+    return cf, run_time
 
     
     
