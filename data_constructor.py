@@ -135,7 +135,57 @@ class Dataset:
                     feat_type.loc[i] = 'ord'
                 elif 'EducationNumber' in i or 'Capital' in i or 'Hours' in i:
                     feat_type.loc[i] = 'cont'
-        if self.name == 'ionosphere':
+        elif self.name == 'kdd_census':
+            for i in feat_list:
+                if 'Sex' in i or 'Race' in i or 'Industry' in i or 'Occupation' in i:
+                    feat_type.loc[i] = 'bin'
+                elif 'Age' in i or 'WageHour' in i or 'CapitalGain' in i or 'CapitalLoss' in i or 'Dividends' in i or 'WorkWeeksYear' in i:
+                    feat_type.loc[i] = 'cont'
+        elif self.name == 'german':
+            for i in feat_list:
+                if 'Sex' in i or 'Single' in i or 'Unemployed' in i or 'Housing' in i or 'PurposeOfLoan' in i or 'InstallmentRate' in i or 'Housing' in i:
+                    feat_type.loc[i] = 'bin'
+                elif 'Age' in i or 'Credit' in i or 'Loan' in i:
+                    feat_type.loc[i] = 'num-con'
+        elif self.name == 'dutch':
+            for i in feat_list:
+                if 'Sex' in i or 'HouseholdPosition' in i or 'HouseholdSize' in i or 'Country' in i or 'EconomicStatus' in i or 'CurEcoActivity' in i or 'MaritalStatus' in i:
+                    feat_type.loc[i] = 'bin'
+                elif 'EducationLevel' in i:
+                    feat_type.loc[i] = 'ord'
+                elif 'Age' in i:
+                    feat_type.loc[i] = 'cont'
+        elif self.name == 'bank':
+            for i in feat_list:
+                if 'Default' in i or 'Housing' in i or 'Loan' in i or 'Job' in i or 'MaritalStatus' in i or 'Education' in i or 'Contact' in i or 'Month' in i or 'Poutcome' in i:
+                    feat_type.loc[i] = 'bin'
+                elif 'Age' in i:
+                    feat_type.loc[i] = 'ord'
+                elif 'Balance' in i or 'Day' in i or 'Duration' in i or 'Campaign' in i or 'Pdays' in i or 'Previous' in i:
+                    feat_type.loc[i] = 'cont'
+        elif self.name == 'credit':
+            for i in feat_list:
+                if 'Male' in i or 'Married' in i or 'History' in i:
+                    feat_type.loc[i] = 'bin'
+                elif 'Total' in i:
+                    feat_type.loc[i] = 'ord'
+                elif 'Amount' in i or 'Balance' in i or 'Spending' in i:
+                    feat_type.loc[i] = 'cont'
+        elif self.name == 'compass':
+            for i in feat_list:
+                if 'Sex' in i or 'Race' in i or 'Charge' in i:
+                    feat_type.loc[i] = 'bin'
+                elif 'Priors' in i or 'Age' in i:
+                    feat_type.loc[i] = 'ord'
+        elif self.name == 'diabetes':
+            for i in feat_list:
+                if 'DiabetesMed' in i or 'Race' in i or 'Sex' in i or 'A1CResult' in i or 'Metformin' in i or 'Chlorpropamide' in i or 'Glipizide' in i or 'Rosiglitazone' in i or 'Acarbose' in i or 'Miglitol' in i:
+                    feat_type.loc[i] = 'bin'
+                elif 'AgeGroup' in i:
+                    feat_type.loc[i] = 'ord'
+                elif 'TimeInHospital' in i or 'NumProcedures' in i or 'NumMedications' in i or 'NumEmergency':
+                    feat_type.loc[i] = 'cont'
+        elif self.name == 'ionosphere':
             for i in feat_list:
                 feat_type.loc[i] = 'cont'
         elif self.name == 'synthetic_athlete':
@@ -146,6 +196,28 @@ class Dataset:
                     feat_type.loc[i] = 'cat'
                 elif i in ['Age','SleepHours']:
                     feat_type.loc[i] = 'cont'
+        elif self.name == 'student':
+            for i in feat_list:
+                if 'Age' in i or 'School' in i or 'Sex' in i or 'Address' in i or 'FamilySize' in i or 'ParentStatus' in i or 'SchoolSupport' in i or 'FamilySupport' in i or 'ExtraPaid' in i or 'ExtraActivities' in i or 'Nursery' in i or 'HigherEdu' in i or 'Internet' in i or 'Romantic' in i or 'MotherJob' in i or 'FatherJob' in i or 'SchoolReason' in i:
+                    feat_type.loc[i] = 'bin'
+                elif 'MotherEducation' in i or 'FatherEducation' in i:
+                    feat_type.loc[i] = 'ord'
+                elif 'TravelTime' in i or 'ClassFailures' in i or 'GoOut' in i:
+                    feat_type.loc[i] = 'cont'
+        elif self.name == 'oulad':
+            for i in feat_list:
+                if 'Sex' in i or 'Disability' in i or 'Region' in i or 'CodeModule' in i or 'CodePresentation' in i or 'HighestEducation' in i or 'IMDBand' in i:
+                    feat_type.loc[i] = 'bin'
+                elif 'NumPrevAttempts' in i or 'StudiedCredits' in i:
+                    feat_type.loc[i] = 'cont'
+                elif 'AgeGroup' in i:
+                    feat_type.loc[i] = 'ord'
+        elif self.name == 'law':
+            for i in feat_list:
+                if 'FamilyIncome' in i or 'Tier' in i or 'Race' in i or 'WorkFullTime' in i or 'Sex' in i:
+                    feat_type.loc[i] = 'bin'
+                elif 'Decile1stYear' in i or 'Decile3rdYear' in i or 'LSAT' in i or 'UndergradGPA' in i or 'FirstYearGPA' in i or 'CumulativeGPA' in i:
+                    feat_type.loc[i] = 'cont'
         elif self.name == 'synthetic_disease':
             for i in feat_list:
                 if 'Smokes' in i:
@@ -155,6 +227,12 @@ class Dataset:
                 elif 'Weight' in i:
                     feat_type.loc[i] = 'ord'
                 elif i in ['Age','ExerciseMinutes','SleepHours']:
+                    feat_type.loc[i] = 'cont'
+        elif self.name == 'synthetic_athlete':
+            for i in feat_list:
+                if 'Sex' in i or 'Training' in i or 'Sport' in i or 'Diet' in i:
+                    feat_type.loc[i] = 'bin'
+                elif i in ['Age','SleepHours']:
                     feat_type.loc[i] = 'cont'
         return feat_type
 
@@ -170,6 +248,66 @@ class Dataset:
                     feat_mutable[i] = 0
                 else:
                     feat_mutable[i] = 1
+        elif self.name == 'kdd_census':
+            for i in feat_list:
+                if 'Sex' in i or 'Race' in i:
+                    feat_mutable[i] = 0
+                else:
+                    feat_mutable[i] = 1
+        elif self.name == 'german':
+            for i in feat_list:
+                if 'Sex' in i:
+                    feat_mutable[i] = 0
+                else:
+                    feat_mutable[i] = 1
+        elif self.name == 'dutch':
+            for i in feat_list:
+                if 'Sex' in i:
+                    feat_mutable[i] = 0
+                else:
+                    feat_mutable[i] = 1
+        elif self.name == 'bank':
+            for i in feat_list:
+                if 'AgeGroup' in i or 'Marital' in i:
+                    feat_mutable[i] = 0
+                else:
+                    feat_mutable[i] = 1
+        elif self.name == 'credit':
+            for i in feat_list:
+                if 'isMale' in i or 'isMarried' in i:
+                    feat_mutable[i] = 0
+                else:
+                    feat_mutable[i] = 1
+        elif self.name == 'compass':
+            for i in feat_list:
+                if 'Race' in i or 'Sex' in i:
+                    feat_mutable[i] = 0
+                else:
+                    feat_mutable[i] = 1
+        elif self.name == 'diabetes':
+            for i in feat_list:
+                if 'Sex' in i:
+                    feat_mutable[i] = 0
+                else:
+                    feat_mutable[i] = 1
+        elif self.name == 'student':
+            for i in feat_list:
+                if 'Sex' in i or 'AgeGroup':
+                    feat_mutable[i] = 0
+                else:
+                    feat_mutable[i] = 1
+        elif self.name == 'oulad':
+            for i in feat_list:
+                if 'Sex' in i:
+                    feat_mutable[i] = 0
+                else:
+                    feat_mutable[i] = 1
+        elif self.name == 'law':
+            for i in feat_list:
+                if 'Sex' in i or 'Race' in i:
+                    feat_mutable[i] = 0
+                else:
+                    feat_mutable[i] = 1
         elif self.name == 'ionosphere':
             for i in feat_list:
                 if i == '0':
@@ -178,7 +316,7 @@ class Dataset:
                     feat_mutable[i] = 1
         elif self.name == 'synthetic_athlete':
             for i in feat_list:
-                if i in ['Age','Sex']:
+                if i in ['Age', 'Sex']:
                     feat_mutable[i] = 0
                 elif 'TrainingTime' in i or 'Diet' in i or 'Sport' in i or 'SleepHours' in i:
                     feat_mutable[i] = 1
@@ -214,6 +352,72 @@ class Dataset:
                     feat_directionality[i] = 'pos'
                 else:
                     feat_directionality[i] = 'any'
+        elif self.name == 'kdd_census':
+            for i in feat_list:
+                if 'Sex' in i or 'Race' in i:
+                    feat_directionality[i] = 0
+                elif 'Industry' in i or 'Occupation' in i or 'WageHour' in i or 'CapitalGain' in i or 'CapitalLoss' in i or 'Dividends' in i or 'WorkWeeksYear' or 'Age' in i:
+                    feat_directionality[i] = 'any'
+        elif self.name == 'german':
+            for i in feat_list:
+                if 'Age' in i or 'Sex' in i:
+                    feat_directionality[i] = 0
+                else:
+                    feat_directionality[i] = 'any'
+        elif self.name == 'dutch':
+            for i in feat_list:
+                if 'Sex' in i:
+                    feat_directionality[i] = 0
+                elif 'HouseholdPosition' in i or 'HouseholdSize' in i or 'EconomicStatus' in i or 'CurEcoActivity' in i or 'MaritalStatus' in i or 'Country' in i:
+                    feat_directionality[i] = 'any'
+                elif 'EducationLevel' in i or 'Age' in i:
+                    feat_directionality[i] = 'pos'
+        elif self.name == 'bank':
+            for i in feat_list:
+                if 'Age' in i or 'Marital' in i:
+                    feat_directionality[i] = 0
+                elif 'Default' in i or 'Housing' in i or 'Loan' in i or 'Job' in i or 'Contact' in i or 'Month' in i or 'Poutcome' or 'Balance' in i or 'Day' in i or 'Duration' in i or 'Campaign' in i or 'Pdays' in i or 'Previous' in i:
+                    feat_directionality[i] = 'any'
+                elif 'Education' in i:
+                    feat_directionality[i] = 'pos'
+        elif self.name == 'credit':
+            for i in feat_list:
+                if 'Age' in i or 'Male' in i:
+                    feat_directionality[i] = 0
+                elif 'OverLast6Months' in i or 'MostRecent' in i or 'Total' in i or 'History' in i or 'Married' in i:
+                    feat_directionality[i] = 'any'   
+                elif 'Education' in i:
+                    feat_directionality[i] = 'pos'
+        elif self.name == 'compass':
+            for i in feat_list:
+                if 'Age' in i or 'Sex' in i or 'Race' in i:
+                    feat_directionality[i] = 0
+                elif 'Charge' in i or 'Priors' in i:
+                    feat_directionality[i] = 'any'
+        elif self.name == 'diabetes':
+            for i in feat_list:
+                if 'Sex' in i:
+                    feat_directionality[i] = 0
+                else:
+                    feat_directionality[i] = 'any'
+        elif self.name == 'student':
+            for i in feat_list:
+                if 'Sex' in i or 'Age' in i:
+                    feat_directionality[i] = 0
+                else:
+                    feat_directionality[i] = 'any'
+        elif self.name == 'oulad':
+            for i in feat_list:
+                if 'Sex' in i:
+                    feat_directionality[i] = 0
+                else:
+                    feat_directionality[i] = 'any'
+        elif self.name == 'law':
+            for i in feat_list:
+                if 'Sex' in i or 'Race' in i:
+                    feat_directionality[i] = 0
+                else:
+                    feat_directionality[i] = 'any'
         elif self.name == 'ionosphere':
             for i in feat_list:
                 feat_directionality[i] = 'any'
@@ -227,9 +431,7 @@ class Dataset:
             for i in feat_list:
                 if 'Age' in i:
                     feat_directionality[i] = 0
-                elif 'ExerciseMinutes' in i or 'SleepHours' in i or 'Weight' in i:
-                    feat_directionality[i] = 'any'
-                elif 'Diet' in i or 'Stress' in i or 'Smokes' in i:
+                elif 'ExerciseMinutes' in i or 'SleepHours' in i or 'Weight' in i or 'Diet' in i or 'Stress' in i or 'Smokes' in i:
                     feat_directionality[i] = 'any'
         return feat_directionality
 
@@ -268,6 +470,116 @@ class Dataset:
                     feat_cat.loc[i] = 'cat_3'
                 elif 'Relation' in i:
                     feat_cat.loc[i] = 'cat_4'
+                else:
+                    feat_cat.loc[i] = 'non'
+        elif self.name == 'kdd_census':
+            for i in feat_list:
+                if 'Industry' in i:
+                    feat_cat.loc[i] = 'cat_0'
+                elif 'Occupation' in i:
+                    feat_cat.loc[i] = 'cat_1'    
+                else:
+                    feat_cat.loc[i] = 'non'
+        elif self.name == 'german':
+            for i in feat_list:
+                if 'PurposeOfLoan' in i:
+                    feat_cat.loc[i] = 'cat_0'
+                elif 'InstallmentRate' in i:
+                    feat_cat.loc[i] = 'cat_1'
+                elif 'Housing' in i:
+                    feat_cat.loc[i] = 'cat_2'
+                else:
+                    feat_cat.loc[i] = 'non'
+        elif self.name == 'dutch':
+            for i in feat_list:
+                if 'HouseholdPosition' in i:
+                    feat_cat.loc[i] = 'cat_0'
+                elif 'HouseholdSize' in i:
+                    feat_cat.loc[i] = 'cat_1'
+                elif 'Country' in i:
+                    feat_cat.loc[i] = 'cat_2'
+                elif 'EconomicStatus' in i:
+                    feat_cat.loc[i] = 'cat_3'
+                elif 'CurEcoActivity' in i:
+                    feat_cat.loc[i] = 'cat_4'
+                elif 'MaritalStatus' in i:
+                    feat_cat.loc[i] = 'cat_5'
+                else:
+                    feat_cat.loc[i] = 'non'
+        elif self.name == 'bank':
+            for i in feat_list:
+                if 'Job' in i:
+                    feat_cat.loc[i] = 'cat_0'
+                elif 'MaritalStatus' in i:
+                    feat_cat.loc[i] = 'cat_1'
+                elif 'Education' in i:
+                    feat_cat.loc[i] = 'cat_2'
+                elif 'Contact' in i:
+                    feat_cat.loc[i] = 'cat_3'
+                elif 'Month' in i:
+                    feat_cat.loc[i] = 'cat_4'
+                elif 'Poutcome' in i:
+                    feat_cat.loc[i] = 'cat_5'
+                else:
+                    feat_cat.loc[i] = 'non'
+        elif self.name == 'credit':
+            for i in feat_list:
+                feat_cat.loc[i] = 'non'
+        elif self.name == 'compass':
+            for i in feat_list:
+                feat_cat.loc[i] = 'non'
+        elif self.name == 'diabetes':
+            for i in feat_list:
+                if 'Race' in i:
+                    feat_cat.loc[i] = 'cat_0'
+                elif 'A1CResult' in i:
+                    feat_cat.loc[i] = 'cat_1'
+                elif 'Metformin' in i:
+                    feat_cat.loc[i] = 'cat_2'
+                elif 'Chlorpropamide' in i:
+                    feat_cat.loc[i] = 'cat_3'
+                elif 'Glipizide' in i:
+                    feat_cat.loc[i] = 'cat_4'
+                elif 'Rosiglitazone' in i:
+                    feat_cat.loc[i] = 'cat_5'
+                elif 'Acarbose' in i:
+                    feat_cat.loc[i] = 'cat_6'
+                elif 'Miglitol' in i:
+                    feat_cat.loc[i] = 'cat_7'
+                else:
+                    feat_cat.loc[i] = 'non'
+        elif self.name == 'student':
+            for i in feat_list:
+                if 'MotherJob' in i:
+                    feat_cat.loc[i] = 'cat_0'
+                elif 'FatherJob' in i:
+                    feat_cat.loc[i] = 'cat_1'
+                elif 'SchoolReason' in i:
+                    feat_cat.loc[i] = 'cat_2'
+                else:
+                    feat_cat.loc[i] = 'non'
+        elif self.name == 'oulad':
+            for i in feat_list:
+                if 'Region' in i:
+                    feat_cat.loc[i] = 'cat_0'
+                elif 'CodeModule' in i:
+                    feat_cat.loc[i] = 'cat_1'
+                elif 'CodePresentation' in i:
+                    feat_cat.loc[i] = 'cat_2'
+                elif 'HighestEducation' in i:
+                    feat_cat.loc[i] = 'cat_3'
+                elif 'IMDBand' in i:
+                    feat_cat.loc[i] = 'cat_4'
+                else:
+                    feat_cat.loc[i] = 'non'    
+        elif self.name == 'law':
+            for i in feat_list:
+                if 'FamilyIncome' in i:   
+                    feat_cat.loc[i] = 'cat_0'
+                elif 'Tier' in i:
+                    feat_cat.loc[i] = 'cat_1'
+                elif 'Race' in i:
+                    feat_cat.loc[i] = 'cat_2'
                 else:
                     feat_cat.loc[i] = 'non'
         elif self.name == 'ionosphere':
@@ -564,7 +876,81 @@ def load_dataset(data_str, train_fraction, seed, step):
                 parent_name_kurz = -1,
                 lower_bound = df[col_name].min(),
                 upper_bound = df[col_name].max())
-
+                
+    elif data_str == 'kdd_census':
+        binary = ['Sex','Race']
+        categorical = ['Industry','Occupation']
+        ordinal = []
+        continuous = ['Age','WageHour','CapitalGain','CapitalLoss','Dividends','WorkWeeksYear']
+        label = ['Label']
+        df = pd.read_csv(dataset_dir+'kdd_census/preprocessed_kdd_census.csv', index_col=0)
+    elif data_str == 'german':
+        binary = ['Sex','Single','Unemployed']
+        categorical = ['PurposeOfLoan','InstallmentRate','Housing']
+        ordinal = []
+        continuous = ['Age','Credit','LoanDuration']
+        label = ['Label']
+        df = pd.read_csv(dataset_dir+'german/preprocessed_german.csv', index_col=0)
+    elif data_str == 'dutch':
+        binary = ['Sex']
+        categorical = ['HouseholdPosition','HouseholdSize','Country','EconomicStatus','CurEcoActivity','MaritalStatus']
+        ordinal = ['EducationLevel']
+        continuous = ['Age']
+        label = ['Occupation']
+        df = pd.read_csv(dataset_dir+'dutch/preprocessed_dutch.csv', index_col=0)
+    elif data_str == 'bank':
+        binary = ['Default','Housing','Loan']
+        categorical = ['Job','MaritalStatus','Education','Contact','Month','Poutcome']
+        ordinal = ['AgeGroup']
+        continuous = ['Balance','Day','Duration','Campaign','Pdays','Previous']
+        label = ['Subscribed']
+        df = pd.read_csv(dataset_dir+'bank/preprocessed_bank.csv', index_col=0)
+    elif data_str == 'credit':
+        binary = ['isMale','isMarried','HasHistoryOfOverduePayments']
+        categorical = []
+        ordinal = ['TotalOverdueCounts','TotalMonthsOverdue','AgeGroup','EducationLevel']
+        continuous = ['MaxBillAmountOverLast6Months','MaxPaymentAmountOverLast6Months','MonthsWithZeroBalanceOverLast6Months',
+                'MonthsWithLowSpendingOverLast6Months','MonthsWithHighSpendingOverLast6Months','MostRecentBillAmount',
+                'MostRecentPaymentAmount']
+        label = ['NoDefaultNextMonth (label)']
+        df = pd.read_csv(dataset_dir+'/credit/preprocessed_credit.csv')
+    elif data_str == 'compass':
+        # Based on the MACE algorithm Datasets preprocessing (please, see: https://github.com/amirhk/mace)
+        df = pd.DataFrame()
+        binary = ['Race','Sex','ChargeDegree']
+        categorical = []
+        ordinal = ['PriorsCount','AgeGroup']
+        continuous = []
+        label = ['TwoYearRecid (label)']
+        df = pd.read_csv(dataset_dir+'/compass/preprocessed_compass.csv')
+    elif data_str == 'diabetes':
+        binary = ['DiabetesMed']
+        categorical = ['Race','Sex','A1CResult','Metformin','Chlorpropamide','Glipizide','Rosiglitazone','Acarbose','Miglitol']
+        ordinal = ['AgeGroup']
+        continuous = ['TimeInHospital','NumProcedures','NumMedications','NumEmergency']
+        label = ['Label']
+        df = pd.read_csv(dataset_dir+'/diabetes/preprocessed_diabetes.csv')
+    elif data_str == 'student':
+        binary = ['School','Sex','AgeGroup','Address','FamilySize','ParentStatus','SchoolSupport','FamilySupport','ExtraPaid','ExtraActivities','Nursery','HigherEdu','Internet','Romantic']
+        categorical = ['MotherJob','FatherJob','SchoolReason']
+        ordinal = ['MotherEducation','FatherEducation']
+        continuous = ['TravelTime','ClassFailures','GoOut']
+        label = ['Grade']
+        df = pd.read_csv(dataset_dir+'/student/preprocessed_student.csv')
+    elif data_str == 'oulad':
+        binary = ['Sex','Disability']
+        categorical = ['Region','CodeModule','CodePresentation','HighestEducation','IMDBand']
+        ordinal = ['AgeGroup']
+        continuous = ['NumPrevAttempts','StudiedCredits']
+        label = ['Grade']
+        df = pd.read_csv(dataset_dir+'/oulad/preprocessed_oulad.csv')
+    elif data_str == 'law':
+        binary = ['WorkFullTime','Sex']
+        categorical = ['FamilyIncome','Tier','Race']
+        ordinal = []
+        continuous = ['Decile1stYear','Decile3rdYear','LSAT','UndergradGPA','FirstYearGPA','CumulativeGPA']
+        label = ['BarExam']
+        df = pd.read_csv(dataset_dir+'/law/preprocessed_law.csv')
     elif data_str == 'ionosphere':
         binary = []
         categorical = []

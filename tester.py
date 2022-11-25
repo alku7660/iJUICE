@@ -5,7 +5,7 @@ from evaluator_constructor import Evaluator
 from counterfactual_constructor import Counterfactual
 from address import save_obj, results_obj
 
-# datasets = ['adult','bank','compass','credit','dutch','diabetes','german','ionosphere','kdd_census','law','oulad','student','synthetic_athlete','synthetic_disease']
+# datasets = ['adult','kdd_census','german','dutch','bank','credit','compass','compass','diabetes','ionosphere','student','oulad','law','synthetic_athlete','synthetic_disease']
 datasets = ['synthetic_athlete']
 methods = ['nn','mo','ft','rt','gs','face','dice','mace','cchvae','juice','ijuice']
 seed_int = 54321
