@@ -24,8 +24,8 @@ class Dataset:
         self.step = step
         self.train_df, self.test_df, self.train_target, self.test_target = train_test_split(self.df, self.df[self.label_name], train_size=self.train_fraction, random_state=self.seed)
         self.train_df, self.train_target = self.balance_train_data()
-        self.bin_enc, self.cat_enc, self.scaler = self.encoder_scaler_fit()
-        self.bin_enc_cols, self.cat_enc_cols = self.encoder_scaler_cols()
+        self.bin_enc, self.cat_enc, self.bin_cat_enc, self.scaler = self.encoder_scaler_fit()
+        self.bin_enc_cols, self.cat_enc_cols, self.bin_cat_enc_cols = self.encoder_scaler_cols()
         self.processed_features = list(self.bin_enc_cols) + list(self.cat_enc_cols) + self.ordinal + self.continuous
         self.transformed_train_df = self.transform_data(self.train_df)
         self.transformed_train_np = self.transformed_train_df.to_numpy()
@@ -74,19 +74,21 @@ class Dataset:
         """
         Method that fits the encoders and scaler for the dataset
         """
-        bin_enc = OneHotEncoder(drop='if_binary',dtype=np.uint8,handle_unknown='ignore')
-        cat_enc = OneHotEncoder(drop='if_binary',dtype=np.uint8,handle_unknown='ignore')
+        bin_enc = OneHotEncoder(drop='if_binary', dtype=np.uint8, handle_unknown='ignore')
+        cat_enc = OneHotEncoder(drop='if_binary', dtype=np.uint8, handle_unknown='ignore')
+        bin_cat_enc = OneHotEncoder(drop='if_binary', dtype=np.uint8, handle_unknown='ignore')
         scaler = MinMaxScaler(clip=True)
         bin_enc.fit(self.train_df[self.binary])
         cat_enc.fit(self.train_df[self.categorical])
+        bin_cat_enc.fit(self.train_df[self.binary + self.categorical])
         scaler.fit(self.train_df[self.ordinal + self.continuous])
-        return bin_enc, cat_enc, scaler
+        return bin_enc, cat_enc, bin_cat_enc, scaler
 
     def encoder_scaler_cols(self):
         """
         Method that extracts the encoded columns from the encoders
         """
-        return self.bin_enc.get_feature_names_out(self.binary), self.cat_enc.get_feature_names_out(self.categorical)
+        return self.bin_enc.get_feature_names_out(self.binary), self.cat_enc.get_feature_names_out(self.categorical), self.bin_cat_enc.get_feature_names_out(self.binary + self.categorical)
 
     def transform_data(self, data_df):
         """
