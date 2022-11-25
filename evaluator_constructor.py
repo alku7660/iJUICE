@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from itertools import product
 import networkx as nx
 import gurobipy as gp
@@ -39,15 +40,68 @@ def distance_calculation(x, y, data, type='euclidean'):
     """
     Method that calculates the distance between two points. Default is 'euclidean'. Other types are 'L1', 'mixed_L1' and 'mixed_L1_Linf'
     """
+    def euclid(x, y):
+        """
+        Calculates the euclidean distance between the instances (inputs must be Numpy arrays)
+        """
+        return np.sqrt(np.sum((x - y)**2))
+
+    def L1(x, y):
+        """
+        Calculates the L1-Norm distance between the instances (inputs must be Numpy arrays)
+        """
+        return np.sum(np.abs(x - y))
+
+    def L0(x, y):
+        """
+        Calculates a simple matching distance between the features of the instances (pass only categortical features, inputs must be Numpy arrays)
+        """
+        return len(list(np.where(x != y)))
+
+    def Linf(x, y):
+        """
+        Calculates the Linf distance
+        """
+        return np.max(np.abs(x - y))
+
+    def L1_L0(x, y, x_original, y_original, data):
+        """
+        Calculates the distance components according to Sharma et al.: Please see: https://arxiv.org/pdf/1905.07857.pdf
+        """
+        x_df, y_df = pd.DataFrame(data=x, index=[0], columns=data.processed_features), pd.DataFrame(data=y, index=[0], columns=data.processed_features)
+        x_original_df, y_original_df = pd.DataFrame(data=x_original, index=[0], columns=data.features), pd.DataFrame(data=y_original, index=[0], columns=data.features)
+        x_continuous_df, y_continuous_df = x_df[data.ordinal + data.continuous], y_df[data.ordinal + data.continuous]
+        x_continuous_np, y_continuous_np = x_continuous_df.to_numpy()[0], y_continuous_df.to_numpy()[0]
+        x_categorical_df, y_categorical_df = x_original_df[data.bin_cat_enc_cols], y_original_df[data.bin_cat_enc_cols]
+        x_categorical_np, y_categorical_np = x_categorical_df.to_numpy()[0], y_categorical_df.to_numpy()[0]
+        L1_distance, L0_distance = L1(x_continuous_np, y_continuous_np), L0(x_categorical_np, y_categorical_np)
+        return L1_distance, L0_distance
+    
+    def L1_L0_Linf(x, y, x_original, y_original, data, alpha=1/4, beta=1/4):
+        """
+        Calculates the distance used by Karimi et al.: Please see: http://proceedings.mlr.press/v108/karimi20a/karimi20a.pdf
+        """
+        J = len(data.continuous) + len(data.bin_cat_enc_cols)
+        gamma = 1/((alpha + beta)*J)
+        L1_distance, L0_distance = L1_L0(x, y, x_original, y_original, data)
+        Linf_distance = Linf(x, y)
+        return alpha*L0_distance + beta*L1_distance + gamma*Linf_distance
+
     x_original, y_original = data.inverse(x), data.inverse(y)
     if type == 'euclidean':
-        distance = np.sqrt(np.sum((x - y)**2))
+        distance = euclid(x, y)
     elif type == 'L1':
-        distance = np.sum(np.abs(x - y))
-    elif type == 'mixed_L1':
-        distance = 1
-    elif type == 'mixed_L1_Linf':
-        distance = 1
+        distance = L1(x, y)
+    elif type == 'L1_L0':
+        n_con, n_cat = len(data.continuous), len(data.bin_cat_enc_cols)
+        n = n_con + n_cat
+        L1_distance, L0_distance = L1_L0(x, y, x_original, y_original, data)
+        """
+        Equation from Sharma et al.: Please see: https://arxiv.org/pdf/1905.07857.pdf
+        """
+        distance = (n_con/n)*L1_distance + (n_cat/n)*L0_distance
+    elif type == 'L1_L0_Linf':
+        distance = L1_L0_Linf(x, y, x_original, y_original, data)
     return distance
 
 def verify_feasibility(x, cf, data):

@@ -11,9 +11,9 @@ methods = ['nn','mo','ft','rt','gs','face','dice','mace','cchvae','juice','ijuic
 seed_int = 54321
 step = 0.01
 train_fraction = 0.7
-distance_type = ['euclidean'] # ['euclidean','L1','mixed_L1','L1_inf']
+distance_type = ['euclidean'] # ['euclidean','L1','L1_L0','L1_L0_inf']
 continuous_split = ['100']    # ['2','5','10','20','50','100','train']
-num_instances = 1 # data.test_df.shape[0]
+num_instances = 5 # data.test_df.shape[0]
 
 for data_str in datasets:
     data = load_dataset(data_str, train_fraction, seed_int, step)
