@@ -12,17 +12,17 @@ from nt import nn, nn_for_juice
 from itertools import permutations
 from evaluator_constructor import distance_calculation
 
-class Juice:
+class JUICE:
 
     def __init__(self, counterfactual):
         self.normal_ioi = counterfactual.ioi.normal_x
         self.ioi_label = counterfactual.ioi.label
         start_time = time.time()
-        self.normal_x_cf, self.justifier = self.JUICE(counterfactual)
+        self.normal_x_cf, self.justifier = self.Juice(counterfactual)
         end_time = time.time()
         self.total_time = end_time - start_time
 
-    def JUICE(self, counterfactual):
+    def Juice(self, counterfactual):
         """
         Justified NN counterfactual generation method:
         """
@@ -164,7 +164,6 @@ def justified_search(x,x_label,nn_cf,model,data,priority):
         Input priority: Whether it is proximity or sparsity (added to allow search in sparsity mode)
         Output closest_to_x: Updated closest instance to x that is justified by t
         """
-
         vector, closest_to_x_cost, bin_diff_index = get_indices_vector(x,closest_to_x,f_type_str)
         len_bin_diff_index = len(bin_diff_index)
         perm_list = list(permutations(bin_diff_index,len_bin_diff_index))

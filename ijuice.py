@@ -7,17 +7,17 @@ from evaluator_constructor import distance_calculation
 from nt import nn, nn_for_juice
 import time
 
-class Ijuice:
+class IJUICE:
 
     def __init__(self, counterfactual):
         self.normal_ioi = counterfactual.ioi.normal_x
         self.ioi_label = counterfactual.ioi.label
         start_time = time.time()
-        self.normal_x_cf, self.justifier = self.IJUICE(counterfactual)
+        self.normal_x_cf, self.justifier = self.Ijuice(counterfactual)
         end_time = time.time()
         self.total_time = end_time - start_time
 
-    def IJUICE(self, counterfactual):
+    def Ijuice(self, counterfactual):
         """
         Improved JUICE generation method
         """

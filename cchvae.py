@@ -439,8 +439,13 @@ class CCHVAE(RecourseMethod):
                                                                                        "lambda_reg": 1e-6, "epochs": 5,
                                                                                        "lr": 1e-3, "batch_size": 32}}
 
-    def __init__(self, mlmodel):
-        super().__init__(mlmodel)
+    def __init__(self, counterfactual):
+        data = counterfactual.data
+        model = counterfactual.model
+        factuals = counterfactual.ioi.normal_x_df
+        cchvae_data = MyOwnDataSet(data)
+        cchvae_model = MyOwnModel(cchvae_data, model)
+        super().__init__(cchvae_model)
         self._params = self._DEFAULT_HYPERPARAMS
         self._n_search_samples = self._params["n_search_samples"]
         self._p_norm = self._params["p_norm"]
@@ -449,6 +454,11 @@ class CCHVAE(RecourseMethod):
         self._clamp = self._params["clamp"]
         vae_params = self._params["vae_params"]
         self._generative_model = self._load_vae(self._mlmodel.data.df, vae_params, self._mlmodel, self._params["data_name"])
+        start_time = time.time()
+        cfs = self.get_counterfactuals(factuals)
+        end_time = time.time()
+        run_time = end_time - start_time
+        self.normal_x_cf, self.run_time = cfs, run_time
 
     def _load_vae(self, data: pd.DataFrame, vae_params, mlmodel: MLModel, data_name: str) -> VariationalAutoencoder:
         generative_model = VariationalAutoencoder(data_name, vae_params["layers"])
@@ -587,24 +597,3 @@ def reconstruct_encoding_constraints(x: torch.Tensor, feature_pos, binary_cat: b
             if (x_enc[:, pair[0]] == x_enc[:, pair[1]]).any():
                 raise ValueError("Reconstructing encoded features lead to an error. Feature {} and {} have the same value".format(pair[0], pair[1]))
     return x_enc
-
-def cchvae_method(counterfactual):
-    """
-    Function that returns C-CHVAE with respect to instance of interest x
-    """
-    data = counterfactual.data
-    model = counterfactual.model
-    factuals = counterfactual.ioi.normal_x_df
-    cchvae_data = MyOwnDataSet(data)
-    cchvae_model = MyOwnModel(cchvae_data, model)
-    cchvae_obj = CCHVAE(cchvae_model)
-    start_time = time.time()
-    cfs = cchvae_obj.get_counterfactuals(factuals)
-    end_time = time.time()
-    run_time = end_time - start_time
-    return cfs, run_time
-
-
-
-    
-
