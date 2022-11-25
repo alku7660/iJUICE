@@ -20,6 +20,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import Dataset
 import os
+import time
 
 class RecourseMethod(ABC):
     """
@@ -538,8 +539,10 @@ class CCHVAE(RecourseMethod):
         encoded_feature_names = self._mlmodel.data.encoder.get_feature_names(self._mlmodel.data.categorical)
         cat_features_indices = [factuals.columns.get_loc(feature) for feature in encoded_feature_names]
         df_cfs = factuals.apply(lambda x: self._counterfactual_search(self._step, x.reshape((1, -1)), cat_features_indices), raw=True, axis=1)
-        df_cfs = check_counterfactuals(self._mlmodel, df_cfs)
+        cf_pred = self._mlmodel.predict(df_cfs.reshape(1, -1))
         df_cfs = self._mlmodel.get_ordered_features(df_cfs)
+        if cf_pred == self.undesired_label:
+            print(f'CCHVAE error: Counterfactual has same label as the IOI')
         return df_cfs
 
 def order_data(feature_order, df):
@@ -585,26 +588,21 @@ def reconstruct_encoding_constraints(x: torch.Tensor, feature_pos, binary_cat: b
                 raise ValueError("Reconstructing encoded features lead to an error. Feature {} and {} have the same value".format(pair[0], pair[1]))
     return x_enc
 
-def check_counterfactuals(mlmodel: MLModel, counterfactuals, negative_label: int = 0) -> pd.DataFrame:
-    """
-    Takes the generated list of counterfactuals from recourse methods and checks if these samples are able
-    to flip the label from 0 to 1. Every counterfactual which still has a negative label, will be replaced with an
-    empty row.
-    """
-    if isinstance(counterfactuals, list):
-        df_cfs = pd.DataFrame(np.array(counterfactuals), columns=mlmodel.feature_input_order)
-    else:
-        df_cfs = counterfactuals.copy()
-
-    df_cfs[mlmodel.data.target] = np.argmax(mlmodel.predict_proba(df_cfs), axis=1)
-    # Change all wrong counterfactuals to nan
-    df_cfs.loc[df_cfs[mlmodel.data.target] == negative_label, :] = np.nan
-    return df_cfs
-
 def cchvae_method(counterfactual):
     """
     Function that returns C-CHVAE with respect to instance of interest x
     """
+    data = counterfactual.data
+    model = counterfactual.model
+    factuals = counterfactual.ioi.normal_x_df
+    cchvae_data = MyOwnDataSet(data)
+    cchvae_model = MyOwnModel(cchvae_data, model)
+    cchvae_obj = CCHVAE(cchvae_model)
+    start_time = time.time()
+    cfs = cchvae_obj.get_counterfactuals(factuals)
+    end_time = time.time()
+    run_time = end_time - start_time
+    return cfs, run_time
 
 
 
