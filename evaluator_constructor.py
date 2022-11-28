@@ -15,7 +15,6 @@ class Evaluator():
         self.feat_type = data.feat_type
         self.feat_mutable = data.feat_mutable
         self.feat_directionality = data.feat_directionality
-        self.feat_cost = data.feat_cost
         self.feat_step = data.feat_step
         self.data_cols = data.processed_features
         self.x_dict, self.normal_x_dict = {}, {}
@@ -26,14 +25,14 @@ class Evaluator():
         """
         Method to add specific data from an instance x
         """
-        x_cf = counterfactual.data.inverse(self.cf_method.normal_x_cf)
+        x_cf = counterfactual.data.inverse(counterfactual.cf_method.normal_x_cf)
         self.x_dict[counterfactual.ioi.idx] = counterfactual.ioi.x
         self.normal_x_dict[counterfactual.ioi.idx] = counterfactual.ioi.normal_x
         self.x_cf_dict[counterfactual.ioi.idx] = x_cf
-        self.proximity_dict[counterfactual.ioi.idx] = distance_calculation(counterfactual.ioi.x, self.cf_method.normal_x_cf, counterfactual.data, self.distance_type)
-        self.feasibility_dict[counterfactual.ioi.idx] = verify_feasibility(counterfactual.ioi.normal_x, self.cf_method.normal_x_cf, counterfactual.data)
-        self.sparsity_dict[counterfactual.ioi.idx] = sparsity(counterfactual.ioi.normal_x, self.cf_method.normal_x_cf, counterfactual.data)
-        self.justification_dict[counterfactual.ioi.idx] = verify_justification(self.cf_method.normal_x_cf, counterfactual)
+        self.proximity_dict[counterfactual.ioi.idx] = distance_calculation(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data, self.distance_type)
+        self.feasibility_dict[counterfactual.ioi.idx] = verify_feasibility(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data)
+        self.sparsity_dict[counterfactual.ioi.idx] = sparsity(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data)
+        self.justification_dict[counterfactual.ioi.idx] = verify_justification(counterfactual.cf_method.normal_x_cf, counterfactual)
         self.time_dict[counterfactual.ioi.idx] = counterfactual.cf_method.total_time
 
 def distance_calculation(x, y, data, type='euclidean'):
@@ -108,6 +107,7 @@ def verify_feasibility(x, cf, data):
     """
     Method that indicates whether the cf is a feasible counterfactual with respect to x, feature mutability and directionality
     """
+    x = x[0]
     toler = 0.000001
     feasibility = True
     for i in range(len(data.feat_type)):
@@ -125,13 +125,13 @@ def verify_feasibility(x, cf, data):
                 feasibility = False
                 break
         vector = cf - x
-        if data.feat_dir[i] == 0 and vector[i] != 0:
+        if data.feat_directionality[i] == 0 and vector[i] != 0:
             feasibility = False
             break
-        elif data.feat_dir[i] == 'pos' and vector[i] < 0:
+        elif data.feat_directionality[i] == 'pos' and vector[i] < 0:
             feasibility = False
             break
-        elif data.feat_dir[i] == 'neg' and vector[i] > 0:
+        elif data.feat_directionality[i] == 'neg' and vector[i] > 0:
             feasibility = False
             break
     if not np.array_equal(x[np.where(data.feat_mutable == 0)], cf[np.where(data.feat_mutable == 0)]):
@@ -177,7 +177,7 @@ def verify_justification(cf, counterfactual):
         train_cf_label_prediction_data = train_true_label_data[train_prediction != ioi.label]
         sort_data_distance = []
         for i in range(train_cf_label_prediction_data.shape[0]):
-            dist = distance_calculation(train_cf_label_prediction_data[i], cf)
+            dist = distance_calculation(train_cf_label_prediction_data[i], cf, data)
             sort_data_distance.append((train_cf_label_prediction_data[i], dist, 1 - ioi.label))      
         sort_data_distance.sort(key=lambda x: x[1])
         return sort_data_distance
@@ -255,22 +255,22 @@ def verify_justification(cf, counterfactual):
         """
         Generator that contains all the nodes located in the space between the nn_cf and the normal_ioi (all possible, CF-labeled nodes)
         """
-        permutations = product(possible_values)
+        permutations = product(*possible_values)
         for i in permutations:
             perm_i = make_array(i)
             if model.model.predict(perm_i.reshape(1, -1)) != ioi.label and not np.array_equal(perm_i, cf):
                 yield perm_i
 
-    def get_cost(model, possible_values, point, type):
+    def get_cost(data, model, possible_values, point, type):
         """
         Method that outputs the cost parameters required for optimization
         """
         C = {}
-        C[1] = distance_calculation(cf, point, type)
+        C[1] = distance_calculation(cf, point, data, type)
         nodes = get_nodes(model, possible_values)
         ind = 2
         for i in nodes:
-            C[ind] = distance_calculation(point, i, type)
+            C[ind] = distance_calculation(point, i, data, type)
             ind += 1
         return C
 
@@ -296,12 +296,21 @@ def verify_justification(cf, counterfactual):
                         A.append((i,j))
                 elif len(nonzero_index) == 1:
                     if any(item in data.ordinal for item in feat_nonzero):
-                        if np.isclose(np.abs(vector_ij[nonzero_index]),data.feat_step[feat_nonzero], atol=toler).any():
+                        if np.isclose(np.abs(vector_ij[nonzero_index]), data.feat_step[feat_nonzero], atol=toler).any():
                             A.append((i,j))
                     elif any(item in data.continuous for item in feat_nonzero):
                         max_val_i, min_val_i = max(cf[nonzero_index], point[nonzero_index]), min(cf[nonzero_index], point[nonzero_index])
                         values = continuous_feat_values(i, min_val_i, max_val_i, data, split)
-                        close_node_j_values = [values[max(np.where(node_i[nonzero_index] > values))], values[min(np.where(node_i[nonzero_index] <= values))]]
+                        values_idx = np.where(np.isclose(values, node_i[nonzero_index]))[0]
+                        if values_idx > 0:
+                            values_idx_inf = values_idx - 1
+                        else:
+                            values_idx_inf = 0
+                        if values_idx < len(values):
+                            values_idx_sup = values_idx + 1
+                        else:
+                            values_idx_sup = values_idx
+                        close_node_j_values = [values[values_idx_inf], values[values_idx_sup]]
                         if np.isclose(node_j[nonzero_index], close_node_j_values, atol=toler).any():
                             A.append((i,j))
                     elif any(item in data.binary for item in feat_nonzero):
@@ -311,10 +320,10 @@ def verify_justification(cf, counterfactual):
 
     justifier = None
     train_nn_list = nn_list()
-    for i in train_nn_list:
-        train_nn_i = train_nn_list[i]
+    for i in range(len(train_nn_list)):
+        train_nn_i = train_nn_list[i][0]
         possible_values = get_feat_possible_values(data, train_nn_i, split)
-        cost = get_cost(model, possible_values, train_nn_i, type)
+        cost = get_cost(data, model, possible_values, train_nn_i, type)
         adjacency = get_adjacency(data, possible_values, train_nn_i, model)
         opt_model_i = gp.Model(name='verify_justification_train_i')
         G = nx.DiGraph()
@@ -322,13 +331,13 @@ def verify_justification(cf, counterfactual):
         set_I = list(cost.keys())
         x = opt_model_i.addVars(set_I, vtype=GRB.BINARY, obj=np.array(list(cost.values())), name='verification_cf')   # Function to optimize and x variables
         y = gp.tupledict()
-        for (i,j) in G.edges:
-            y[i,j] = opt_model_i.addVar(vtype=GRB.BINARY, name='Path')
+        for (j,k) in G.edges:
+            y[j,k] = opt_model_i.addVar(vtype=GRB.BINARY, name='Path')
         for v in G.nodes:
             if v > 1:
-                opt_model_i.addConstr(gp.quicksum(y[i,v] for i in G.predecessors(v)) - gp.quicksum(y[v,j] for j in G.successors(v)) == x[v])
+                opt_model_i.addConstr(gp.quicksum(y[j,v] for j in G.predecessors(v)) - gp.quicksum(y[v,k] for k in G.successors(v)) == x[v])
             else:
-                opt_model_i.addConstr(gp.quicksum(y[i,v] for i in G.predecessors(v)) - gp.quicksum(y[v,j] for j in G.successors(v)) == -1)      
+                opt_model_i.addConstr(gp.quicksum(y[j,v] for j in G.predecessors(v)) - gp.quicksum(y[v,k] for k in G.successors(v)) == -1)      
         opt_model_i.optimize()
         nodes = [cf]
         nodes.extend(list(get_nodes(model)))

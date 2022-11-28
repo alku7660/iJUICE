@@ -21,7 +21,7 @@ class IOI:
         start_time = time.time()
         sort_data_distance = []
         for i in range(data.transformed_train_np.shape[0]):
-            dist = distance_calculation(data.transformed_train_np[i], self.normal_x, type)
+            dist = distance_calculation(data.transformed_train_np[i], self.normal_x, data, type)
             sort_data_distance.append((data.transformed_train_np[i], dist, data.train_target[i]))      
         sort_data_distance.sort(key=lambda x: x[1])
         end_time = time.time()

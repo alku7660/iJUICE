@@ -17,7 +17,7 @@ from sklearn.neighbors import kneighbors_graph, radius_neighbors_graph
 
 class FACE:
 
-    def __init__(self, counterfactual) -> None:
+    def __init__(self, counterfactual):
         self.normal_x_cf, self.run_time = face_method(counterfactual)
 
 def face_method(counterfactual):
@@ -217,12 +217,12 @@ def face_method(counterfactual):
         return distances, min_distance
 
     mode = 'knn' # Possible modes: 'knn', 'epsilon'
-    fraction = 0.05 # Possible fractions: [0 < x < 1]
+    fraction = 0.4 # Possible fractions: [0 < x < 1]
     order_features = counterfactual.data.processed_features
     
     start_time = time.time()
     factuals = counterfactual.ioi.normal_x_df
-    data_df = pd.concat((counterfactual.transformed_train_df, counterfactual.transformed_test_df), axis=0)
+    data_df = pd.concat((counterfactual.data.transformed_train_df, counterfactual.data.transformed_test_df), axis=0)
     data_df_copy = data_df.copy()
     cond = data_df_copy.isin(factuals).values
     data_df_copy = data_df_copy.drop(data_df_copy[cond].index)

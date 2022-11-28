@@ -7,7 +7,7 @@ from address import save_obj, results_obj
 
 # datasets = ['adult','kdd_census','german','dutch','bank','credit','compass','compass','diabetes','ionosphere','student','oulad','law','synthetic_athlete','synthetic_disease']
 datasets = ['synthetic_athlete']
-methods = ['nn','mo','ft','rt','gs','face','dice','mace','cchvae','juice','ijuice']
+methods = ['face','dice','mace','cchvae','juice','ijuice']
 seed_int = 54321
 step = 0.01
 train_fraction = 0.7
@@ -28,7 +28,7 @@ for data_str in datasets:
                     idx = data.undesired_transformed_test_df.index[ins]
                     ioi = IOI(idx, data, model, type)
                     cf_gen = Counterfactual(data, model, method_str, ioi, type, split)
-                    eval.add_specific_x_data(data, model, ioi, cf_gen)
+                    eval.add_specific_x_data(cf_gen)
                 save_obj(eval, results_obj, f'{data_str}_{method_str}_{type}_{split}.pkl')
             # print(f'Optimizer solution status: {ijuice.optimizer.status}')
             # print(f'Solution:')
