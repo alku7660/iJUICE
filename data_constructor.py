@@ -48,6 +48,7 @@ class Dataset:
         self.is_one_hot = True # Set to True always since we always one-hot encode
         self.data_frame_long = df
         self.attributes_long = attributes
+        self.attributes_long = self.define_attributes()
         attributes_kurz = dict((attributes[key].attr_name_kurz, value) for (key, value) in attributes.items())
         data_frame_kurz = copy.deepcopy(df)
         data_frame_kurz.columns = self.getAllAttributeNames('kurz')
@@ -789,6 +790,53 @@ class Dataset:
         a = self.getInputAttributeNames(long_or_kurz)
         b = self.getOneHotAttributesNames(long_or_kurz)
         return np.setdiff1d(a,b)
+
+    def define_attributes(self):
+        """
+        Method that defines the attributes based on the MACE methodology and the loading for the rest of the methods
+        """
+        if col_name == 'Sex':
+                attr_type = 'binary'
+                actionability = 'none'
+                mutability = False
+            elif col_name == 'Diet':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Sport':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'TrainingTime':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Age':
+                attr_type = 'numeric-real'
+                actionability = 'none'
+                mutability = False
+            elif col_name == 'SleepHours':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+        attributes = {}
+        new_attributes = list(self.transformed_train_df.columns())
+        if self.name == 'synthetic_athlete':
+            for new_col_idx, new_col in enumerate(new_attributes):
+                new_col_kurz = f'x{new_col_idx}'
+                new_col_type = self.feat_type_mace[new_col]
+                new_col_actionability = self.feat_directionality_mace[new_col]
+                new_col_mutability = True if new_col_actionability != 'none' else False
+                attributes[new_col] = DatasetAttribute(
+                    attr_name_long=new_col,
+                    attr_name_kurz=new_col_kurz,
+                    attr_type=new_col_type,
+                    node_type='input',
+                    actionability=new_col_actionability,
+                    mutability=new_col_mutability,
+                    
+                )
+                
 
 def load_dataset(data_str, train_fraction, seed, step):
     """
@@ -1787,7 +1835,7 @@ def load_dataset(data_str, train_fraction, seed, step):
 
             attributes_df[col_name] = DatasetAttribute(
                 attr_name_long = col_name,
-                attr_name_kurz = f'x{col_idx}',
+                attr_name_kurz = col_name,
                 attr_type = attr_type,
                 node_type = 'input',
                 actionability = actionability,
