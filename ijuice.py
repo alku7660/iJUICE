@@ -4,7 +4,7 @@ import networkx as nx
 import gurobipy as gp
 from gurobipy import GRB, tuplelist
 from evaluator_constructor import distance_calculation
-from nt import nn, nn_for_juice
+from nnt import near_neigh, nn_for_juice
 import time
 
 class IJUICE:
@@ -33,7 +33,7 @@ class IJUICE:
                 normal_x_cf = justifier
         else:
             print(f'No justifier available: Returning NN counterfactual')
-            normal_x_cf, _ = nn(counterfactual)
+            normal_x_cf, _ = near_neigh(counterfactual)
             justifier = normal_x_cf
         return normal_x_cf, justifier 
 

@@ -118,7 +118,7 @@ class Dataset:
         """
         Method to obtain the test subset with predicted undesired class
         """
-        self.undesired_transformed_test_df = self.transformed_test_df.loc[model.model.predict(self.transformed_test_df) == self.undesired_class]
+        self.undesired_transformed_test_df = self.transformed_test_df.loc[model.model.predict(self.transformed_test_np) == self.undesired_class]
         self.undesired_transformed_test_np = self.undesired_transformed_test_df.to_numpy()
 
     def define_feat_type(self):

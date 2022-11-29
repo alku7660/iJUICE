@@ -5,9 +5,9 @@ from evaluator_constructor import verify_feasibility
 class NN:
 
     def __init__(self, counterfactual) -> None:
-        self.normal_x_cf, self.run_time = nn(counterfactual)
+        self.normal_x_cf, self.run_time = near_neigh(counterfactual)
 
-def nn(counterfactual):
+def near_neigh(counterfactual):
     """
     Original nn counterfactual method
     """

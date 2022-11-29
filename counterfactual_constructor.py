@@ -1,10 +1,12 @@
 from ijuice import IJUICE
-from nt import NN
+from nnt import NN
 from mo import MO
 from ft import FT
 from rt import RT
 from gs import GS
 from face import FACE
+from dice import DICE
+from mace import MACE
 from juice import JUICE
 
 
@@ -38,6 +40,10 @@ class Counterfactual:
             cf_method = GS(self)
         elif self.method == 'face':
             cf_method = FACE(self)
+        elif self.method == 'dice':
+            cf_method = DICE(self)
+        elif self.method == 'mace':
+            cf_method = MACE(self)
         elif self.method == 'juice':
             cf_method = JUICE(self)
         return cf_method

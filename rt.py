@@ -8,7 +8,7 @@ Imports
 import time
 import numpy as np
 from collections import Counter
-from nt import nn
+from nnt import near_neigh
 
 class RT:
 

@@ -8,7 +8,7 @@ Imports
 
 import time
 import numpy as np
-from nt import nn, nn_for_juice
+from nnt import near_neigh, nn_for_juice
 from itertools import permutations
 from evaluator_constructor import distance_calculation
 

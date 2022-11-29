@@ -7,7 +7,7 @@ from gurobipy import GRB, tuplelist
 
 class Evaluator():
 
-    def __init__(self, data, method_str, type, split): # data, method_str, type, split
+    def __init__(self, data, method_str, type, split, justification_train_perc): # data, method_str, type, split
         self.data_name = data.name
         self.method_name = method_str
         self.distance_type = type
@@ -17,6 +17,7 @@ class Evaluator():
         self.feat_directionality = data.feat_directionality
         self.feat_step = data.feat_step
         self.data_cols = data.processed_features
+        self.perc = justification_train_perc
         self.x_dict, self.normal_x_dict = {}, {}
         self.normal_x_cf_dict, self.x_cf_dict = {}, {}
         self.proximity_dict, self.feasibility_dict, self.sparsity_dict, self.justification_dict, self.time_dict = {}, {}, {}, {}, {}
@@ -29,11 +30,12 @@ class Evaluator():
         self.x_dict[counterfactual.ioi.idx] = counterfactual.ioi.x
         self.normal_x_dict[counterfactual.ioi.idx] = counterfactual.ioi.normal_x
         self.x_cf_dict[counterfactual.ioi.idx] = x_cf
+        feasibility = verify_feasibility(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data)
+        self.feasibility_dict[counterfactual.ioi.idx] = feasibility
         self.proximity_dict[counterfactual.ioi.idx] = distance_calculation(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data, self.distance_type)
-        self.feasibility_dict[counterfactual.ioi.idx] = verify_feasibility(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data)
         self.sparsity_dict[counterfactual.ioi.idx] = sparsity(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data)
-        self.justification_dict[counterfactual.ioi.idx] = verify_justification(counterfactual.cf_method.normal_x_cf, counterfactual)
-        self.time_dict[counterfactual.ioi.idx] = counterfactual.cf_method.total_time
+        self.justification_dict[counterfactual.ioi.idx] = verify_justification(counterfactual.cf_method.normal_x_cf, counterfactual, self.perc, feasibility)
+        self.time_dict[counterfactual.ioi.idx] = counterfactual.cf_method.run_time
 
 def distance_calculation(x, y, data, type='euclidean'):
     """
@@ -157,20 +159,19 @@ def sparsity(x, cf, data):
         cf_sparsity = np.round_(1 - n_changed/len(x),3)
     return cf_sparsity
 
-def verify_justification(cf, counterfactual):
+def verify_justification(cf, counterfactual, perc, feasibility):
     """
     Method that verifies justification for any given cf, and a dataset.
     """
-
     data = counterfactual.data
     ioi = counterfactual.ioi
     model = counterfactual.model
     type = counterfactual.type
     split = counterfactual.split
 
-    def nn_list():
+    def nn_list(perc=0.2):
         """
-        Method that gets the list of nearest training observations labeled as cf-label with respect to the cf
+        Method that gets the list of training observations labeled as cf-label with respect to the cf, ordered based on graph nodes size
         """
         train_true_label_data = data.transformed_train_np[data.train_target != ioi.label]
         train_prediction = model.model.predict(train_true_label_data)
@@ -178,9 +179,16 @@ def verify_justification(cf, counterfactual):
         sort_data_distance = []
         for i in range(train_cf_label_prediction_data.shape[0]):
             dist = distance_calculation(train_cf_label_prediction_data[i], cf, data)
-            sort_data_distance.append((train_cf_label_prediction_data[i], dist, 1 - ioi.label))      
+            sort_data_distance.append((train_cf_label_prediction_data[i], dist, 1 - ioi.label))    
         sort_data_distance.sort(key=lambda x: x[1])
-        return sort_data_distance
+        sort_data_distance_possible_values = []
+        for i in range(int(len(sort_data_distance)*perc)):
+            print(f'Instance {i+1} of {int(len(sort_data_distance)*perc)} ({np.round((i+1)*100/int(len(sort_data_distance)*perc),2)}%)')
+            possible_values = get_feat_possible_values(data, sort_data_distance[i][0], split)
+            num_nodes = len(list(get_nodes(model, possible_values)))
+            sort_data_distance_possible_values.append((sort_data_distance[i][0], possible_values, num_nodes, 1 - ioi.label))    
+        sort_data_distance_possible_values.sort(key=lambda x: x[2])
+        return sort_data_distance_possible_values
 
     def continuous_feat_values(i, min_val, max_val, data, split):
         """
@@ -281,9 +289,11 @@ def verify_justification(cf, counterfactual):
         toler = 0.00001
         nodes = [cf]
         nodes.extend(list(get_nodes(model, possible_values)))
+        print(f'Getting adjacency: Nodes length: {len(nodes)}')
         A = tuplelist()
         for i in range(1, len(nodes) + 1):
             node_i = nodes[i - 1]
+            # print(f'Getting adjacency: Started node edge verify: {i}. Progress ({np.round(100*(i)/(len(nodes)),2)}%)')
             for j in range(i + 1, len(nodes) + 1):
                 node_j = nodes[j - 1]
                 vector_ij = node_j - node_i
@@ -301,12 +311,12 @@ def verify_justification(cf, counterfactual):
                     elif any(item in data.continuous for item in feat_nonzero):
                         max_val_i, min_val_i = max(cf[nonzero_index], point[nonzero_index]), min(cf[nonzero_index], point[nonzero_index])
                         values = continuous_feat_values(i, min_val_i, max_val_i, data, split)
-                        values_idx = np.where(np.isclose(values, node_i[nonzero_index]))[0]
+                        values_idx = int(np.where(np.isclose(values, node_i[nonzero_index]))[0])
                         if values_idx > 0:
                             values_idx_inf = values_idx - 1
                         else:
                             values_idx_inf = 0
-                        if values_idx < len(values):
+                        if values_idx < len(values) - 1:
                             values_idx_sup = values_idx + 1
                         else:
                             values_idx_sup = values_idx
@@ -318,33 +328,52 @@ def verify_justification(cf, counterfactual):
                             A.append((i,j))
         return A
 
-    justifier = None
-    train_nn_list = nn_list()
-    for i in range(len(train_nn_list)):
-        train_nn_i = train_nn_list[i][0]
-        possible_values = get_feat_possible_values(data, train_nn_i, split)
-        cost = get_cost(data, model, possible_values, train_nn_i, type)
-        adjacency = get_adjacency(data, possible_values, train_nn_i, model)
-        opt_model_i = gp.Model(name='verify_justification_train_i')
-        G = nx.DiGraph()
-        G.add_edges_from(adjacency)
-        set_I = list(cost.keys())
-        x = opt_model_i.addVars(set_I, vtype=GRB.BINARY, obj=np.array(list(cost.values())), name='verification_cf')   # Function to optimize and x variables
-        y = gp.tupledict()
-        for (j,k) in G.edges:
-            y[j,k] = opt_model_i.addVar(vtype=GRB.BINARY, name='Path')
-        for v in G.nodes:
-            if v > 1:
-                opt_model_i.addConstr(gp.quicksum(y[j,v] for j in G.predecessors(v)) - gp.quicksum(y[v,k] for k in G.successors(v)) == x[v])
-            else:
-                opt_model_i.addConstr(gp.quicksum(y[j,v] for j in G.predecessors(v)) - gp.quicksum(y[v,k] for k in G.successors(v)) == -1)      
-        opt_model_i.optimize()
-        nodes = [cf]
-        nodes.extend(list(get_nodes(model)))
-        for i in cost.keys():
-            if x[i].x > 0:
-                sol_x = nodes[i - 1]
-        if np.equal(sol_x, train_nn_i):
-            justifier = train_nn_i
-            break
+    if feasibility:
+        print(f'Preprocessing and ordering of training instances')
+        train_nn_list = nn_list(perc)
+        print(f'Number of training instances considered: {len(train_nn_list)}')
+        for i in range(len(train_nn_list)):
+            print(f'Verifying justification from train instance {i+1}')
+            train_nn_i = train_nn_list[i][0]
+            possible_values = train_nn_list[i][1]
+            if np.array_equal(cf, train_nn_i):
+                justifier = train_nn_i
+                print(f'Justified by itself!')
+                break
+            # print(f'got possible values')
+            cost = get_cost(data, model, possible_values, train_nn_i, type)
+            # print(f'got costs')
+            adjacency = get_adjacency(data, possible_values, train_nn_i, model)
+            # print(f'got adjacency')
+            opt_model_i = gp.Model(name='verify_justification_train_i')
+            G = nx.DiGraph()
+            G.add_edges_from(adjacency)
+            set_I = list(cost.keys())
+            x = opt_model_i.addVars(set_I, vtype=GRB.BINARY, obj=np.array(list(cost.values())), name='verification_cf')   # Function to optimize and x variables
+            y = gp.tupledict()
+            for (j,k) in G.edges:
+                y[j,k] = opt_model_i.addVar(vtype=GRB.BINARY, name='Path')
+            for v in G.nodes:
+                if v > 1:
+                    opt_model_i.addConstr(gp.quicksum(y[j,v] for j in G.predecessors(v)) - gp.quicksum(y[v,k] for k in G.successors(v)) == x[v])
+                else:
+                    opt_model_i.addConstr(gp.quicksum(y[j,v] for j in G.predecessors(v)) - gp.quicksum(y[v,k] for k in G.successors(v)) == -1)      
+            # print(f'set all variables')
+            opt_model_i.Params.LogToConsole = 0
+            opt_model_i.optimize()
+            nodes = [cf]
+            nodes.extend(list(get_nodes(model, possible_values)))
+            for i in cost.keys():
+                if x[i].x > 0:
+                    sol_x = nodes[i - 1]
+            # sol_y = {}
+            # for i,j in adjacency:
+            #     if y[i,j].x > 0:
+            #         sol_y[i,j] = y[i,j].x
+            if np.array_equal(sol_x, train_nn_i):
+                justifier = train_nn_i
+                print(f'Justified through a path!')
+                break
+    else:
+        justifier = None
     return justifier
