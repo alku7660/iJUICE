@@ -127,6 +127,7 @@ class Dataset:
         Method that obtains a feature type vector corresponding to each of the features
         """
         feat_type = copy.deepcopy(self.transformed_train_df.dtypes)
+        feat_type_mace = copy.deepcopy(self.transformed_train_df.dtypes)
         feat_list = feat_type.index.tolist()
         if self.name == 'adult':
             for i in feat_list:
@@ -134,77 +135,117 @@ class Dataset:
                     feat_type.loc[i] = 'bin'
                 elif 'EducationLevel' in i or 'Age' in i:
                     feat_type.loc[i] = 'ord'
+                    feat_type_mace.loc[i] = 'numeric-int'
                 elif 'EducationNumber' in i or 'Capital' in i or 'Hours' in i:
                     feat_type.loc[i] = 'cont'
+                    feat_type_mace.loc[i] = 'numeric-real'
+                if 'Sex' in i or 'Native' in i or 'Race' in i:
+                    feat_type_mace.loc[i] = 'binary'
+                elif 'WorkClass' in i or 'Marital' in i or 'Occupation' in i or 'Relationship' in i:
+                    feat_type_mace.loc[i] = 'categorical'
         elif self.name == 'kdd_census':
             for i in feat_list:
                 if 'Sex' in i or 'Race' in i or 'Industry' in i or 'Occupation' in i:
                     feat_type.loc[i] = 'bin'
-                elif 'Age' in i or 'WageHour' in i or 'CapitalGain' in i or 'CapitalLoss' in i or 'Dividends' in i or 'WorkWeeksYear' in i:
+                elif 'Age' in i or 'WageHour' in i or 'Capital' in i or 'Dividends' in i or 'WorkWeeksYear' in i:
                     feat_type.loc[i] = 'cont'
+                    feat_type_mace.loc[i] = 'numeric-real'
+                if 'Sex' in i or 'Race' in i:
+                    feat_type_mace.loc[i] = 'binary'
+                elif 'Industry' in i or 'Occupation' in i:
+                    feat_type_mace.loc[i] = 'categorical'
         elif self.name == 'german':
             for i in feat_list:
-                if 'Sex' in i or 'Single' in i or 'Unemployed' in i or 'Housing' in i or 'PurposeOfLoan' in i or 'InstallmentRate' in i or 'Housing' in i:
+                if 'Sex' in i or 'Single' in i or 'Unemployed' in i or 'Housing' in i or 'PurposeOfLoan' in i or 'InstallmentRate' in i:
                     feat_type.loc[i] = 'bin'
                 elif 'Age' in i or 'Credit' in i or 'Loan' in i:
                     feat_type.loc[i] = 'num-con'
+                    feat_type_mace.loc[i] = 'numeric-real'
+                if 'Sex' in i or 'Single' in i or 'Unemployed' in i:
+                    feat_type_mace.loc[i] = 'binary'
+                elif 'Housing' in i or 'PurposeOfLoan' in i or 'InstallmentRate' in i:
+                    feat_type_mace.loc[i] = 'categorical'
         elif self.name == 'dutch':
             for i in feat_list:
                 if 'Sex' in i or 'HouseholdPosition' in i or 'HouseholdSize' in i or 'Country' in i or 'EconomicStatus' in i or 'CurEcoActivity' in i or 'MaritalStatus' in i:
                     feat_type.loc[i] = 'bin'
                 elif 'EducationLevel' in i:
                     feat_type.loc[i] = 'ord'
+                    feat_type_mace.loc[i] = 'numeric-int'
                 elif 'Age' in i:
                     feat_type.loc[i] = 'cont'
+                    feat_type_mace.loc[i] = 'numeric-real'
+                if 'Sex' in i:
+                    feat_type_mace.loc[i] = 'binary'
+                elif 'HouseholdPosition' in i or 'HouseholdSize' in i or 'Country' in i or 'EconomicStatus' in i or 'CurEcoActivity' in i or 'MaritalStatus' in i:
+                    feat_type_mace.loc[i] = 'categorical'
         elif self.name == 'bank':
             for i in feat_list:
                 if 'Default' in i or 'Housing' in i or 'Loan' in i or 'Job' in i or 'MaritalStatus' in i or 'Education' in i or 'Contact' in i or 'Month' in i or 'Poutcome' in i:
                     feat_type.loc[i] = 'bin'
                 elif 'Age' in i:
                     feat_type.loc[i] = 'ord'
+                    feat_type_mace.loc[i] = 'numeric-int'
                 elif 'Balance' in i or 'Day' in i or 'Duration' in i or 'Campaign' in i or 'Pdays' in i or 'Previous' in i:
                     feat_type.loc[i] = 'cont'
+                    feat_type_mace.loc[i] = 'numeric-real'
+                if 'Default' in i or 'Housing' in i or 'Loan' in i:
+                    feat_type_mace.loc[i] = 'binary'
+                elif 'Job' in i or 'MaritalStatus' in i or 'Education' in i or 'Contact' in i or 'Month' in i or 'Poutcome' in i:
+                    feat_type_mace.loc[i] = 'categorical'
         elif self.name == 'credit':
             for i in feat_list:
                 if 'Male' in i or 'Married' in i or 'History' in i:
                     feat_type.loc[i] = 'bin'
-                elif 'Total' in i:
+                    feat_type_mace.loc[i] = 'binary'
+                elif 'Total' in i or 'Age' in i or 'Education' in i:
                     feat_type.loc[i] = 'ord'
+                    feat_type_mace.loc[i] = 'numeric-int'
                 elif 'Amount' in i or 'Balance' in i or 'Spending' in i:
                     feat_type.loc[i] = 'cont'
+                    feat_type_mace.loc[i] = 'numeric-real'
         elif self.name == 'compass':
             for i in feat_list:
                 if 'Sex' in i or 'Race' in i or 'Charge' in i:
                     feat_type.loc[i] = 'bin'
+                    feat_type_mace.loc[i] = 'binary'
                 elif 'Priors' in i or 'Age' in i:
                     feat_type.loc[i] = 'ord'
+                    feat_type_mace.loc[i] = 'numeric-int'
         elif self.name == 'diabetes':
             for i in feat_list:
                 if 'DiabetesMed' in i or 'Race' in i or 'Sex' in i or 'A1CResult' in i or 'Metformin' in i or 'Chlorpropamide' in i or 'Glipizide' in i or 'Rosiglitazone' in i or 'Acarbose' in i or 'Miglitol' in i:
                     feat_type.loc[i] = 'bin'
                 elif 'AgeGroup' in i:
                     feat_type.loc[i] = 'ord'
-                elif 'TimeInHospital' in i or 'NumProcedures' in i or 'NumMedications' in i or 'NumEmergency':
+                    feat_type_mace.loc[i] = 'numeric-int'
+                elif 'TimeInHospital' in i or 'NumProcedures' in i or 'NumMedications' in i or 'NumEmergency' in i:
                     feat_type.loc[i] = 'cont'
-        elif self.name == 'ionosphere':
-            for i in feat_list:
-                feat_type.loc[i] = 'cont'
-        elif self.name == 'synthetic_athlete':
-            for i in feat_list:
-                if 'Sex' in i:
-                    feat_type.loc[i] = 'bin'
-                elif 'TrainingTime' in i or 'Diet' in i or 'Sport' in i:
-                    feat_type.loc[i] = 'cat'
-                elif i in ['Age','SleepHours']:
-                    feat_type.loc[i] = 'cont'
+                if 'DiabetesMed' in i:
+                    feat_type_mace.loc[i] = 'binary'
+                elif 'Race' in i or 'Sex' in i or 'A1CResult' in i or 'Metformin' in i or 'Chlorpropamide' in i or 'Glipizide' in i or 'Rosiglitazone' in i or 'Acarbose' in i or 'Miglitol' in i:
+                    feat_type_mace.loc[i] = 'categorical'
+                elif 'TimeInHospital' in i:
+                    feat_type_mace.loc[i] = 'numeric-real'
+                elif 'NumProcedures' in i or 'NumMedications' in i or 'NumEmergency' in i:
+                    feat_type_mace.loc[i] = 'numeric-int'
         elif self.name == 'student':
             for i in feat_list:
                 if 'Age' in i or 'School' in i or 'Sex' in i or 'Address' in i or 'FamilySize' in i or 'ParentStatus' in i or 'SchoolSupport' in i or 'FamilySupport' in i or 'ExtraPaid' in i or 'ExtraActivities' in i or 'Nursery' in i or 'HigherEdu' in i or 'Internet' in i or 'Romantic' in i or 'MotherJob' in i or 'FatherJob' in i or 'SchoolReason' in i:
                     feat_type.loc[i] = 'bin'
                 elif 'MotherEducation' in i or 'FatherEducation' in i:
                     feat_type.loc[i] = 'ord'
+                    feat_type_mace.loc[i] = 'numeric-int'
                 elif 'TravelTime' in i or 'ClassFailures' in i or 'GoOut' in i:
                     feat_type.loc[i] = 'cont'
+                if 'School' in i or 'Sex' in i or 'Age' in i or 'Address' in i or 'FamilySize' in i or 'ParentStatus' in i or 'SchoolSupport' in i or 'FamilySupport' in i or 'ExtraPaid' in i or 'ExtraActivities' in i or 'Nursery' in i or 'HigherEdu' in i or 'Internet' in i or 'Romantic' in i or 'NumEmergency' in i:
+                    feat_type_mace.loc[i] = 'binary'
+                elif 'MotherJob' in i or 'FatherJob' in i or 'SchoolReason' in i:
+                    feat_type_mace.loc[i] = 'categorical'
+                elif 'ClassFailures' in i or 'GoOut' in i:
+                    feat_type_mace.loc[i] = 'numeric-int'
+                elif 'TravelTime' in i :
+                    feat_type_mace.loc[i] = 'numeric-real'
         elif self.name == 'oulad':
             for i in feat_list:
                 if 'Sex' in i or 'Disability' in i or 'Region' in i or 'CodeModule' in i or 'CodePresentation' in i or 'HighestEducation' in i or 'IMDBand' in i:
@@ -213,21 +254,37 @@ class Dataset:
                     feat_type.loc[i] = 'cont'
                 elif 'AgeGroup' in i:
                     feat_type.loc[i] = 'ord'
+                    feat_type_mace.loc[i] = 'numeric-int'
+                if 'Sex' in i or 'Disability' in i:
+                    feat_type_mace.loc[i] = 'binary'
+                elif 'Region' in i or 'CodeModule' in i or 'CodePresentation' in i or 'HighestEducation' in i or 'IMDBand' in i:
+                    feat_type_mace.loc[i] = 'categorical'
+                elif 'NumPrevAttempts' in i:
+                    feat_type_mace.loc[i] = 'numeric-int'
+                elif 'StudiedCredits' in i:
+                    feat_type_mace.loc[i] = 'numeric-real'
         elif self.name == 'law':
             for i in feat_list:
                 if 'FamilyIncome' in i or 'Tier' in i or 'Race' in i or 'WorkFullTime' in i or 'Sex' in i:
                     feat_type.loc[i] = 'bin'
                 elif 'Decile1stYear' in i or 'Decile3rdYear' in i or 'LSAT' in i or 'UndergradGPA' in i or 'FirstYearGPA' in i or 'CumulativeGPA' in i:
                     feat_type.loc[i] = 'cont'
-        elif self.name == 'synthetic_disease':
+                    feat_type_mace.loc[i] = 'numeric-real'
+                if 'WorkFullTime' in i or 'Sex' in i:
+                    feat_type_mace.loc[i] = 'binary'
+                elif 'FamilyIncome' in i or 'Tier' in i or 'Race' in i:
+                    feat_type_mace.loc[i] = 'categorical'
+        elif self.name == 'ionosphere':
             for i in feat_list:
-                if 'Smokes' in i:
+                feat_type.loc[i] = 'cont'
+                feat_type_mace.loc[i] = 'numeric-real'
+        elif self.name == 'synthetic_athlete':
+            for i in feat_list:
+                if 'Sex' in i:
                     feat_type.loc[i] = 'bin'
-                elif 'Diet' in i or 'Stress' in i:
+                elif 'TrainingTime' in i or 'Diet' in i or 'Sport' in i:
                     feat_type.loc[i] = 'cat'
-                elif 'Weight' in i:
-                    feat_type.loc[i] = 'ord'
-                elif i in ['Age','ExerciseMinutes','SleepHours']:
+                elif i in ['Age','SleepHours']:
                     feat_type.loc[i] = 'cont'
         elif self.name == 'synthetic_athlete':
             for i in feat_list:
@@ -235,6 +292,25 @@ class Dataset:
                     feat_type.loc[i] = 'bin'
                 elif i in ['Age','SleepHours']:
                     feat_type.loc[i] = 'cont'
+                    feat_type_mace.loc[i] = 'numeric-real'
+                if 'Sex' in i:
+                    feat_type_mace.loc[i] = 'binary'
+                elif 'Training' in i or 'Sport' in i or 'Diet' in i:
+                    feat_type_mace.loc[i] = 'categorical'
+        elif self.name == 'synthetic_disease':
+            for i in feat_list:
+                if 'Smokes' in i or 'Diet' in i or 'Stress' in i:
+                    feat_type.loc[i] = 'bin'
+                elif 'Weight' in i:
+                    feat_type.loc[i] = 'ord'
+                    feat_type_mace.loc[i] = 'numeric-int'
+                elif i in ['Age','ExerciseMinutes','SleepHours']:
+                    feat_type.loc[i] = 'cont'
+                    feat_type_mace.loc[i] = 'numeric-real'
+                if 'Smokes' in i:
+                    feat_type_mace.loc[i] = 'binary'
+                elif 'Diet' in i or 'Stress' in i:
+                    feat_type_mace.loc[i] = 'categorical'
         return feat_type
 
     def define_feat_mutability(self):
@@ -263,7 +339,7 @@ class Dataset:
                     feat_mutable[i] = 1
         elif self.name == 'dutch':
             for i in feat_list:
-                if 'Sex' in i:
+                if 'Sex' in i or 'Country' in i:
                     feat_mutable[i] = 0
                 else:
                     feat_mutable[i] = 1
@@ -323,10 +399,7 @@ class Dataset:
                     feat_mutable[i] = 1
         elif self.name == 'synthetic_disease':
             for i in feat_list:
-                if i == 'Age':
-                    feat_mutable[i] = 0
-                elif 'Weight' in i or 'ExerciseMinutes' in i or 'SleepHours' in i or 'Diet' in i or 'Stress' in i or 'Smokes' in i:
-                    feat_mutable[i] = 1
+                feat_mutable[i] = 1
         return feat_mutable
     
     def get_immutables(self):
@@ -344,94 +417,134 @@ class Dataset:
         Method that outputs change directionality of features per dataset
         """
         feat_directionality = copy.deepcopy(self.transformed_train_df.dtypes)
+        feat_directionality_mace = copy.deepcopy(self.transformed_train_df.dtypes)
         feat_list = feat_directionality.index.tolist()
         if self.name == 'adult':
             for i in feat_list:
-                if 'Age' in i or 'Sex' in i or 'Race' in i:
+                if 'Age' in i or 'Sex' in i or 'Race' in i or 'Native' in i:
                     feat_directionality[i] = 0
+                    feat_directionality_mace[i] = 'none'
                 elif 'Education' in i:
                     feat_directionality[i] = 'pos'
+                    feat_directionality_mace[i] = 'same-or-increase'
                 else:
                     feat_directionality[i] = 'any'
+                    feat_directionality_mace[i] = 'any'
         elif self.name == 'kdd_census':
             for i in feat_list:
                 if 'Sex' in i or 'Race' in i:
                     feat_directionality[i] = 0
+                    feat_directionality_mace[i] = 'none'
                 elif 'Industry' in i or 'Occupation' in i or 'WageHour' in i or 'CapitalGain' in i or 'CapitalLoss' in i or 'Dividends' in i or 'WorkWeeksYear' or 'Age' in i:
                     feat_directionality[i] = 'any'
+                    feat_directionality_mace[i] = 'any'
         elif self.name == 'german':
             for i in feat_list:
                 if 'Age' in i or 'Sex' in i:
                     feat_directionality[i] = 0
                 else:
                     feat_directionality[i] = 'any'
+                if 'Age' in i:
+                    feat_directionality_mace[i] = 'same-or-increase'
+                elif 'Sex' in i:
+                    feat_directionality_mace[i] = 'none'
+                else:
+                    feat_directionality_mace[i] = 'any'
         elif self.name == 'dutch':
             for i in feat_list:
-                if 'Sex' in i:
+                if 'Sex' in i or 'Country' in i:
                     feat_directionality[i] = 0
-                elif 'HouseholdPosition' in i or 'HouseholdSize' in i or 'EconomicStatus' in i or 'CurEcoActivity' in i or 'MaritalStatus' in i or 'Country' in i:
+                    feat_directionality_mace[i] = 'none'
+                elif 'HouseholdPosition' in i or 'HouseholdSize' in i or 'EconomicStatus' in i or 'CurEcoActivity' in i or 'MaritalStatus' in i:
                     feat_directionality[i] = 'any'
+                    feat_directionality_mace[i] = 'any'
                 elif 'EducationLevel' in i or 'Age' in i:
                     feat_directionality[i] = 'pos'
+                    feat_directionality_mace[i] = 'same-or-increase'
         elif self.name == 'bank':
             for i in feat_list:
                 if 'Age' in i or 'Marital' in i:
                     feat_directionality[i] = 0
+                    feat_directionality_mace[i] = 'none'
                 elif 'Default' in i or 'Housing' in i or 'Loan' in i or 'Job' in i or 'Contact' in i or 'Month' in i or 'Poutcome' or 'Balance' in i or 'Day' in i or 'Duration' in i or 'Campaign' in i or 'Pdays' in i or 'Previous' in i:
                     feat_directionality[i] = 'any'
-                elif 'Education' in i:
-                    feat_directionality[i] = 'pos'
+                    feat_directionality_mace[i] = 'any'
         elif self.name == 'credit':
             for i in feat_list:
-                if 'Age' in i or 'Male' in i:
+                if 'Male' in i or 'Married' in i:
                     feat_directionality[i] = 0
-                elif 'OverLast6Months' in i or 'MostRecent' in i or 'Total' in i or 'History' in i or 'Married' in i:
-                    feat_directionality[i] = 'any'   
-                elif 'Education' in i:
+                    feat_directionality_mace[i] = 'none'
+                elif 'OverLast6Months' in i or 'MostRecent' in i or 'Total' in i or 'History' in i:
+                    feat_directionality[i] = 'any'
+                    feat_directionality_mace[i] = 'any'
+                if 'Age' in i or 'Education' in i:
                     feat_directionality[i] = 'pos'
+                    feat_directionality_mace[i] = 'same-or-increase'
         elif self.name == 'compass':
             for i in feat_list:
-                if 'Age' in i or 'Sex' in i or 'Race' in i:
+                if 'Sex' in i or 'Race' in i:
                     feat_directionality[i] = 0
+                    feat_directionality_mace[i] = 'none'
+                elif 'Age' in i:
+                    feat_directionality[i] = 'pos'
+                    feat_directionality_mace[i] = 'same-or-increase'
                 elif 'Charge' in i or 'Priors' in i:
                     feat_directionality[i] = 'any'
+                    feat_directionality_mace[i] = 'any'
         elif self.name == 'diabetes':
             for i in feat_list:
-                if 'Sex' in i:
+                if 'Sex' in i or 'Race' in i:
                     feat_directionality[i] = 0
+                    feat_directionality_mace[i] = 'none'
+                elif 'Age' in i:
+                    feat_directionality[i] = 'pos'
+                    feat_directionality_mace[i] = 'same-or-increase'
                 else:
                     feat_directionality[i] = 'any'
+                    feat_directionality_mace[i] = 'any'
         elif self.name == 'student':
             for i in feat_list:
                 if 'Sex' in i or 'Age' in i:
                     feat_directionality[i] = 0
+                    feat_directionality_mace[i] = 'none'
+                elif 'MotherEducation' in i or 'FatherEducation' in i:
+                    feat_directionality[i] = 'pos'
+                    feat_directionality_mace[i] = 'same-or-increase' 
                 else:
                     feat_directionality[i] = 'any'
+                    feat_directionality_mace[i] = 'any' 
         elif self.name == 'oulad':
             for i in feat_list:
-                if 'Sex' in i:
+                if 'Sex' in i or 'Disability' in i:
                     feat_directionality[i] = 0
+                    feat_directionality_mace[i] = 'none'
                 else:
                     feat_directionality[i] = 'any'
+                    feat_directionality_mace[i] = 'any' 
         elif self.name == 'law':
             for i in feat_list:
                 if 'Sex' in i or 'Race' in i:
                     feat_directionality[i] = 0
+                    feat_directionality_mace[i] = 'none'
                 else:
                     feat_directionality[i] = 'any'
+                    feat_directionality_mace[i] = 'any' 
         elif self.name == 'ionosphere':
             for i in feat_list:
                 feat_directionality[i] = 'any'
+                feat_directionality_mace[i] = 'any'
         elif self.name == 'synthetic_athlete':
             for i in feat_list:
                 if 'Age' in i or 'Sex' in i:
                     feat_directionality[i] = 0
+                    feat_directionality_mace[i] = 'none'
                 elif 'TrainingTime' in i or 'Diet' in i or 'Sport' in i or 'SleepHours' in i:
                     feat_directionality[i] = 'any'
+                    feat_directionality_mace[i] = 'any' 
         elif self.name == 'synthetic_disease':
             for i in feat_list:
                 if 'Age' in i:
-                    feat_directionality[i] = 0
+                    feat_directionality[i] = 'pos'
                 elif 'ExerciseMinutes' in i or 'SleepHours' in i or 'Weight' in i or 'Diet' in i or 'Stress' in i or 'Smokes' in i:
                     feat_directionality[i] = 'any'
         return feat_directionality
@@ -795,34 +908,15 @@ class Dataset:
         """
         Method that defines the attributes based on the MACE methodology and the loading for the rest of the methods
         """
-        if col_name == 'Sex':
-                attr_type = 'binary'
-                actionability = 'none'
-                mutability = False
-            elif col_name == 'Diet':
-                attr_type = 'categorical'
-                actionability = 'any'
-                mutability = True
-            elif col_name == 'Sport':
-                attr_type = 'categorical'
-                actionability = 'any'
-                mutability = True
-            elif col_name == 'TrainingTime':
-                attr_type = 'categorical'
-                actionability = 'any'
-                mutability = True
-            elif col_name == 'Age':
-                attr_type = 'numeric-real'
-                actionability = 'none'
-                mutability = False
-            elif col_name == 'SleepHours':
-                attr_type = 'numeric-real'
-                actionability = 'any'
-                mutability = True
         attributes = {}
         new_attributes = list(self.transformed_train_df.columns())
         if self.name == 'synthetic_athlete':
             for new_col_idx, new_col in enumerate(new_attributes):
+                old_name_idx = [i for i in range(len(self.features)) if self.features[i] in new_col][0]
+                old_name = self.features[old_name_idx]
+                name_str = f'_cat_{new_col[-3:]}' if old_name in self.categorical else ''
+                new_parent_name_long = f'{new_col}'
+                new_parent_name_kurz = f'x{old_name_idx}{name_str}'
                 new_col_kurz = f'x{new_col_idx}'
                 new_col_type = self.feat_type_mace[new_col]
                 new_col_actionability = self.feat_directionality_mace[new_col]
@@ -834,8 +928,10 @@ class Dataset:
                     node_type='input',
                     actionability=new_col_actionability,
                     mutability=new_col_mutability,
-                    
-                )
+                    parent_name_long=new_parent_name_long,
+                    parent_name_kurz=new_parent_name_kurz,
+                    lower_bound=self.transformed_train_df[new_col].min(),
+                    upper_bound=self.transformed_train_df[new_col].max())
                 
 
 def load_dataset(data_str, train_fraction, seed, step):
@@ -882,11 +978,11 @@ def load_dataset(data_str, train_fraction, seed, step):
                 mutability = True
             elif col_name == 'EducationNumber':
                 attr_type = 'numeric-int'
-                actionability = 'any'
+                actionability = 'same-or-increase'
                 mutability = True
             elif col_name == 'EducationLevel':
                 attr_type = 'ordinal'
-                actionability = 'any'
+                actionability = 'same-or-increase'
                 mutability = True
             elif col_name == 'MaritalStatus':
                 attr_type = 'categorical'
@@ -1016,15 +1112,15 @@ def load_dataset(data_str, train_fraction, seed, step):
 
             if col_name == 'Sex':
                 attr_type = 'binary'
-                actionability = 'none' # 'none'
+                actionability = 'none'
                 mutability = False
             elif col_name == 'Single':
                 attr_type = 'binary'
-                actionability = 'any' # 'none'
+                actionability = 'any'
                 mutability = True
             elif col_name == 'Unemployed':
                 attr_type = 'binary'
-                actionability = 'any' # 'none'
+                actionability = 'any'
                 mutability = True
             elif col_name == 'PurposeOfLoan':
                 attr_type = 'categorical'
@@ -1881,7 +1977,7 @@ def load_dataset(data_str, train_fraction, seed, step):
                 mutability = True
             elif col_name == 'Age':
                 attr_type = 'numeric-real'
-                actionability = 'none'
+                actionability = 'same-or-increase'
                 mutability = False
             elif col_name == 'ExerciseMinutes':
                 attr_type = 'numeric-real'
