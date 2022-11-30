@@ -8,13 +8,13 @@ from counterfactual_constructor import Counterfactual
 from address import save_obj, results_obj
 
 # datasets = ['adult','kdd_census','german','dutch','bank','credit','compass','compass','diabetes','ionosphere','student','oulad','law','synthetic_athlete','synthetic_disease']
-datasets = ['synthetic_athlete']
-methods = ['mace','cchvae','juice','ijuice']
+datasets = ['adult']
+methods = ['dice','face','mace','cchvae','juice','ijuice']
 seed_int = 54321
 step = 0.01
 train_fraction = 0.7
 distance_type = ['euclidean'] # ['euclidean','L1','L1_L0','L1_L0_inf']
-continuous_split = ['100']    # ['2','5','10','20','50','100','train']
+continuous_split = ['train']    # ['2','5','10','20','50','100','train']
 num_instances = 5 # data.test_df.shape[0]
 justification_train_perc = 0.1
 

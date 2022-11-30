@@ -224,7 +224,7 @@ def verify_justification(cf, counterfactual, perc, feasibility):
                     nn_cat_idx = list(cf[idx_cat_i])
                     if any(item in idx_cat_i for item in nonzero_index):
                         ioi_cat_idx = list(point[idx_cat_i])
-                        value = [nn_cat_idx,ioi_cat_idx]
+                        value = [nn_cat_idx, ioi_cat_idx]
                     else:
                         value = [nn_cat_idx]
                     feat_checked.extend(idx_cat_i)

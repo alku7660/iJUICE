@@ -12,17 +12,53 @@ class IJUICE:
     def __init__(self, counterfactual):
         self.normal_ioi = counterfactual.ioi.normal_x
         self.ioi_label = counterfactual.ioi.label
+        self.potential_justifiers = self.find_potential_justifiers(counterfactual)
         start_time = time.time()
         self.normal_x_cf, self.justifier = self.Ijuice(counterfactual)
         end_time = time.time()
         self.total_time = end_time - start_time
 
+    def find_potential_justifiers(self, counterfactual):
+        """
+        Finds the set of training observations belonging to, and predicted as, the counterfactual class
+        """
+        train_np = counterfactual.data.transformed_train_np
+        train_target = counterfactual.data.train_target
+        train_pred = counterfactual.model.model.predict(train_np)
+        potential_justifiers = train_np[(train_target != self.ioi_label) & (train_pred != self.ioi_label)]
+        sort_potential_justifiers = []
+        for i in range(potential_justifiers.shape[0]):
+            dist = distance_calculation(potential_justifiers[i], self.normal_ioi)
+            sort_potential_justifiers.append((potential_justifiers[i], dist))    
+        sort_potential_justifiers.sort(key=lambda x: x[1])
+        return sort_potential_justifiers
+
+    # def Ijuice(self, counterfactual):
+    #     """
+    #     Improved JUICE generation method
+    #     """
+    #     self.feat_possible_values = self.get_feat_possible_values(counterfactual.data, counterfactual.split)
+    #     justifier, _ = nn_for_juice(counterfactual)
+    #     if justifier is not None:
+    #         if counterfactual.model.model.predict(justifier.reshape(1, -1)) != self.ioi.label:
+    #             self.C = self.get_cost(counterfactual.model, counterfactual.type) 
+    #             self.A = self.get_adjacency(counterfactual.data, counterfactual.model, counterfactual.split)
+    #             self.optimizer, normal_x_cf = self.do_optimize(counterfactual.model)
+    #         else:
+    #             print(f'Justifier (NN CF instance) is not a prediction counterfactual. Returning ground truth NN counterfactual as CF')
+    #             normal_x_cf = justifier
+    #     else:
+    #         print(f'No justifier available: Returning NN counterfactual')
+    #         normal_x_cf, _ = near_neigh(counterfactual)
+    #         justifier = normal_x_cf
+    #     return normal_x_cf, justifier
+    
     def Ijuice(self, counterfactual):
         """
         Improved JUICE generation method
         """
-        self.feat_possible_values = self.get_feat_possible_values(counterfactual.data, counterfactual.split)
-        justifier, _ = nn_for_juice(counterfactual)
+        self.pot_justifier_feat_possible_values = self.get_feat_possible_values(counterfactual.data, counterfactual.split)
+        self.all_nodes = self.get_all_nodes()
         if justifier is not None:
             if counterfactual.model.model.predict(justifier.reshape(1, -1)) != self.ioi.label:
                 self.C = self.get_cost(counterfactual.model, counterfactual.type) 
@@ -49,49 +85,97 @@ class IJUICE:
             value = list(np.unique(sorted_feat_i))
         return value
 
+    # def get_feat_possible_values(self, data, split):
+    #     """
+    #     Method that obtains the features possible values
+    #     """
+    #     v = self.normal_ioi - self.nn_cf
+    #     nonzero_index = list(np.nonzero(v)[0])
+    #     feat_checked = []
+    #     feat_possible_values = []
+    #     for i in range(len(self.normal_ioi)):
+    #         if i not in feat_checked:
+    #             feat_i = data.processed_features[i]
+    #             if feat_i in data.bin_enc_cols:
+    #                 if i in nonzero_index:
+    #                     value = [self.nn_cf[i],self.normal_ioi[i]]
+    #                 else:
+    #                     value = [self.nn_cf[i]]
+    #                 feat_checked.extend([i])
+    #             elif feat_i in data.cat_enc_cols:
+    #                 idx_cat_i = data.idx_cat_cols_dict[data.processed_features[i][:-2]]
+    #                 nn_cat_idx = list(self.nn_cf[idx_cat_i])
+    #                 if any(item in idx_cat_i for item in nonzero_index):
+    #                     ioi_cat_idx = list(self.normal_ioi[idx_cat_i])
+    #                     value = [nn_cat_idx,ioi_cat_idx]
+    #                 else:
+    #                     value = [nn_cat_idx]
+    #                 feat_checked.extend(idx_cat_i)
+    #             elif feat_i in data.ordinal:
+    #                 if i in nonzero_index:
+    #                     values_i = list(data.processed_feat_dist[data.processed_features[i]].keys())
+    #                     max_val_i, min_val_i = max(self.normal_ioi[i],self.nn_cf[i]), min(self.normal_ioi[i],self.nn_cf[i])
+    #                     value = [j for j in values_i if j <= max_val_i and j >= min_val_i]
+    #                 else:
+    #                     value = [self.nn_cf[i]]
+    #                 feat_checked.extend([i])
+    #             elif feat_i in data.continuous:
+    #                 if i in nonzero_index:
+    #                     max_val_i, min_val_i = max(self.normal_ioi[i],self.nn_cf[i]), min(self.normal_ioi[i],self.nn_cf[i])
+    #                     value = self.continuous_feat_values(i, min_val_i, max_val_i, data, split)
+    #                 else:
+    #                     value = [self.nn_cf[i]]
+    #                 feat_checked.extend([i])
+    #             feat_possible_values.append(value)
+    #     return feat_possible_values
+
     def get_feat_possible_values(self, data, split):
         """
         Method that obtains the features possible values
         """
-        v = self.normal_ioi - self.nn_cf
-        nonzero_index = list(np.nonzero(v)[0])
-        feat_checked = []
-        feat_possible_values = []
-        for i in range(len(self.normal_ioi)):
-            if i not in feat_checked:
-                feat_i = data.processed_features[i]
-                if feat_i in data.bin_enc_cols:
-                    if i in nonzero_index:
-                        value = [self.nn_cf[i],self.normal_ioi[i]]
-                    else:
-                        value = [self.nn_cf[i]]
-                    feat_checked.extend([i])
-                elif feat_i in data.cat_enc_cols:
-                    idx_cat_i = data.idx_cat_cols_dict[data.processed_features[i][:-2]]
-                    nn_cat_idx = list(self.nn_cf[idx_cat_i])
-                    if any(item in idx_cat_i for item in nonzero_index):
-                        ioi_cat_idx = list(self.normal_ioi[idx_cat_i])
-                        value = [nn_cat_idx,ioi_cat_idx]
-                    else:
-                        value = [nn_cat_idx]
-                    feat_checked.extend(idx_cat_i)
-                elif feat_i in data.ordinal:
-                    if i in nonzero_index:
-                        values_i = list(data.processed_feat_dist[data.processed_features[i]].keys())
-                        max_val_i, min_val_i = max(self.normal_ioi[i],self.nn_cf[i]), min(self.normal_ioi[i],self.nn_cf[i])
-                        value = [j for j in values_i if j <= max_val_i and j >= min_val_i]
-                    else:
-                        value = [self.nn_cf[i]]
-                    feat_checked.extend([i])
-                elif feat_i in data.continuous:
-                    if i in nonzero_index:
-                        max_val_i, min_val_i = max(self.normal_ioi[i],self.nn_cf[i]), min(self.normal_ioi[i],self.nn_cf[i])
-                        value = self.continuous_feat_values(i, min_val_i, max_val_i, data, split)
-                    else:
-                        value = [self.nn_cf[i]]
-                    feat_checked.extend([i])
-                feat_possible_values.append(value)
-        return feat_possible_values
+        pot_justifier_feat_possible_values = {}
+        for k in range(len(self.potential_justifiers)):
+            potential_justifier_k = self.potential_justifiers[k][0]
+            v = self.normal_ioi - potential_justifier_k
+            nonzero_index = list(np.nonzero(v)[0])
+            feat_checked = []
+            feat_possible_values = []
+            for i in range(len(self.normal_ioi)):
+                if i not in feat_checked:
+                    feat_i = data.processed_features[i]
+                    if feat_i in data.bin_enc_cols:
+                        if i in nonzero_index:
+                            value = [potential_justifier_k[i], self.normal_ioi[i]]
+                        else:
+                            value = [potential_justifier_k[i]]
+                        feat_checked.extend([i])
+                    elif feat_i in data.cat_enc_cols:
+                        idx_cat_i = data.idx_cat_cols_dict[data.processed_features[i][:-2]]
+                        nn_cat_idx = list(potential_justifier_k[idx_cat_i])
+                        if any(item in idx_cat_i for item in nonzero_index):
+                            ioi_cat_idx = list(self.normal_ioi[idx_cat_i])
+                            value = [nn_cat_idx, ioi_cat_idx]
+                        else:
+                            value = [nn_cat_idx]
+                        feat_checked.extend(idx_cat_i)
+                    elif feat_i in data.ordinal:
+                        if i in nonzero_index:
+                            values_i = list(data.processed_feat_dist[data.processed_features[i]].keys())
+                            max_val_i, min_val_i = max(self.normal_ioi[i], potential_justifier_k[i]), min(self.normal_ioi[i], potential_justifier_k[i])
+                            value = [j for j in values_i if j <= max_val_i and j >= min_val_i]
+                        else:
+                            value = [potential_justifier_k[i]]
+                        feat_checked.extend([i])
+                    elif feat_i in data.continuous:
+                        if i in nonzero_index:
+                            max_val_i, min_val_i = max(self.normal_ioi[i], potential_justifier_k[i]), min(self.normal_ioi[i], potential_justifier_k[i])
+                            value = self.continuous_feat_values(i, min_val_i, max_val_i, data, split)
+                        else:
+                            value = [potential_justifier_k[i]]
+                        feat_checked.extend([i])
+                    feat_possible_values.append(value)
+            pot_justifier_feat_possible_values[k] = feat_possible_values
+        return pot_justifier_feat_possible_values
 
     def make_array(self, i):
         """
@@ -100,23 +184,50 @@ class IJUICE:
         list_i = list(i)
         new_list = []
         for j in list_i:
-            if isinstance(j,list):
+            if isinstance(j, list):
                 new_list.extend([k for k in j])
             else:
                 new_list.extend([j])
         return np.array(new_list)
 
-    def get_nodes(self, model):
+    # def get_nodes(self, model):
+    #     """
+    #     Generator that contains all the nodes located in the space between the nn_cf and the normal_ioi (all possible, CF-labeled nodes)
+    #     """
+    #     permutations = product(*self.feat_possible_values)
+    #     for i in permutations:
+    #         perm_i = self.make_array(i)
+    #         if model.model.predict(perm_i.reshape(1, -1)) != self.ioi_label and not np.array_equal(perm_i, self.nn_cf):
+    #             yield perm_i
+    
+    def get_all_nodes(self, model):
         """
         Generator that contains all the nodes located in the space between the nn_cf and the normal_ioi (all possible, CF-labeled nodes)
         """
-        permutations = product(*self.feat_possible_values)
-        for i in permutations:
-            perm_i = self.make_array(i)
-            if model.model.predict(perm_i.reshape(1, -1)) != self.ioi_label and not np.array_equal(perm_i,self.nn_cf):
-                yield perm_i
+        all_nodes = []
+        for k in range(len(self.potential_justifiers)):
+            potential_justifier_k = self.potential_justifiers[k]
+            feat_possible_values_k = self.pot_justifier_feat_possible_values[k]
+            permutations = product(*feat_possible_values_k)
+            for i in permutations:
+                perm_i = self.make_array(i)
+                if model.model.predict(perm_i.reshape(1, -1)) != self.ioi_label and not any(np.array_equal(perm_i, x) for x in all_nodes) and not np.array_equal(perm_i, potential_justifier_k):
+                    all_nodes.append(perm_i)
 
-    def get_cost(self, model, type):
+    # def get_cost(self, model, type):
+    #     """
+    #     Method that outputs the cost parameters required for optimization
+    #     """
+    #     C = {}
+    #     C[1] = distance_calculation(self.normal_ioi, self.nn_cf, type)
+    #     nodes = self.get_nodes(model)
+    #     ind = 2
+    #     for i in nodes:
+    #         C[ind] = distance_calculation(self.normal_ioi, i, type)
+    #         ind += 1
+    #     return C
+
+    def get_all_costs(self, model, type):
         """
         Method that outputs the cost parameters required for optimization
         """

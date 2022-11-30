@@ -10,7 +10,7 @@ class Dataset:
 
     def __init__(self, data_str, seed_int, train_fraction, label_str,
                  df, binary, categorical, ordinal, continuous,
-                 step, attributes) -> None:
+                 step) -> None:
         self.name = data_str
         self.seed = seed_int
         self.train_fraction = train_fraction
@@ -33,10 +33,10 @@ class Dataset:
         self.transformed_test_np = self.transformed_test_df.to_numpy()
         self.train_target, self.test_target = self.change_targets_to_numpy()
         self.undesired_class = self.undesired_class_data()
-        self.feat_type = self.define_feat_type()
+        self.feat_type, self.feat_type_mace = self.define_feat_type()
         self.feat_mutable = self.define_feat_mutability()
         self.immutables = self.get_immutables()
-        self.feat_directionality = self.define_feat_directionality()
+        self.feat_directionality, self.feat_directionality_mace = self.define_feat_directionality()
         self.feat_step = self.define_feat_step()
         self.feat_cat = self.define_feat_cat()
         self.idx_cat_cols_dict = self.idx_cat_columns()
@@ -47,10 +47,14 @@ class Dataset:
         """
         self.is_one_hot = True # Set to True always since we always one-hot encode
         self.data_frame_long = df
-        self.attributes_long = attributes
         self.attributes_long = self.define_attributes()
-        attributes_kurz = dict((attributes[key].attr_name_kurz, value) for (key, value) in attributes.items())
-        data_frame_kurz = copy.deepcopy(df)
+        attributes_kurz = dict((self.attributes_long[key].attr_name_kurz, value) for (key, value) in self.attributes_long.items())
+        transformed_train_df_target = copy.deepcopy(self.transformed_train_df)
+        transformed_test_df_target = copy.deepcopy(self.transformed_test_df)
+        transformed_train_df_target[self.label_name[0]] = self.train_target
+        transformed_test_df_target[self.label_name[0]] = self.test_target
+        all_data = pd.concat((transformed_train_df_target, transformed_test_df_target), axis=0)
+        data_frame_kurz = copy.deepcopy(all_data)
         data_frame_kurz.columns = self.getAllAttributeNames('kurz')
         self.data_frame_kurz = data_frame_kurz # i.e., data_frame is indexed by attr_name_kurz
         self.attributes_kurz = attributes_kurz # i.e., attributes is indexed by attr_name_kurz
@@ -142,7 +146,7 @@ class Dataset:
                 if 'Sex' in i or 'Native' in i or 'Race' in i:
                     feat_type_mace.loc[i] = 'binary'
                 elif 'WorkClass' in i or 'Marital' in i or 'Occupation' in i or 'Relationship' in i:
-                    feat_type_mace.loc[i] = 'categorical'
+                    feat_type_mace.loc[i] = 'sub-categorical'
         elif self.name == 'kdd_census':
             for i in feat_list:
                 if 'Sex' in i or 'Race' in i or 'Industry' in i or 'Occupation' in i:
@@ -153,7 +157,7 @@ class Dataset:
                 if 'Sex' in i or 'Race' in i:
                     feat_type_mace.loc[i] = 'binary'
                 elif 'Industry' in i or 'Occupation' in i:
-                    feat_type_mace.loc[i] = 'categorical'
+                    feat_type_mace.loc[i] = 'sub-categorical'
         elif self.name == 'german':
             for i in feat_list:
                 if 'Sex' in i or 'Single' in i or 'Unemployed' in i or 'Housing' in i or 'PurposeOfLoan' in i or 'InstallmentRate' in i:
@@ -164,7 +168,7 @@ class Dataset:
                 if 'Sex' in i or 'Single' in i or 'Unemployed' in i:
                     feat_type_mace.loc[i] = 'binary'
                 elif 'Housing' in i or 'PurposeOfLoan' in i or 'InstallmentRate' in i:
-                    feat_type_mace.loc[i] = 'categorical'
+                    feat_type_mace.loc[i] = 'sub-categorical'
         elif self.name == 'dutch':
             for i in feat_list:
                 if 'Sex' in i or 'HouseholdPosition' in i or 'HouseholdSize' in i or 'Country' in i or 'EconomicStatus' in i or 'CurEcoActivity' in i or 'MaritalStatus' in i:
@@ -178,7 +182,7 @@ class Dataset:
                 if 'Sex' in i:
                     feat_type_mace.loc[i] = 'binary'
                 elif 'HouseholdPosition' in i or 'HouseholdSize' in i or 'Country' in i or 'EconomicStatus' in i or 'CurEcoActivity' in i or 'MaritalStatus' in i:
-                    feat_type_mace.loc[i] = 'categorical'
+                    feat_type_mace.loc[i] = 'sub-categorical'
         elif self.name == 'bank':
             for i in feat_list:
                 if 'Default' in i or 'Housing' in i or 'Loan' in i or 'Job' in i or 'MaritalStatus' in i or 'Education' in i or 'Contact' in i or 'Month' in i or 'Poutcome' in i:
@@ -192,7 +196,7 @@ class Dataset:
                 if 'Default' in i or 'Housing' in i or 'Loan' in i:
                     feat_type_mace.loc[i] = 'binary'
                 elif 'Job' in i or 'MaritalStatus' in i or 'Education' in i or 'Contact' in i or 'Month' in i or 'Poutcome' in i:
-                    feat_type_mace.loc[i] = 'categorical'
+                    feat_type_mace.loc[i] = 'sub-categorical'
         elif self.name == 'credit':
             for i in feat_list:
                 if 'Male' in i or 'Married' in i or 'History' in i:
@@ -224,7 +228,7 @@ class Dataset:
                 if 'DiabetesMed' in i:
                     feat_type_mace.loc[i] = 'binary'
                 elif 'Race' in i or 'Sex' in i or 'A1CResult' in i or 'Metformin' in i or 'Chlorpropamide' in i or 'Glipizide' in i or 'Rosiglitazone' in i or 'Acarbose' in i or 'Miglitol' in i:
-                    feat_type_mace.loc[i] = 'categorical'
+                    feat_type_mace.loc[i] = 'sub-categorical'
                 elif 'TimeInHospital' in i:
                     feat_type_mace.loc[i] = 'numeric-real'
                 elif 'NumProcedures' in i or 'NumMedications' in i or 'NumEmergency' in i:
@@ -241,7 +245,7 @@ class Dataset:
                 if 'School' in i or 'Sex' in i or 'Age' in i or 'Address' in i or 'FamilySize' in i or 'ParentStatus' in i or 'SchoolSupport' in i or 'FamilySupport' in i or 'ExtraPaid' in i or 'ExtraActivities' in i or 'Nursery' in i or 'HigherEdu' in i or 'Internet' in i or 'Romantic' in i or 'NumEmergency' in i:
                     feat_type_mace.loc[i] = 'binary'
                 elif 'MotherJob' in i or 'FatherJob' in i or 'SchoolReason' in i:
-                    feat_type_mace.loc[i] = 'categorical'
+                    feat_type_mace.loc[i] = 'sub-categorical'
                 elif 'ClassFailures' in i or 'GoOut' in i:
                     feat_type_mace.loc[i] = 'numeric-int'
                 elif 'TravelTime' in i :
@@ -258,7 +262,7 @@ class Dataset:
                 if 'Sex' in i or 'Disability' in i:
                     feat_type_mace.loc[i] = 'binary'
                 elif 'Region' in i or 'CodeModule' in i or 'CodePresentation' in i or 'HighestEducation' in i or 'IMDBand' in i:
-                    feat_type_mace.loc[i] = 'categorical'
+                    feat_type_mace.loc[i] = 'sub-categorical'
                 elif 'NumPrevAttempts' in i:
                     feat_type_mace.loc[i] = 'numeric-int'
                 elif 'StudiedCredits' in i:
@@ -273,7 +277,7 @@ class Dataset:
                 if 'WorkFullTime' in i or 'Sex' in i:
                     feat_type_mace.loc[i] = 'binary'
                 elif 'FamilyIncome' in i or 'Tier' in i or 'Race' in i:
-                    feat_type_mace.loc[i] = 'categorical'
+                    feat_type_mace.loc[i] = 'sub-categorical'
         elif self.name == 'ionosphere':
             for i in feat_list:
                 feat_type.loc[i] = 'cont'
@@ -296,7 +300,7 @@ class Dataset:
                 if 'Sex' in i:
                     feat_type_mace.loc[i] = 'binary'
                 elif 'Training' in i or 'Sport' in i or 'Diet' in i:
-                    feat_type_mace.loc[i] = 'categorical'
+                    feat_type_mace.loc[i] = 'sub-categorical'
         elif self.name == 'synthetic_disease':
             for i in feat_list:
                 if 'Smokes' in i or 'Diet' in i or 'Stress' in i:
@@ -310,8 +314,8 @@ class Dataset:
                 if 'Smokes' in i:
                     feat_type_mace.loc[i] = 'binary'
                 elif 'Diet' in i or 'Stress' in i:
-                    feat_type_mace.loc[i] = 'categorical'
-        return feat_type
+                    feat_type_mace.loc[i] = 'sub-categorical'
+        return feat_type, feat_type_mace
 
     def define_feat_mutability(self):
         """
@@ -547,7 +551,7 @@ class Dataset:
                     feat_directionality[i] = 'pos'
                 elif 'ExerciseMinutes' in i or 'SleepHours' in i or 'Weight' in i or 'Diet' in i or 'Stress' in i or 'Smokes' in i:
                     feat_directionality[i] = 'any'
-        return feat_directionality
+        return feat_directionality, feat_directionality_mace
 
     def define_feat_step(self):
         """
@@ -909,29 +913,32 @@ class Dataset:
         Method that defines the attributes based on the MACE methodology and the loading for the rest of the methods
         """
         attributes = {}
-        new_attributes = list(self.transformed_train_df.columns())
-        if self.name == 'synthetic_athlete':
-            for new_col_idx, new_col in enumerate(new_attributes):
-                old_name_idx = [i for i in range(len(self.features)) if self.features[i] in new_col][0]
-                old_name = self.features[old_name_idx]
-                name_str = f'_cat_{new_col[-3:]}' if old_name in self.categorical else ''
-                new_parent_name_long = f'{new_col}'
-                new_parent_name_kurz = f'x{old_name_idx}{name_str}'
-                new_col_kurz = f'x{new_col_idx}'
-                new_col_type = self.feat_type_mace[new_col]
-                new_col_actionability = self.feat_directionality_mace[new_col]
-                new_col_mutability = True if new_col_actionability != 'none' else False
-                attributes[new_col] = DatasetAttribute(
-                    attr_name_long=new_col,
-                    attr_name_kurz=new_col_kurz,
-                    attr_type=new_col_type,
-                    node_type='input',
-                    actionability=new_col_actionability,
-                    mutability=new_col_mutability,
-                    parent_name_long=new_parent_name_long,
-                    parent_name_kurz=new_parent_name_kurz,
-                    lower_bound=self.transformed_train_df[new_col].min(),
-                    upper_bound=self.transformed_train_df[new_col].max())
+        col_name = self.label_name[0]
+        attributes[col_name] = DatasetAttribute(attr_name_long = col_name, attr_name_kurz = 'y', attr_type = 'binary', node_type = 'output', actionability = 'none',
+                                                   mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = min(self.train_target), upper_bound = max(self.train_target))
+        new_attributes = list(self.transformed_train_df.columns)
+        for new_col_idx, new_col in enumerate(new_attributes):
+            old_name_idx = [i for i in range(len(self.features)) if self.features[i] in new_col][0]
+            old_name = self.features[old_name_idx]
+            name_str = f'_cat_{new_col[-3:]}' if old_name in self.categorical else ''
+            new_parent_name_long = f'{new_col}'
+            new_parent_name_kurz = f'x{old_name_idx}{name_str}'
+            new_col_kurz = f'x{new_col_idx}'
+            new_col_type = self.feat_type_mace[new_col]
+            new_col_actionability = self.feat_directionality_mace[new_col]
+            new_col_mutability = True if new_col_actionability != 'none' else False
+            attributes[new_col] = DatasetAttribute(
+                attr_name_long=new_col,
+                attr_name_kurz=new_col_kurz,
+                attr_type=new_col_type,
+                node_type='input',
+                actionability=new_col_actionability,
+                mutability=new_col_mutability,
+                parent_name_long=new_parent_name_long,
+                parent_name_kurz=new_parent_name_kurz,
+                lower_bound=self.transformed_train_df[new_col].min(),
+                upper_bound=self.transformed_train_df[new_col].max())
+        return attributes
                 
 
 def load_dataset(data_str, train_fraction, seed, step):
@@ -2001,7 +2008,7 @@ def load_dataset(data_str, train_fraction, seed, step):
                 upper_bound = df[col_name].max())
 
     data_obj = Dataset(data_str, seed, train_fraction, label, df,
-                   binary, categorical, ordinal, continuous, step, attributes_df)
+                   binary, categorical, ordinal, continuous, step)
     return data_obj
 
 """

@@ -35,7 +35,7 @@ class JUICE:
                 normal_x_cf = justifier
         else:
             print(f'No justifier available: Returning NN counterfactual')
-            normal_x_cf, _ = nn(counterfactual)
+            normal_x_cf, _ = near_neigh(counterfactual)
             justifier = normal_x_cf
         return normal_x_cf, justifier
 
