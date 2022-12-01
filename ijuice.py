@@ -3,14 +3,14 @@ from itertools import product
 import networkx as nx
 import gurobipy as gp
 from gurobipy import GRB, tuplelist
-from evaluator_constructor import distance_calculation
+from evaluator_constructor import distance_calculation, verify_feasibility
 from nnt import near_neigh, nn_for_juice
 import time
 
 class IJUICE:
 
     def __init__(self, counterfactual):
-        self.normal_ioi = counterfactual.ioi.normal_x
+        self.normal_ioi = counterfactual.ioi.normal_x[0]
         self.ioi_label = counterfactual.ioi.label
         self.potential_justifiers = self.find_potential_justifiers(counterfactual)
         start_time = time.time()
@@ -28,9 +28,11 @@ class IJUICE:
         potential_justifiers = train_np[(train_target != self.ioi_label) & (train_pred != self.ioi_label)]
         sort_potential_justifiers = []
         for i in range(potential_justifiers.shape[0]):
-            dist = distance_calculation(potential_justifiers[i], self.normal_ioi)
+            dist = distance_calculation(potential_justifiers[i], self.normal_ioi, counterfactual.data, type=counterfactual.type)
             sort_potential_justifiers.append((potential_justifiers[i], dist))    
         sort_potential_justifiers.sort(key=lambda x: x[1])
+        sort_potential_justifiers =  [i[0] for i in sort_potential_justifiers]
+        sort_potential_justifiers = sort_potential_justifiers
         return sort_potential_justifiers
 
     # def Ijuice(self, counterfactual):
@@ -58,17 +60,17 @@ class IJUICE:
         Improved JUICE generation method
         """
         self.pot_justifier_feat_possible_values = self.get_feat_possible_values(counterfactual.data, counterfactual.split)
-        self.all_nodes = self.get_all_nodes()
-        if justifier is not None:
-            if counterfactual.model.model.predict(justifier.reshape(1, -1)) != self.ioi.label:
-                self.C = self.get_cost(counterfactual.model, counterfactual.type) 
-                self.A = self.get_adjacency(counterfactual.data, counterfactual.model, counterfactual.split)
-                self.optimizer, normal_x_cf = self.do_optimize(counterfactual.model)
-            else:
-                print(f'Justifier (NN CF instance) is not a prediction counterfactual. Returning ground truth NN counterfactual as CF')
-                normal_x_cf = justifier
+        print(f'Obtained all posible feature values from potential justifiers')
+        self.graph_nodes = self.get_graph_nodes(counterfactual.data, counterfactual.model)
+        print(f'Obtained all posible nodes in the graph: {len(self.graph_nodes)}')
+        self.C = self.get_all_costs(counterfactual.data, counterfactual.type)
+        print(f'Obtained all costs in the graph')
+        self.A = self.get_all_adjacency(counterfactual.data, counterfactual.model, counterfactual.split)
+        print(f'Obtained adjacency matrix')
+        if len(self.potential_justifiers) > 0:
+            self.optimizer, normal_x_cf = self.do_optimize_all(counterfactual.model)
         else:
-            print(f'No justifier available: Returning NN counterfactual')
+            print(f'CF cannot be justified. Returning NN counterfactual')
             normal_x_cf, _ = near_neigh(counterfactual)
             justifier = normal_x_cf
         return normal_x_cf, justifier 
@@ -79,9 +81,8 @@ class IJUICE:
         """
         if split in ['2','5','10','20','50','100']:
             value = list(np.linspace(min_val, max_val, num = int(split) + 1, endpoint = True))
-        elif split == 'train':
-            sorted_feat_i = list(np.sort(data.transformed_train_np[:,i][(data.transformed_train_np[:,i] > min_val) & (data.transformed_train_np[:,i] < max_val)]))
-            sorted_feat_i = min_val + sorted_feat_i + max_val 
+        elif split == 'train': # Most likely only using this, because the others require several divisions for each of the continuous features ranges
+            sorted_feat_i = list(np.sort(data.transformed_train_np[:,i][(data.transformed_train_np[:,i] >= min_val) & (data.transformed_train_np[:,i] <= max_val)]))
             value = list(np.unique(sorted_feat_i))
         return value
 
@@ -135,7 +136,7 @@ class IJUICE:
         """
         pot_justifier_feat_possible_values = {}
         for k in range(len(self.potential_justifiers)):
-            potential_justifier_k = self.potential_justifiers[k][0]
+            potential_justifier_k = self.potential_justifiers[k]
             v = self.normal_ioi - potential_justifier_k
             nonzero_index = list(np.nonzero(v)[0])
             feat_checked = []
@@ -200,19 +201,22 @@ class IJUICE:
     #         if model.model.predict(perm_i.reshape(1, -1)) != self.ioi_label and not np.array_equal(perm_i, self.nn_cf):
     #             yield perm_i
     
-    def get_all_nodes(self, model):
+    def get_graph_nodes(self, data, model):
         """
-        Generator that contains all the nodes located in the space between the nn_cf and the normal_ioi (all possible, CF-labeled nodes)
+        Generator that contains all the nodes located in the space between the potential justifiers and the normal_ioi (all possible, CF-labeled nodes)
         """
-        all_nodes = []
+        graph_nodes = []
         for k in range(len(self.potential_justifiers)):
-            potential_justifier_k = self.potential_justifiers[k]
             feat_possible_values_k = self.pot_justifier_feat_possible_values[k]
             permutations = product(*feat_possible_values_k)
             for i in permutations:
-                perm_i = self.make_array(i)
-                if model.model.predict(perm_i.reshape(1, -1)) != self.ioi_label and not any(np.array_equal(perm_i, x) for x in all_nodes) and not np.array_equal(perm_i, potential_justifier_k):
-                    all_nodes.append(perm_i)
+                perm_i = self.make_array(i)                     # 
+                if model.model.predict(perm_i.reshape(1, -1)) != self.ioi_label and \
+                    verify_feasibility(self.normal_ioi, perm_i, data) and \
+                    not any(np.array_equal(perm_i, x) for x in graph_nodes) and \
+                    not any(np.array_equal(perm_i, x) for x in self.potential_justifiers):
+                    graph_nodes.append(perm_i)
+        return graph_nodes
 
     # def get_cost(self, model, type):
     #     """
@@ -227,26 +231,63 @@ class IJUICE:
     #         ind += 1
     #     return C
 
-    def get_all_costs(self, model, type):
+    def get_all_costs(self, data, type):
         """
         Method that outputs the cost parameters required for optimization
         """
         C = {}
-        C[1] = distance_calculation(self.normal_ioi, self.nn_cf, type)
-        nodes = self.get_nodes(model)
-        ind = 2
-        for i in nodes:
-            C[ind] = distance_calculation(self.normal_ioi, i, type)
+        for k in range(1, len(self.potential_justifiers)+1):
+            potential_justifier_k = self.potential_justifiers[k-1]
+            C[k] = distance_calculation(self.normal_ioi, potential_justifier_k, data, type)
+        ind = len(self.potential_justifiers)+1
+        for i in self.graph_nodes:
+            C[ind] = distance_calculation(self.normal_ioi, i, data, type)
             ind += 1
         return C
 
-    def get_adjacency(self, data, model, split):
+    # def get_adjacency(self, data, model, split):
+    #     """
+    #     Method that outputs the adjacency matrix required for optimization
+    #     """
+    #     toler = 0.00001
+    #     nodes = [self.nn_cf]
+    #     nodes.extend(list(self.get_nodes(model)))
+    #     A = tuplelist()
+    #     for i in range(1, len(nodes) + 1):
+    #         node_i = nodes[i - 1]
+    #         for j in range(i + 1, len(nodes) + 1):
+    #             node_j = nodes[j - 1]
+    #             vector_ij = node_j - node_i
+    #             nonzero_index = list(np.nonzero(vector_ij)[0])
+    #             feat_nonzero = [data.processed_features[l] for l in nonzero_index]
+    #             if len(nonzero_index) > 2:
+    #                 continue
+    #             elif len(nonzero_index) == 2:
+    #                 if any(item in data.cat_enc_cols for item in feat_nonzero):
+    #                     A.append((i,j))
+    #             elif len(nonzero_index) == 1:
+    #                 if any(item in data.ordinal for item in feat_nonzero):
+    #                     if np.isclose(np.abs(vector_ij[nonzero_index]),data.feat_step[feat_nonzero],atol=toler).any():
+    #                         A.append((i,j))
+    #                 elif any(item in data.continuous for item in feat_nonzero):
+    #                     max_val_i, min_val_i = max(self.normal_ioi[nonzero_index],self.nn_cf[nonzero_index]), min(self.normal_ioi[nonzero_index],self.nn_cf[nonzero_index])
+    #                     values = self.continuous_feat_values(i, min_val_i, max_val_i, data, split)
+    #                     close_node_j_values = [values[max(np.where(node_i[nonzero_index] > values))], values[min(np.where(node_i[nonzero_index] <= values))]]
+    #                     if any(np.isclose(node_j[nonzero_index], close_node_j_values)):
+    #                         A.append((i,j))
+    #                 elif any(item in data.binary for item in feat_nonzero):
+    #                     if np.isclose(np.abs(vector_ij[nonzero_index]),[0,1],atol=toler).any():
+    #                         A.append((i,j))
+    #     return A
+
+    def get_all_adjacency(self, data, model, split):
         """
         Method that outputs the adjacency matrix required for optimization
         """
         toler = 0.00001
-        nodes = [self.nn_cf]
-        nodes.extend(list(self.get_nodes(model)))
+        nodes = self.potential_justifiers
+        justifiers_array = np.array(self.potential_justifiers)
+        nodes.extend(list(self.graph_nodes))
         A = tuplelist()
         for i in range(1, len(nodes) + 1):
             node_i = nodes[i - 1]
@@ -262,20 +303,58 @@ class IJUICE:
                         A.append((i,j))
                 elif len(nonzero_index) == 1:
                     if any(item in data.ordinal for item in feat_nonzero):
-                        if np.isclose(np.abs(vector_ij[nonzero_index]),data.feat_step[feat_nonzero],atol=toler).any():
+                        if np.isclose(np.abs(vector_ij[nonzero_index]), data.feat_step[feat_nonzero], atol=toler).any():
                             A.append((i,j))
                     elif any(item in data.continuous for item in feat_nonzero):
-                        max_val_i, min_val_i = max(self.normal_ioi[nonzero_index],self.nn_cf[nonzero_index]), min(self.normal_ioi[nonzero_index],self.nn_cf[nonzero_index])
-                        values = self.continuous_feat_values(i, min_val_i, max_val_i, data, split)
-                        close_node_j_values = [values[max(np.where(node_i[nonzero_index] > values))], values[min(np.where(node_i[nonzero_index] <= values))]]
+                        max_val, min_val = max(self.normal_ioi[nonzero_index], max(justifiers_array[:,nonzero_index])), min(self.normal_ioi[nonzero_index], min(justifiers_array[:,nonzero_index]))
+                        values = self.continuous_feat_values(nonzero_index, min_val, max_val, data, split)
+                        value_node_i_idx = int(np.where(np.isclose(values, node_i[nonzero_index]))[0])
+                        if value_node_i_idx > 0:
+                            value_node_i_idx_inf = value_node_i_idx - 1
+                        else:
+                            value_node_i_idx_inf = 0
+                        if value_node_i_idx < len(values) - 1:
+                            value_node_i_idx_sup = value_node_i_idx + 1
+                        else:
+                            value_node_i_idx_sup = value_node_i_idx
+                        close_node_j_values = [values[value_node_i_idx_inf], values[value_node_i_idx_sup]]
                         if any(np.isclose(node_j[nonzero_index], close_node_j_values)):
                             A.append((i,j))
                     elif any(item in data.binary for item in feat_nonzero):
-                        if np.isclose(np.abs(vector_ij[nonzero_index]),[0,1],atol=toler).any():
+                        if np.isclose(np.abs(vector_ij[nonzero_index]), [0,1], atol=toler).any():
                             A.append((i,j))
         return A
 
-    def do_optimize(self, model):
+    # def do_optimize(self, model):
+    #     """
+    #     Method that finds iJUICE CF using an optimization package
+    #     """
+    #     opt_model = gp.Model(name='iJUICE')
+    #     G = nx.DiGraph()
+    #     G.add_edges_from(self.A)
+    #     set_I = list(self.C.keys())   
+    #     x = opt_model.addVars(set_I, vtype=GRB.BINARY, obj=np.array(list(self.C.values())), name='iJUICE_cf')   # Function to optimize and x variables
+    #     y = gp.tupledict()
+    #     for (i,j) in G.edges:
+    #         y[i,j] = opt_model.addVar(vtype=GRB.BINARY, name='Path')
+    #     for v in G.nodes:
+    #         if v > 1:
+    #             opt_model.addConstr(gp.quicksum(y[i,v] for i in G.predecessors(v)) - gp.quicksum(y[v,j] for j in G.successors(v)) == x[v])
+    #         else:
+    #             opt_model.addConstr(gp.quicksum(y[i,v] for i in G.predecessors(v)) - gp.quicksum(y[v,j] for j in G.successors(v)) == -1)      
+    #     opt_model.optimize()
+    #     nodes = [self.nn_cf]
+    #     nodes.extend(list(self.get_nodes(model)))
+    #     sol_y = {}
+    #     for i in self.C.keys():
+    #         if x[i].x > 0:
+    #             sol_x = nodes[i - 1]
+    #     # for i,j in self.A:
+    #     #     if y[i,j].x > 0:
+    #     #         sol_y[i,j] = y[i,j].x
+    #     return opt_model, sol_x
+
+    def do_optimize_all(self, model):
         """
         Method that finds iJUICE CF using an optimization package
         """
@@ -283,25 +362,41 @@ class IJUICE:
         G = nx.DiGraph()
         G.add_edges_from(self.A)
         set_I = list(self.C.keys())   
-        x = opt_model.addVars(set_I, vtype=GRB.BINARY, obj=np.array(list(self.C.values())), name='iJUICE_cf')   # Function to optimize and x variables
-        y = gp.tupledict()
+        cf = opt_model.addVars(set_I, vtype=GRB.BINARY, name='Counterfactual')   # Node chosen as destination
+        source = opt_model.addVars(set_I, vtype=GRB.BINARY, name='Justifiers')       # Nodes chosen as sources (justifier points)
+        edge = gp.tupledict()
+        len_justifiers = len(self.potential_justifiers)
         for (i,j) in G.edges:
-            y[i,j] = opt_model.addVar(vtype=GRB.BINARY, name='Path')
+            edge[i,j] = opt_model.addVar(vtype=GRB.BINARY, name='Path')
         for v in G.nodes:
-            if v > 1:
-                opt_model.addConstr(gp.quicksum(y[i,v] for i in G.predecessors(v)) - gp.quicksum(y[v,j] for j in G.successors(v)) == x[v])
+            if v > 1: # len_justifiers
+                opt_model.addConstr(gp.quicksum(edge[i,v] for i in G.predecessors(v)) - gp.quicksum(edge[v,j] for j in G.successors(v)) == cf[v]) # *source.sum()
             else:
-                opt_model.addConstr(gp.quicksum(y[i,v] for i in G.predecessors(v)) - gp.quicksum(y[v,j] for j in G.successors(v)) == -1)      
+                opt_model.addConstr(gp.quicksum(edge[i,v] for i in G.predecessors(v)) - gp.quicksum(edge[v,j] for j in G.successors(v)) == -1) #-source[v]
+        # opt_model.addConstr(cf.sum() == 1)
+        # opt_model.addConstr(source.sum() >= 1)
+        opt_model.setObjective(cf.prod(self.C), GRB.MINIMIZE)  # cf.prod(self.C) - source.sum()/len_justifiers
         opt_model.optimize()
-        nodes = [self.nn_cf]
-        nodes.extend(list(self.get_nodes(model)))
-        sol_y = {}
+        self.all_nodes = self.potential_justifiers + self.graph_nodes
         for i in self.C.keys():
-            if x[i].x > 0:
-                sol_x = nodes[i - 1]
-        # for i,j in self.A:
-        #     if y[i,j].x > 0:
-        #         sol_y[i,j] = y[i,j].x
+            if cf[i].x > 0:
+                sol_x = self.all_nodes[i - 1]
+        print(f'Optimizer solution status: {opt_model.status}') # 1: 'LOADED', 2: 'OPTIMAL', 3: 'INFEASIBLE', 4: 'INF_OR_UNBD', 5: 'UNBOUNDED', 6: 'CUTOFF', 7: 'ITERATION_LIMIT', 8: 'NODE_LIMIT', 9: 'TIME_LIMIT', 10: 'SOLUTION_LIMIT', 11: 'INTERRUPTED', 12: 'NUMERIC', 13: 'SUBOPTIMAL', 14: 'INPROGRESS', 15: 'USER_OBJ_LIMIT'
+        print(f'Solution:')
+        for i,j in self.A:
+            if edge[i,j].x > 0:
+                print(f'edge{i,j}: {edge[i,j].x}')
+                print(f'Node {i}: {self.all_nodes[i - 1]}')
+                print(f'Node {j}: {self.all_nodes[j - 1]}')
+        for i in self.C.keys():
+            if cf[i].x > 0:
+                print(f'cf({i}): {cf[i].x}')
+                print(f'Node {i}: {self.all_nodes[i - 1]}')
+                print(f'Original IOI: {self.normal_ioi}. Euclidean Distance: {np.round(np.sqrt(np.sum((self.all_nodes[i - 1] - self.normal_ioi)**2)),3)}')
+        for i in self.C.keys():
+            if source[i].x > 0:
+                print(f'source({i}): {source[i].x}')
+                print(f'Node {i}: {self.all_nodes[i - 1]}')
         return opt_model, sol_x
 
     # def do_optimize(self):

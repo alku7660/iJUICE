@@ -8,8 +8,8 @@ from counterfactual_constructor import Counterfactual
 from address import save_obj, results_obj
 
 # datasets = ['adult','kdd_census','german','dutch','bank','credit','compass','compass','diabetes','ionosphere','student','oulad','law','synthetic_athlete','synthetic_disease']
-datasets = ['adult']
-methods = ['dice','face','mace','cchvae','juice','ijuice']
+datasets = ['synthetic_athlete']
+methods = ['ijuice']
 seed_int = 54321
 step = 0.01
 train_fraction = 0.7
@@ -34,20 +34,3 @@ for data_str in datasets:
                     eval.add_specific_x_data(cf_gen)
                     print(f'Data {data_str.capitalize()} | Method {method_str.capitalize()} | Type {type.capitalize()} | Split {split.capitalize()} | Instance {ins+1}')
                 save_obj(eval, results_obj, f'{data_str}_{method_str}_{type}_{split}.pkl')
-            # print(f'Optimizer solution status: {ijuice.optimizer.status}')
-            # print(f'Solution:')
-            # nodes = [ijuice.nn_cf]
-            # nodes.extend(list(ijuice.get_nodes(model)))
-            # for i,j in ijuice.A:
-            #     if ijuice.y[i,j].x > 0:
-            #         print(f'y{i,j}: {ijuice.y[i,j].x}')
-            # for i in ijuice.C.keys():
-            #     if ijuice.x[i].x > 0:
-            #         print(f'x({i}): {ijuice.x[i].x}')
-            #         print(f'Node {i}: {nodes[i - 1]}')
-            #         print(f'Original IOI: {ioi.normal_x}. Euclidean Distance: {np.round(np.sqrt(np.sum((nodes[i - 1] - ioi.normal_x)**2)),3)}')
-            #         print(f'NN CF: {ijuice.nn_cf}')
-
-
-
-

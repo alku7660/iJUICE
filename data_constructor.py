@@ -286,10 +286,13 @@ class Dataset:
             for i in feat_list:
                 if 'Sex' in i:
                     feat_type.loc[i] = 'bin'
+                    feat_type_mace.loc[i] = 'binary'
                 elif 'TrainingTime' in i or 'Diet' in i or 'Sport' in i:
                     feat_type.loc[i] = 'cat'
+                    feat_type_mace.loc[i] = 'sub-categorical'
                 elif i in ['Age','SleepHours']:
                     feat_type.loc[i] = 'cont'
+                    feat_type_mace.loc[i] = 'numeric-real'
         elif self.name == 'synthetic_athlete':
             for i in feat_list:
                 if 'Sex' in i or 'Training' in i or 'Sport' in i or 'Diet' in i:
@@ -921,10 +924,14 @@ class Dataset:
             old_name_idx = [i for i in range(len(self.features)) if self.features[i] in new_col][0]
             old_name = self.features[old_name_idx]
             name_str = f'_cat_{new_col[-3:]}' if old_name in self.categorical else ''
-            new_parent_name_long = f'{new_col}'
-            new_parent_name_kurz = f'x{old_name_idx}{name_str}'
             new_col_kurz = f'x{new_col_idx}'
             new_col_type = self.feat_type_mace[new_col]
+            if 'categorical' not in new_col_type and 'ordinal' not in new_col_type:
+                new_parent_name_long = -1
+                new_parent_name_kurz = -1
+            else:
+                new_parent_name_long = f'{new_col}'
+                new_parent_name_kurz = f'x{old_name_idx}{name_str}'
             new_col_actionability = self.feat_directionality_mace[new_col]
             new_col_mutability = True if new_col_actionability != 'none' else False
             attributes[new_col] = DatasetAttribute(

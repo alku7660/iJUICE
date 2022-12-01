@@ -3,11 +3,7 @@ Model-Agnostic Counterfactual Explanations (MACE)
 Based on original authors implementation: Please see https://github.com/amirhk/mace
 """
 
-import copy
-import pickle
 import numpy as np
-import pandas as pd
-from pprint import pprint
 
 from random import seed
 RANDOM_SEED = 1122334455

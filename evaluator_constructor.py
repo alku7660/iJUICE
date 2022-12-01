@@ -109,7 +109,7 @@ def verify_feasibility(x, cf, data):
     """
     Method that indicates whether the cf is a feasible counterfactual with respect to x, feature mutability and directionality
     """
-    x = x[0]
+    # x = x[0]
     toler = 0.000001
     feasibility = True
     for i in range(len(data.feat_type)):
@@ -197,8 +197,7 @@ def verify_justification(cf, counterfactual, perc, feasibility):
         if split in ['2','5','10','20','50','100']:
             value = list(np.linspace(min_val, max_val, num = int(split) + 1, endpoint = True))
         elif split == 'train':
-            sorted_feat_i = list(np.sort(data.transformed_train_np[:,i][(data.transformed_train_np[:,i] > min_val) & (data.transformed_train_np[:,i] < max_val)]))
-            sorted_feat_i = min_val + sorted_feat_i + max_val 
+            sorted_feat_i = list(np.sort(data.transformed_train_np[:,i][(data.transformed_train_np[:,i] >= min_val) & (data.transformed_train_np[:,i] <= max_val)]))
             value = list(np.unique(sorted_feat_i))
         return value
 
@@ -310,7 +309,7 @@ def verify_justification(cf, counterfactual, perc, feasibility):
                             A.append((i,j))
                     elif any(item in data.continuous for item in feat_nonzero):
                         max_val_i, min_val_i = max(cf[nonzero_index], point[nonzero_index]), min(cf[nonzero_index], point[nonzero_index])
-                        values = continuous_feat_values(i, min_val_i, max_val_i, data, split)
+                        values = continuous_feat_values(nonzero_index, min_val_i, max_val_i, data, split)
                         values_idx = int(np.where(np.isclose(values, node_i[nonzero_index]))[0])
                         if values_idx > 0:
                             values_idx_inf = values_idx - 1
