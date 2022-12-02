@@ -16,7 +16,7 @@ class IJUICE:
         start_time = time.time()
         self.normal_x_cf, self.justifier = self.Ijuice(counterfactual)
         end_time = time.time()
-        self.total_time = end_time - start_time
+        self.run_time = end_time - start_time
 
     def find_potential_justifiers(self, counterfactual):
         """
@@ -28,6 +28,7 @@ class IJUICE:
         potential_justifiers = train_np[(train_target != self.ioi_label) & (train_pred != self.ioi_label)]
         sort_potential_justifiers = []
         for i in range(potential_justifiers.shape[0]):
+            # if verify_feasibility(self.normal_ioi, potential_justifiers[i], counterfactual.data):
             dist = distance_calculation(potential_justifiers[i], self.normal_ioi, counterfactual.data, type=counterfactual.type)
             sort_potential_justifiers.append((potential_justifiers[i], dist))    
         sort_potential_justifiers.sort(key=lambda x: x[1])
@@ -59,19 +60,23 @@ class IJUICE:
         """
         Improved JUICE generation method
         """
+        print(f'Obtained all potential justifiers: {len(self.potential_justifiers)}')
         self.pot_justifier_feat_possible_values = self.get_feat_possible_values(counterfactual.data, counterfactual.split)
         print(f'Obtained all posible feature values from potential justifiers')
         self.graph_nodes = self.get_graph_nodes(counterfactual.data, counterfactual.model)
-        print(f'Obtained all posible nodes in the graph: {len(self.graph_nodes)}')
+        self.all_nodes = self.potential_justifiers + self.graph_nodes
+        print(f'Obtained all posible nodes in the graph: {len(self.all_nodes)}')
         self.C = self.get_all_costs(counterfactual.data, counterfactual.type)
         print(f'Obtained all costs in the graph')
+        self.F = self.get_all_feasibility(counterfactual.data)
+        print(f'Obtained all feasibility in the graph')
         self.A = self.get_all_adjacency(counterfactual.data, counterfactual.model, counterfactual.split)
         print(f'Obtained adjacency matrix')
         if len(self.potential_justifiers) > 0:
-            self.optimizer, normal_x_cf = self.do_optimize_all(counterfactual.model)
+            normal_x_cf, justifier = self.do_optimize_all(counterfactual.model)
         else:
             print(f'CF cannot be justified. Returning NN counterfactual')
-            normal_x_cf, _ = near_neigh(counterfactual)
+            normal_x_cf, _ = nn_for_juice(counterfactual)
             justifier = normal_x_cf
         return normal_x_cf, justifier 
 
@@ -212,7 +217,6 @@ class IJUICE:
             for i in permutations:
                 perm_i = self.make_array(i)                     # 
                 if model.model.predict(perm_i.reshape(1, -1)) != self.ioi_label and \
-                    verify_feasibility(self.normal_ioi, perm_i, data) and \
                     not any(np.array_equal(perm_i, x) for x in graph_nodes) and \
                     not any(np.array_equal(perm_i, x) for x in self.potential_justifiers):
                     graph_nodes.append(perm_i)
@@ -236,14 +240,20 @@ class IJUICE:
         Method that outputs the cost parameters required for optimization
         """
         C = {}
-        for k in range(1, len(self.potential_justifiers)+1):
-            potential_justifier_k = self.potential_justifiers[k-1]
-            C[k] = distance_calculation(self.normal_ioi, potential_justifier_k, data, type)
-        ind = len(self.potential_justifiers)+1
-        for i in self.graph_nodes:
-            C[ind] = distance_calculation(self.normal_ioi, i, data, type)
-            ind += 1
+        for k in range(1, len(self.all_nodes)+1):
+            node_k = self.all_nodes[k-1]
+            C[k] = distance_calculation(self.normal_ioi, node_k, data, type)
         return C
+
+    def get_all_feasibility(self, data):
+        """
+        Outputs the counterfactual feasibility parameter for all graph nodes (including the potential justifiers) 
+        """
+        F = {}
+        for k in range(1, len(self.all_nodes)+1):
+            node_k = self.all_nodes[k-1]
+            F[k] = verify_feasibility(self.normal_ioi, node_k, data)
+        return F
 
     # def get_adjacency(self, data, model, split):
     #     """
@@ -285,9 +295,8 @@ class IJUICE:
         Method that outputs the adjacency matrix required for optimization
         """
         toler = 0.00001
-        nodes = self.potential_justifiers
+        nodes = self.all_nodes
         justifiers_array = np.array(self.potential_justifiers)
-        nodes.extend(list(self.graph_nodes))
         A = tuplelist()
         for i in range(1, len(nodes) + 1):
             node_i = nodes[i - 1]
@@ -358,46 +367,71 @@ class IJUICE:
         """
         Method that finds iJUICE CF using an optimization package
         """
+        def output_path(node, cf_node, path=[]):
+            path.extend([node])
+            if cf_node == node:
+                return path
+            new_node = [j for j in G.successors(node) if np.isclose(edge[node,j].x, 1)][0]
+            return output_path(new_node, cf_node, path)
+
+        """
+        MODEL
+        """
         opt_model = gp.Model(name='iJUICE')
         G = nx.DiGraph()
         G.add_edges_from(self.A)
+        
+        """
+        SETS AND VARIABLES
+        """
         set_I = list(self.C.keys())   
         cf = opt_model.addVars(set_I, vtype=GRB.BINARY, name='Counterfactual')   # Node chosen as destination
         source = opt_model.addVars(set_I, vtype=GRB.BINARY, name='Justifiers')       # Nodes chosen as sources (justifier points)
         edge = gp.tupledict()
+        
+        """
+        CONSTRAINTS
+        """
         len_justifiers = len(self.potential_justifiers)
         for (i,j) in G.edges:
             edge[i,j] = opt_model.addVar(vtype=GRB.BINARY, name='Path')
         for v in G.nodes:
-            if v > 1: # len_justifiers
-                opt_model.addConstr(gp.quicksum(edge[i,v] for i in G.predecessors(v)) - gp.quicksum(edge[v,j] for j in G.successors(v)) == cf[v]) # *source.sum()
+            if v <= len_justifiers:
+                opt_model.addConstr(gp.quicksum(edge[i,v] for i in G.predecessors(v)) - gp.quicksum(edge[v,j] for j in G.successors(v)) == -source[v]) # Source contraints
             else:
-                opt_model.addConstr(gp.quicksum(edge[i,v] for i in G.predecessors(v)) - gp.quicksum(edge[v,j] for j in G.successors(v)) == -1) #-source[v]
-        # opt_model.addConstr(cf.sum() == 1)
-        # opt_model.addConstr(source.sum() >= 1)
-        opt_model.setObjective(cf.prod(self.C), GRB.MINIMIZE)  # cf.prod(self.C) - source.sum()/len_justifiers
+                opt_model.addConstr(gp.quicksum(edge[i,v] for i in G.predecessors(v)) - gp.quicksum(edge[v,j] for j in G.successors(v)) == cf[v]*source.sum()) # Sink constraints
+                opt_model.addConstr(cf[v] <= self.F[v])
+                opt_model.addConstr(source[v] == 0)
+        opt_model.addConstr(source.sum() >= 1)
+        opt_model.setObjective(cf.prod(self.C) - source.sum(), GRB.MINIMIZE)  # cf.prod(self.C) - source.sum()/len_justifiers
+        
+        """
+        OPTIMIZATION AND RESULTS
+        """
         opt_model.optimize()
-        self.all_nodes = self.potential_justifiers + self.graph_nodes
+        time.sleep(1)
         for i in self.C.keys():
             if cf[i].x > 0:
                 sol_x = self.all_nodes[i - 1]
         print(f'Optimizer solution status: {opt_model.status}') # 1: 'LOADED', 2: 'OPTIMAL', 3: 'INFEASIBLE', 4: 'INF_OR_UNBD', 5: 'UNBOUNDED', 6: 'CUTOFF', 7: 'ITERATION_LIMIT', 8: 'NODE_LIMIT', 9: 'TIME_LIMIT', 10: 'SOLUTION_LIMIT', 11: 'INTERRUPTED', 12: 'NUMERIC', 13: 'SUBOPTIMAL', 14: 'INPROGRESS', 15: 'USER_OBJ_LIMIT'
         print(f'Solution:')
-        for i,j in self.A:
-            if edge[i,j].x > 0:
-                print(f'edge{i,j}: {edge[i,j].x}')
-                print(f'Node {i}: {self.all_nodes[i - 1]}')
-                print(f'Node {j}: {self.all_nodes[j - 1]}')
+        justifiers = []
+        for i in self.C.keys():
+            if source[i].x > 0:
+                justifiers.append(i)
+        time.sleep(1)
         for i in self.C.keys():
             if cf[i].x > 0:
                 print(f'cf({i}): {cf[i].x}')
-                print(f'Node {i}: {self.all_nodes[i - 1]}')
-                print(f'Original IOI: {self.normal_ioi}. Euclidean Distance: {np.round(np.sqrt(np.sum((self.all_nodes[i - 1] - self.normal_ioi)**2)),3)}')
-        for i in self.C.keys():
-            if source[i].x > 0:
-                print(f'source({i}): {source[i].x}')
-                print(f'Node {i}: {self.all_nodes[i - 1]}')
-        return opt_model, sol_x
+                # print(f'Node {i}: {self.all_nodes[i - 1]}')
+                print(f'Original IOI: {self.normal_ioi}')
+                print(f'Euclidean Distance: {np.round(np.sqrt(np.sum((self.all_nodes[i - 1] - self.normal_ioi)**2)),3)}')
+                cf_node_idx = i
+        for i in justifiers:
+            path = []
+            print(f'Source {i} Path to CF: {output_path(i, cf_node_idx, path=path)}')
+        time.sleep(1)
+        return sol_x, justifiers
 
     # def do_optimize(self):
     #     """

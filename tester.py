@@ -15,7 +15,7 @@ step = 0.01
 train_fraction = 0.7
 distance_type = ['euclidean'] # ['euclidean','L1','L1_L0','L1_L0_inf']
 continuous_split = ['train']    # ['2','5','10','20','50','100','train']
-num_instances = 5 # data.test_df.shape[0]
+num_instances = 1 # data.test_df.shape[0]
 justification_train_perc = 0.1
 
 for data_str in datasets:

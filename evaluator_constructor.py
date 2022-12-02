@@ -30,11 +30,11 @@ class Evaluator():
         self.x_dict[counterfactual.ioi.idx] = counterfactual.ioi.x
         self.normal_x_dict[counterfactual.ioi.idx] = counterfactual.ioi.normal_x
         self.x_cf_dict[counterfactual.ioi.idx] = x_cf
-        feasibility = verify_feasibility(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data)
+        feasibility = verify_feasibility(counterfactual.ioi.normal_x[0], counterfactual.cf_method.normal_x_cf, counterfactual.data)
         self.feasibility_dict[counterfactual.ioi.idx] = feasibility
         self.proximity_dict[counterfactual.ioi.idx] = distance_calculation(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data, self.distance_type)
         self.sparsity_dict[counterfactual.ioi.idx] = sparsity(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data)
-        self.justification_dict[counterfactual.ioi.idx] = verify_justification(counterfactual.cf_method.normal_x_cf, counterfactual, self.perc, feasibility)
+        # self.justification_dict[counterfactual.ioi.idx] = verify_justification(counterfactual.cf_method.normal_x_cf, counterfactual, self.perc, feasibility)
         self.time_dict[counterfactual.ioi.idx] = counterfactual.cf_method.run_time
 
 def distance_calculation(x, y, data, type='euclidean'):
@@ -349,14 +349,14 @@ def verify_justification(cf, counterfactual, perc, feasibility):
             G.add_edges_from(adjacency)
             set_I = list(cost.keys())
             x = opt_model_i.addVars(set_I, vtype=GRB.BINARY, obj=np.array(list(cost.values())), name='verification_cf')   # Function to optimize and x variables
-            y = gp.tupledict()
+            edge = gp.tupledict()
             for (j,k) in G.edges:
-                y[j,k] = opt_model_i.addVar(vtype=GRB.BINARY, name='Path')
+                edge[j,k] = opt_model_i.addVar(vtype=GRB.BINARY, name='Path')
             for v in G.nodes:
                 if v > 1:
-                    opt_model_i.addConstr(gp.quicksum(y[j,v] for j in G.predecessors(v)) - gp.quicksum(y[v,k] for k in G.successors(v)) == x[v])
+                    opt_model_i.addConstr(gp.quicksum(edge[j,v] for j in G.predecessors(v)) - gp.quicksum(edge[v,k] for k in G.successors(v)) == x[v])
                 else:
-                    opt_model_i.addConstr(gp.quicksum(y[j,v] for j in G.predecessors(v)) - gp.quicksum(y[v,k] for k in G.successors(v)) == -1)      
+                    opt_model_i.addConstr(gp.quicksum(edge[j,v] for j in G.predecessors(v)) - gp.quicksum(edge[v,k] for k in G.successors(v)) == -1)      
             # print(f'set all variables')
             opt_model_i.Params.LogToConsole = 0
             opt_model_i.optimize()
@@ -365,10 +365,11 @@ def verify_justification(cf, counterfactual, perc, feasibility):
             for i in cost.keys():
                 if x[i].x > 0:
                     sol_x = nodes[i - 1]
-            # sol_y = {}
-            # for i,j in adjacency:
-            #     if y[i,j].x > 0:
-            #         sol_y[i,j] = y[i,j].x
+            for i,j in adjacency:
+                if edge[i,j].x > 0:
+                    print(f'edge{i,j}: {edge[i,j].x}')
+                    print(f'Node {i}: {nodes[i - 1]}')
+                    print(f'Node {j}: {nodes[j - 1]}')
             if np.array_equal(sol_x, train_nn_i):
                 justifier = train_nn_i
                 print(f'Justified through a path!')
