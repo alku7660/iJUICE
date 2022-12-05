@@ -7,20 +7,19 @@ from gurobipy import GRB, tuplelist
 
 class Evaluator():
 
-    def __init__(self, data, method_str, type, split, justification_train_perc): # data, method_str, type, split
+    def __init__(self, data, method_str, type, lagrange): # data, method_str, type, split
         self.data_name = data.name
         self.method_name = method_str
         self.distance_type = type
-        self.continuous_split = split
+        self.lagrange = lagrange
         self.feat_type = data.feat_type
         self.feat_mutable = data.feat_mutable
         self.feat_directionality = data.feat_directionality
         self.feat_step = data.feat_step
         self.data_cols = data.processed_features
-        self.perc = justification_train_perc
         self.x_dict, self.normal_x_dict = {}, {}
         self.normal_x_cf_dict, self.x_cf_dict = {}, {}
-        self.proximity_dict, self.feasibility_dict, self.sparsity_dict, self.justification_dict, self.time_dict = {}, {}, {}, {}, {}
+        self.proximity_dict, self.feasibility_dict, self.sparsity_dict, self.justifiers_dict, self.justifier_ratio, self.time_dict = {}, {}, {}, {}, {}, {}
 
     def add_specific_x_data(self, counterfactual):
         """
@@ -30,11 +29,10 @@ class Evaluator():
         self.x_dict[counterfactual.ioi.idx] = counterfactual.ioi.x
         self.normal_x_dict[counterfactual.ioi.idx] = counterfactual.ioi.normal_x
         self.x_cf_dict[counterfactual.ioi.idx] = x_cf
-        feasibility = verify_feasibility(counterfactual.ioi.normal_x[0], counterfactual.cf_method.normal_x_cf, counterfactual.data)
-        self.feasibility_dict[counterfactual.ioi.idx] = feasibility
+        self.feasibility_dict[counterfactual.ioi.idx] = verify_feasibility(counterfactual.ioi.normal_x[0], counterfactual.cf_method.normal_x_cf, counterfactual.data)
         self.proximity_dict[counterfactual.ioi.idx] = distance_calculation(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data, self.distance_type)
         self.sparsity_dict[counterfactual.ioi.idx] = sparsity(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data)
-        # self.justification_dict[counterfactual.ioi.idx] = verify_justification(counterfactual.cf_method.normal_x_cf, counterfactual, self.perc, feasibility)
+        self.justifiers_dict[counterfactual.ioi.idx], self.justifier_ratio[counterfactual.ioi.idx] = verify_justification(counterfactual.cf_method.normal_x_cf, counterfactual)
         self.time_dict[counterfactual.ioi.idx] = counterfactual.cf_method.run_time
 
 def distance_calculation(x, y, data, type='euclidean'):
@@ -159,7 +157,7 @@ def sparsity(x, cf, data):
         cf_sparsity = np.round_(1 - n_changed/len(x),3)
     return cf_sparsity
 
-def verify_justification(cf, counterfactual, perc, feasibility):
+def verify_justification(cf, counterfactual):
     """
     Method that verifies justification for any given cf, and a dataset.
     """
@@ -167,83 +165,84 @@ def verify_justification(cf, counterfactual, perc, feasibility):
     ioi = counterfactual.ioi
     model = counterfactual.model
     type = counterfactual.type
-    split = counterfactual.split
+    lagrange = counterfactual.lagrange
 
-    def nn_list(perc=0.2):
+    def nn_list():
         """
         Method that gets the list of training observations labeled as cf-label with respect to the cf, ordered based on graph nodes size
         """
-        train_true_label_data = data.transformed_train_np[data.train_target != ioi.label]
-        train_prediction = model.model.predict(train_true_label_data)
-        train_cf_label_prediction_data = train_true_label_data[train_prediction != ioi.label]
-        sort_data_distance = []
-        for i in range(train_cf_label_prediction_data.shape[0]):
-            dist = distance_calculation(train_cf_label_prediction_data[i], cf, data)
-            sort_data_distance.append((train_cf_label_prediction_data[i], dist, 1 - ioi.label))    
-        sort_data_distance.sort(key=lambda x: x[1])
-        sort_data_distance_possible_values = []
-        for i in range(int(len(sort_data_distance)*perc)):
-            print(f'Instance {i+1} of {int(len(sort_data_distance)*perc)} ({np.round((i+1)*100/int(len(sort_data_distance)*perc),2)}%)')
-            possible_values = get_feat_possible_values(data, sort_data_distance[i][0], split)
-            num_nodes = len(list(get_nodes(model, possible_values)))
-            sort_data_distance_possible_values.append((sort_data_distance[i][0], possible_values, num_nodes, 1 - ioi.label))    
-        sort_data_distance_possible_values.sort(key=lambda x: x[2])
-        return sort_data_distance_possible_values
+        train_np = counterfactual.data.transformed_train_np
+        train_target = counterfactual.data.train_target
+        train_pred = counterfactual.model.model.predict(train_np)
+        potential_justifiers = train_np[(train_target != ioi.label) & (train_pred != ioi.label)]
+        sort_potential_justifiers = []
+        for i in range(potential_justifiers.shape[0]):
+            dist = distance_calculation(potential_justifiers[i], ioi.normal_x[0], counterfactual.data, type=counterfactual.type)
+            sort_potential_justifiers.append((potential_justifiers[i], dist))    
+        sort_potential_justifiers.sort(key=lambda x: x[1])
+        sort_potential_justifiers = [i[0] for i in sort_potential_justifiers]
+        sort_potential_justifiers = sort_potential_justifiers[:30]
+        return sort_potential_justifiers
 
-    def continuous_feat_values(i, min_val, max_val, data, split):
+    def continuous_feat_values(i, min_val, max_val, data):
         """
         Method that defines how to discretize the continuous features
         """
-        if split in ['2','5','10','20','50','100']:
-            value = list(np.linspace(min_val, max_val, num = int(split) + 1, endpoint = True))
-        elif split == 'train':
-            sorted_feat_i = list(np.sort(data.transformed_train_np[:,i][(data.transformed_train_np[:,i] >= min_val) & (data.transformed_train_np[:,i] <= max_val)]))
-            value = list(np.unique(sorted_feat_i))
+        # if split in ['2','5','10','20','50','100']:
+        #     value = list(np.linspace(min_val, max_val, num = int(split) + 1, endpoint = True))
+        # elif split == 'train':
+        sorted_feat_i = list(np.sort(data.transformed_train_np[:,i][(data.transformed_train_np[:,i] >= min_val) & (data.transformed_train_np[:,i] <= max_val)]))
+        value = list(np.unique(sorted_feat_i))
         return value
 
-    def get_feat_possible_values(data, point, split):
+    def get_feat_possible_values(data, ioi, points):
         """
         Method that obtains the features possible values
         """
-        v = point - cf
-        nonzero_index = list(np.nonzero(v)[0])
-        feat_checked = []
-        feat_possible_values = []
-        for i in range(len(cf)):
-            if i not in feat_checked:
-                feat_i = data.processed_features[i]
-                if feat_i in data.bin_enc_cols:
-                    if i in nonzero_index:
-                        value = [cf[i],point[i]]
-                    else:
-                        value = [cf[i]]
-                    feat_checked.extend([i])
-                elif feat_i in data.cat_enc_cols:
-                    idx_cat_i = data.idx_cat_cols_dict[data.processed_features[i][:-2]]
-                    nn_cat_idx = list(cf[idx_cat_i])
-                    if any(item in idx_cat_i for item in nonzero_index):
-                        ioi_cat_idx = list(point[idx_cat_i])
-                        value = [nn_cat_idx, ioi_cat_idx]
-                    else:
-                        value = [nn_cat_idx]
-                    feat_checked.extend(idx_cat_i)
-                elif feat_i in data.ordinal:
-                    if i in nonzero_index:
-                        values_i = list(data.processed_feat_dist[data.processed_features[i]].keys())
-                        max_val_i, min_val_i = max(cf[i],point[i]), min(cf[i],point[i])
-                        value = [j for j in values_i if j <= max_val_i and j >= min_val_i]
-                    else:
-                        value = [cf[i]]
-                    feat_checked.extend([i])
-                elif feat_i in data.continuous:
-                    if i in nonzero_index:
-                        max_val_i, min_val_i = max(cf[i],point[i]), min(cf[i],point[i])
-                        value = continuous_feat_values(i, min_val_i, max_val_i, data, split)
-                    else:
-                        value = [cf[i]]
-                    feat_checked.extend([i])
-                feat_possible_values.append(value)
-        return feat_possible_values
+        normal_x = ioi.normal_x[0]
+        pot_justifier_feat_possible_values = {}
+        for k in range(len(points)):
+            potential_justifier_k = points[k]
+            v = normal_x - potential_justifier_k
+            nonzero_index = list(np.nonzero(v)[0])
+            feat_checked = []
+            feat_possible_values = []
+            for i in range(len(normal_x)):
+                if i not in feat_checked:
+                    feat_i = data.processed_features[i]
+                    if feat_i in data.bin_enc_cols:
+                        if i in nonzero_index:
+                            value = [potential_justifier_k[i], normal_x[i]]
+                        else:
+                            value = [potential_justifier_k[i]]
+                        feat_checked.extend([i])
+                    elif feat_i in data.cat_enc_cols:
+                        idx_cat_i = data.idx_cat_cols_dict[data.processed_features[i][:-2]]
+                        nn_cat_idx = list(potential_justifier_k[idx_cat_i])
+                        if any(item in idx_cat_i for item in nonzero_index):
+                            ioi_cat_idx = list(normal_x[idx_cat_i])
+                            value = [nn_cat_idx, ioi_cat_idx]
+                        else:
+                            value = [nn_cat_idx]
+                        feat_checked.extend(idx_cat_i)
+                    elif feat_i in data.ordinal:
+                        if i in nonzero_index:
+                            values_i = list(data.processed_feat_dist[data.processed_features[i]].keys())
+                            max_val_i, min_val_i = max(normal_x[i], potential_justifier_k[i]), min(normal_x[i], potential_justifier_k[i])
+                            value = [j for j in values_i if j <= max_val_i and j >= min_val_i]
+                        else:
+                            value = [potential_justifier_k[i]]
+                        feat_checked.extend([i])
+                    elif feat_i in data.continuous:
+                        if i in nonzero_index:
+                            max_val_i, min_val_i = max(normal_x[i], potential_justifier_k[i]), min(normal_x[i], potential_justifier_k[i])
+                            value = continuous_feat_values(i, min_val_i, max_val_i, data)
+                        else:
+                            value = [potential_justifier_k[i]]
+                        feat_checked.extend([i])
+                    feat_possible_values.append(value)
+            pot_justifier_feat_possible_values[k] = feat_possible_values
+        return pot_justifier_feat_possible_values
 
     def make_array(i):
         """
@@ -258,43 +257,33 @@ def verify_justification(cf, counterfactual, perc, feasibility):
                 new_list.extend([j])
         return np.array(new_list)
 
-    def get_nodes(model, possible_values):
+    def get_graph_nodes(model, nn_list, feat_possible_values):
         """
-        Generator that contains all the nodes located in the space between the nn_cf and the normal_ioi (all possible, CF-labeled nodes)
+        Generator that contains all the nodes located in the space between the potential justifiers and the normal_ioi (all possible, CF-labeled nodes)
         """
-        permutations = product(*possible_values)
-        for i in permutations:
-            perm_i = make_array(i)
-            if model.model.predict(perm_i.reshape(1, -1)) != ioi.label and not np.array_equal(perm_i, cf):
-                yield perm_i
+        graph_nodes = []
+        for k in range(len(nn_list)):
+            feat_possible_values_k = feat_possible_values[k]
+            permutations = product(*feat_possible_values_k)
+            for i in permutations:
+                perm_i = make_array(i)
+                if model.model.predict(perm_i.reshape(1, -1)) != ioi.label and \
+                    not any(np.array_equal(perm_i, x) for x in graph_nodes) and \
+                    not any(np.array_equal(perm_i, x) for x in nn_list):
+                    graph_nodes.append(perm_i)
+        return graph_nodes
 
-    def get_cost(data, model, possible_values, point, type):
-        """
-        Method that outputs the cost parameters required for optimization
-        """
-        C = {}
-        C[1] = distance_calculation(cf, point, data, type)
-        nodes = get_nodes(model, possible_values)
-        ind = 2
-        for i in nodes:
-            C[ind] = distance_calculation(point, i, data, type)
-            ind += 1
-        return C
-
-    def get_adjacency(data, possible_values, point, model):
+    def get_adjacency(data, all_nodes, train_list):
         """
         Method that outputs the adjacency matrix required for optimization
         """
         toler = 0.00001
-        nodes = [cf]
-        nodes.extend(list(get_nodes(model, possible_values)))
-        print(f'Getting adjacency: Nodes length: {len(nodes)}')
+        train_list = np.array(train_list)
         A = tuplelist()
-        for i in range(1, len(nodes) + 1):
-            node_i = nodes[i - 1]
-            # print(f'Getting adjacency: Started node edge verify: {i}. Progress ({np.round(100*(i)/(len(nodes)),2)}%)')
-            for j in range(i + 1, len(nodes) + 1):
-                node_j = nodes[j - 1]
+        for i in range(1, len(all_nodes) + 1):
+            node_i = all_nodes[i - 1]
+            for j in range(i + 1, len(all_nodes) + 1):
+                node_j = all_nodes[j - 1]
                 vector_ij = node_j - node_i
                 nonzero_index = list(np.nonzero(vector_ij)[0])
                 feat_nonzero = [data.processed_features[l] for l in nonzero_index]
@@ -308,8 +297,8 @@ def verify_justification(cf, counterfactual, perc, feasibility):
                         if np.isclose(np.abs(vector_ij[nonzero_index]), data.feat_step[feat_nonzero], atol=toler).any():
                             A.append((i,j))
                     elif any(item in data.continuous for item in feat_nonzero):
-                        max_val_i, min_val_i = max(cf[nonzero_index], point[nonzero_index]), min(cf[nonzero_index], point[nonzero_index])
-                        values = continuous_feat_values(nonzero_index, min_val_i, max_val_i, data, split)
+                        max_val_i, min_val_i = max(cf[nonzero_index], max(train_list[:,nonzero_index])), min(cf[nonzero_index], min(train_list[:,nonzero_index]))
+                        values = continuous_feat_values(nonzero_index, min_val_i, max_val_i, data)
                         values_idx = int(np.where(np.isclose(values, node_i[nonzero_index]))[0])
                         if values_idx > 0:
                             values_idx_inf = values_idx - 1
@@ -327,53 +316,23 @@ def verify_justification(cf, counterfactual, perc, feasibility):
                             A.append((i,j))
         return A
 
-    if feasibility:
-        print(f'Preprocessing and ordering of training instances')
-        train_nn_list = nn_list(perc)
-        print(f'Number of training instances considered: {len(train_nn_list)}')
-        for i in range(len(train_nn_list)):
-            print(f'Verifying justification from train instance {i+1}')
-            train_nn_i = train_nn_list[i][0]
-            possible_values = train_nn_list[i][1]
-            if np.array_equal(cf, train_nn_i):
-                justifier = train_nn_i
-                print(f'Justified by itself!')
-                break
-            # print(f'got possible values')
-            cost = get_cost(data, model, possible_values, train_nn_i, type)
-            # print(f'got costs')
-            adjacency = get_adjacency(data, possible_values, train_nn_i, model)
-            # print(f'got adjacency')
-            opt_model_i = gp.Model(name='verify_justification_train_i')
-            G = nx.DiGraph()
-            G.add_edges_from(adjacency)
-            set_I = list(cost.keys())
-            x = opt_model_i.addVars(set_I, vtype=GRB.BINARY, obj=np.array(list(cost.values())), name='verification_cf')   # Function to optimize and x variables
-            edge = gp.tupledict()
-            for (j,k) in G.edges:
-                edge[j,k] = opt_model_i.addVar(vtype=GRB.BINARY, name='Path')
-            for v in G.nodes:
-                if v > 1:
-                    opt_model_i.addConstr(gp.quicksum(edge[j,v] for j in G.predecessors(v)) - gp.quicksum(edge[v,k] for k in G.successors(v)) == x[v])
-                else:
-                    opt_model_i.addConstr(gp.quicksum(edge[j,v] for j in G.predecessors(v)) - gp.quicksum(edge[v,k] for k in G.successors(v)) == -1)      
-            # print(f'set all variables')
-            opt_model_i.Params.LogToConsole = 0
-            opt_model_i.optimize()
-            nodes = [cf]
-            nodes.extend(list(get_nodes(model, possible_values)))
-            for i in cost.keys():
-                if x[i].x > 0:
-                    sol_x = nodes[i - 1]
-            for i,j in adjacency:
-                if edge[i,j].x > 0:
-                    print(f'edge{i,j}: {edge[i,j].x}')
-                    print(f'Node {i}: {nodes[i - 1]}')
-                    print(f'Node {j}: {nodes[j - 1]}')
-            if np.array_equal(sol_x, train_nn_i):
-                justifier = train_nn_i
-                print(f'Justified through a path!')
-                break
-    else:
-        justifier = None
-    return justifier
+    print(f'Preprocessing and ordering of training instances')
+    train_nn_list = nn_list()
+    print(f'Number of training instances considered: {len(train_nn_list)}')
+    train_nn_feat_possible_values = get_feat_possible_values(counterfactual.data, counterfactual.ioi, train_nn_list)
+    print(f'Obtained all possible feature values from potential justifiers')
+    graph_nodes = get_graph_nodes(model, train_nn_list, train_nn_feat_possible_values)
+    all_nodes = train_nn_list + graph_nodes 
+    cf_index = [i+1 for i in range(len(all_nodes)) if np.array_equal(all_nodes[i], cf)][0]
+    range_nodes = range(1, len(train_nn_list) + 1)
+    print(f'Obtained all possible nodes in the graph: {len(all_nodes)}')
+    adjacency = get_adjacency(data, all_nodes, train_nn_list)
+    G = nx.DiGraph()
+    G.add_edges_from(adjacency)
+    justifiers = []
+    for i in range_nodes:
+        if nx.has_path(G, i, cf_index):
+            justifiers.append(all_nodes[i - 1])
+    justifier_ratio = len(justifiers)/len(train_nn_list)
+    print(f'Evaluated Justifier Ratio: {np.round(justifier_ratio, 2)}')
+    return justifiers, justifier_ratio

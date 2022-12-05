@@ -14,9 +14,8 @@ seed_int = 54321
 step = 0.01
 train_fraction = 0.7
 distance_type = ['euclidean'] # ['euclidean','L1','L1_L0','L1_L0_inf']
-continuous_split = ['train']    # ['2','5','10','20','50','100','train']
+lagranges = [0.0]    # [0, 0.25 0.50, 0.75, 1.0]
 num_instances = 1 # data.test_df.shape[0]
-justification_train_perc = 0.1
 
 for data_str in datasets:
     data = load_dataset(data_str, train_fraction, seed_int, step)
@@ -25,12 +24,12 @@ for data_str in datasets:
     num_instances = num_instances if num_instances <= data.undesired_transformed_test_df.shape[0] else data.undesired_transformed_test_df.shape[0]
     for method_str in methods:
         for type in distance_type:
-            for split in continuous_split:
-                eval = Evaluator(data, method_str, type, split, justification_train_perc)
+            for lagrange in lagranges:
+                eval = Evaluator(data, method_str, type, lagrange)
                 for ins in range(num_instances):
                     idx = data.undesired_transformed_test_df.index[ins]
                     ioi = IOI(idx, data, model, type)
-                    cf_gen = Counterfactual(data, model, method_str, ioi, type, split)
+                    cf_gen = Counterfactual(data, model, method_str, ioi, type, lagrange)
                     eval.add_specific_x_data(cf_gen)
-                    print(f'Data {data_str.capitalize()} | Method {method_str.capitalize()} | Type {type.capitalize()} | Split {split.capitalize()} | Instance {ins+1}')
-                save_obj(eval, results_obj, f'{data_str}_{method_str}_{type}_{split}.pkl')
+                    print(f'Data {data_str.capitalize()} | Method {method_str.capitalize()} | Type {type.capitalize()} | lagrange {lagrange} | Instance {ins+1}')
+                save_obj(eval, results_obj, f'{data_str}_{method_str}_{type}_{lagrange}.pkl')

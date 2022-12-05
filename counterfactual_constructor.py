@@ -12,13 +12,13 @@ from juice import JUICE
 
 class Counterfactual:
 
-    def __init__(self, data, model, method, ioi, type='euclidean', split='100'):
+    def __init__(self, data, model, method, ioi, type='euclidean', lagrange=0.5):
         self.data = data
         self.model = model
         self.method = method
         self.ioi = ioi
         self.type = type
-        self.split = split
+        self.lagrange = lagrange
         self.cf_method = self.select_cf_method()
 
     def select_cf_method(self):
