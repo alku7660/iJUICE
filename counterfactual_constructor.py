@@ -1,4 +1,3 @@
-from ijuice import IJUICE
 from nnt import NN
 from mo import MO
 from ft import FT
@@ -7,7 +6,9 @@ from gs import GS
 from face import FACE
 from dice import DICE
 from mace import MACE
+from cchvae import CCHVAE
 from juice import JUICE
+from ijuice import IJUICE
 
 
 class Counterfactual:
@@ -26,9 +27,7 @@ class Counterfactual:
         Method that selects the method to find the counterfactual and stores it in "normal_x_cf"
         ['nn','mo','ft','rt','gs','face','dice','mace','cchvae','juice','ijuice']
         """
-        if self.method == 'ijuice':
-            cf_method = IJUICE(self)
-        elif self.method == 'nn':
+        if self.method == 'nn':
             cf_method = NN(self)
         elif self.method == 'mo':
             cf_method = MO(self)
@@ -44,6 +43,10 @@ class Counterfactual:
             cf_method = DICE(self)
         elif self.method == 'mace':
             cf_method = MACE(self)
+        elif self.method == 'cchvae':
+            cf_method = CCHVAE(self)
         elif self.method == 'juice':
             cf_method = JUICE(self)
+        elif self.method == 'ijuice':
+            cf_method = IJUICE(self)
         return cf_method

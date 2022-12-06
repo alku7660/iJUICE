@@ -304,7 +304,7 @@ def mace_method(counterfactual):
         diversity_formula = TRUE() # simply initialize and modify later as new counterfactuals come in
 
         iters = 1
-        max_iters = 100
+        max_iters = 3 #100
         counterfactuals = [] # list of tuples (samples, distances)
         # In case no counterfactuals are found (this could happen for a variety of
         # reasons, perhaps due to non-plausibility), return a template counterfactual
@@ -443,11 +443,11 @@ def mace_method(counterfactual):
                                                                                                                             approach_string, epsilon)
         end_time = time.time()
         
-        print('\n')
-        print(f"Factual sample: \t\t {getPrettyStringForSampleDictionary(factual_sample, dataset_obj)}")
-        if 'mace' in approach_string:
-            print(f"Nearest counterfactual sample:\t {getPrettyStringForSampleDictionary(closest_counterfactual_sample['counterfactual_sample'], dataset_obj)} (verified)")
-            print(f"Minimum counterfactual distance: {closest_counterfactual_sample['counterfactual_distance']:.6f}")
+        # print('\n')
+        # print(f"Factual sample: \t\t {getPrettyStringForSampleDictionary(factual_sample, dataset_obj)}")
+        # if 'mace' in approach_string:
+        #     print(f"Nearest counterfactual sample:\t {getPrettyStringForSampleDictionary(closest_counterfactual_sample['counterfactual_sample'], dataset_obj)} (verified)")
+        #     print(f"Minimum counterfactual distance: {closest_counterfactual_sample['counterfactual_distance']:.6f}")
         
         return {'cf_found': True, 'cf_plausible': True, 'cf_time': end_time - start_time,
         'cf_sample': closest_counterfactual_sample['counterfactual_sample'],
@@ -456,10 +456,10 @@ def mace_method(counterfactual):
     model_trained = counterfactual.model.model
     dataset_obj = counterfactual.data
     # factual_sample = counterfactual.ioi.normal_x_df.T.to_dict()[counterfactual.ioi.normal_x_df.index[0]]
-    factual_sample = counterfactual.ioi.x_df.T.to_dict()[counterfactual.ioi.x_df.index[0]]
+    factual_sample = counterfactual.ioi.normal_x_df.T.to_dict()[counterfactual.ioi.normal_x_df.index[0]]
     factual_sample['y'] = bool(counterfactual.ioi.label)
     norm_type = 'two_norm' # Possible values: zero_norm, one_norm, two_norm, infty_norm
-    epsilon = 1e-3
+    epsilon = 1e-1
 
     results_dict = genExp(model_trained, dataset_obj, factual_sample, norm_type, 'mace', epsilon)
     cf, run_time = results_dict['cf_sample'], results_dict['cf_time']

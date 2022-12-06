@@ -8,8 +8,8 @@ from counterfactual_constructor import Counterfactual
 from address import save_obj, results_obj
 
 # datasets = ['adult','kdd_census','german','dutch','bank','credit','compass','compass','diabetes','ionosphere','student','oulad','law','synthetic_athlete','synthetic_disease']
-datasets = ['synthetic_athlete']
-methods = ['ijuice']
+datasets = ['german'] # ['nn','mo','ft','rt','gs','face','dice','mace','cchvae','juice','ijuice']
+methods = ['mace']
 seed_int = 54321
 step = 0.01
 train_fraction = 0.7

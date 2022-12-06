@@ -20,7 +20,8 @@ class Dataset:
         self.categorical = categorical
         self.ordinal = ordinal
         self.continuous = continuous
-        self.features = self.df.columns.to_list()
+        self.features = binary + categorical + ordinal + continuous
+        self.df = self.df[self.features + self.label_name]
         self.step = step
         self.train_df, self.test_df, self.train_target, self.test_target = train_test_split(self.df, self.df[self.label_name], train_size=self.train_fraction, random_state=self.seed)
         self.train_df, self.train_target = self.balance_train_data()
@@ -163,7 +164,7 @@ class Dataset:
                 if 'Sex' in i or 'Single' in i or 'Unemployed' in i or 'Housing' in i or 'PurposeOfLoan' in i or 'InstallmentRate' in i:
                     feat_type.loc[i] = 'bin'
                 elif 'Age' in i or 'Credit' in i or 'Loan' in i:
-                    feat_type.loc[i] = 'num-con'
+                    feat_type.loc[i] = 'cont'
                     feat_type_mace.loc[i] = 'numeric-real'
                 if 'Sex' in i or 'Single' in i or 'Unemployed' in i:
                     feat_type_mace.loc[i] = 'binary'
@@ -776,9 +777,18 @@ class Dataset:
         """
         normal_x_df = pd.DataFrame(data=normal_x.reshape(1, -1), columns=self.processed_features)
         normal_x_df_bin, normal_x_df_cat, normal_x_df_ord_cont = normal_x_df[self.bin_enc_cols], normal_x_df[self.cat_enc_cols], normal_x_df[self.ordinal+self.continuous]
-        x_bin = self.bin_enc.inverse_transform(normal_x_df_bin)
-        x_cat = self.cat_enc.inverse_transform(normal_x_df_cat)
-        x_ord_cont = self.scaler.inverse_transform(normal_x_df_ord_cont)
+        try:
+            x_bin = self.bin_enc.inverse_transform(normal_x_df_bin)
+        except:
+            x_bin = np.array([[]])
+        try:
+            x_cat = self.cat_enc.inverse_transform(normal_x_df_cat)
+        except:
+            x_cat = np.array([[]])
+        try:
+            x_ord_cont = self.scaler.inverse_transform(normal_x_df_ord_cont)
+        except:
+            x_ord_cont = np.array([[]])
         x = np.concatenate((x_bin, x_cat, x_ord_cont), axis=1)
         return x
 
@@ -803,6 +813,9 @@ class Dataset:
     def getInputAttributeNames(self, long_or_kurz = 'kurz'):
         return self.getAttributeNames({'input'}, long_or_kurz)
     
+    def getOutputAttributeNames(self, long_or_kurz = 'kurz'):
+        return self.getAttributeNames({'output'}, long_or_kurz)
+
     def getInputOutputAttributeNames(self, long_or_kurz = 'kurz'):
         return self.getAttributeNames({'input', 'output'}, long_or_kurz)
     
@@ -826,9 +839,9 @@ class Dataset:
                     dict_of_siblings_long['ord'][attr_obj.parent_name_long].append(attr_obj.attr_name_long)
             # sort sub-arrays
             for key in dict_of_siblings_long['cat'].keys():
-                dict_of_siblings_long['cat'][key] = sorted(dict_of_siblings_long['cat'][key], key = lambda x : int(x.split('_')[-1]))
+                dict_of_siblings_long['cat'][key] = sorted(dict_of_siblings_long['cat'][key], key = lambda x : int(float(x.split('_')[-1])))
             for key in dict_of_siblings_long['ord'].keys():
-                dict_of_siblings_long['ord'][key] = sorted(dict_of_siblings_long['ord'][key], key = lambda x : int(x.split('_')[-1]))
+                dict_of_siblings_long['ord'][key] = sorted(dict_of_siblings_long['ord'][key], key = lambda x : int(float(x.split('_')[-1])))
             return dict_of_siblings_long
         elif long_or_kurz == 'kurz':
             dict_of_siblings_kurz = {}
@@ -846,9 +859,9 @@ class Dataset:
                     dict_of_siblings_kurz['ord'][attr_obj.parent_name_kurz].append(attr_obj.attr_name_kurz)
             # sort sub-arrays
             for key in dict_of_siblings_kurz['cat'].keys():
-                dict_of_siblings_kurz['cat'][key] = sorted(dict_of_siblings_kurz['cat'][key], key = lambda x : int(x.split('_')[-1]))
+                dict_of_siblings_kurz['cat'][key] = sorted(dict_of_siblings_kurz['cat'][key], key = lambda x : int(float(x.split('_')[-1])))
             for key in dict_of_siblings_kurz['ord'].keys():
-                dict_of_siblings_kurz['ord'][key] = sorted(dict_of_siblings_kurz['ord'][key], key = lambda x : int(x.split('_')[-1]))
+                dict_of_siblings_kurz['ord'][key] = sorted(dict_of_siblings_kurz['ord'][key], key = lambda x : int(float(x.split('_')[-1])))
             return dict_of_siblings_kurz
         else:
             raise Exception(f'{long_or_kurz} not recognized as a valid `long_or_kurz`.')
@@ -856,9 +869,9 @@ class Dataset:
     def getSiblingsFor(self, attr_name_long_or_kurz):
     # If attr_name_long is given, we will return siblings_long (the same length)
     # but not siblings_kurz. Same for the opposite direction.
-        assert \
-            'cat' in attr_name_long_or_kurz or 'ord' in attr_name_long_or_kurz, \
-            'attr_name must include either `cat` or `ord`.'
+        # assert \
+        #     'cat' in attr_name_long_or_kurz or 'ord' in attr_name_long_or_kurz, \
+        #     'attr_name must include either `cat` or `ord`.'
         if attr_name_long_or_kurz in self.getInputOutputAttributeNames('long'):
             attr_name_long = attr_name_long_or_kurz
             dict_of_siblings_long = self.getDictOfSiblings('long')
@@ -915,39 +928,84 @@ class Dataset:
         """
         Method that defines the attributes based on the MACE methodology and the loading for the rest of the methods
         """
-        attributes = {}
+        attributes = {}        
+        old_attributes = list(self.train_df.columns)
+        new_attributes = list(self.transformed_train_df.columns)
+
+        for old_col_idx, old_col in enumerate(old_attributes):
+
+            any_old_col = [col for col in self.feat_type_mace.keys() if old_col in col][0]
+            old_col_type = self.feat_type_mace[any_old_col]
+        
+            if old_col_type in ['binary', 'numeric-int', 'numeric-real']:
+                parent_name_long = -1
+                parent_name_kurz = -1
+            else:
+                parent_name_long = -1
+                parent_name_kurz = -1
+                old_col_type = 'categorical'
+
+            old_col_actionability = self.feat_directionality_mace[any_old_col]
+            old_col_mutability = True if self.feat_directionality_mace[any_old_col] != 'none' else False
+            attributes[old_col] = DatasetAttribute(
+                attr_name_long = old_col,
+                attr_name_kurz = f'x{old_col_idx}',
+                attr_type = old_col_type,
+                node_type = 'input',
+                actionability = old_col_actionability,
+                mutability = old_col_mutability,
+                parent_name_long = parent_name_long,
+                parent_name_kurz = parent_name_kurz,
+                lower_bound = self.train_df[old_col].min(),
+                upper_bound = self.train_df[old_col].max())
+
+        for new_col in new_attributes:
+            
+            old_col = [col for col in attributes.keys() if col in new_col][0]
+            new_attr_type = self.feat_type_mace[new_col]
+            if 'categorical' in new_attr_type or 'ordinal' in new_attr_type:
+                if 'categorical' in new_attr_type:
+                    feat_str = 'cat'
+                elif 'ordinal' in new_attr_type:
+                    feat_str = 'ord'
+                old_col_name_long = old_col
+                old_attr_name_long = attributes[old_col_name_long].attr_name_long
+                old_attr_name_kurz = attributes[old_col_name_long].attr_name_kurz
+                old_attr_type = attributes[old_col_name_long].attr_type
+                old_node_type = attributes[old_col_name_long].node_type
+                old_actionability = attributes[old_col_name_long].actionability
+                old_mutability = attributes[old_col_name_long].mutability
+                col_unique_val = int(float(new_col.split('_')[-1]))
+                new_attr_type = new_attr_type
+                new_node_type = old_node_type
+                new_actionability = old_actionability
+                new_mutability = old_mutability
+                new_parent_name_long = old_attr_name_long
+                new_parent_name_kurz = old_attr_name_kurz
+                attributes[new_col] = DatasetAttribute(
+                    attr_name_long = new_col,
+                    attr_name_kurz = f'{old_attr_name_kurz}_{feat_str}_{col_unique_val}',
+                    attr_type = new_attr_type,
+                    node_type = new_node_type,
+                    actionability = new_actionability,
+                    mutability = new_mutability,
+                    parent_name_long = new_parent_name_long,
+                    parent_name_kurz = new_parent_name_kurz,
+                    lower_bound = self.transformed_train_df[new_col].min(),
+                    upper_bound = self.transformed_train_df[new_col].max())
+
+        for old_col in old_attributes:
+            any_old_col = [col for col in self.feat_type_mace.keys() if old_col in col][0]
+            old_col_type = self.feat_type_mace[any_old_col]
+            if old_col_type in ['sub-categorical','sub-ordinal']:
+                del attributes[old_col]
+
         col_name = self.label_name[0]
         attributes[col_name] = DatasetAttribute(attr_name_long = col_name, attr_name_kurz = 'y', attr_type = 'binary', node_type = 'output', actionability = 'none',
                                                    mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = min(self.train_target), upper_bound = max(self.train_target))
-        new_attributes = list(self.transformed_train_df.columns)
-        for new_col_idx, new_col in enumerate(new_attributes):
-            old_name_idx = [i for i in range(len(self.features)) if self.features[i] in new_col][0]
-            old_name = self.features[old_name_idx]
-            name_str = f'_cat_{new_col[-3:]}' if old_name in self.categorical else ''
-            new_col_kurz = f'x{new_col_idx}'
-            new_col_type = self.feat_type_mace[new_col]
-            if 'categorical' not in new_col_type and 'ordinal' not in new_col_type:
-                new_parent_name_long = -1
-                new_parent_name_kurz = -1
-            else:
-                new_parent_name_long = f'{new_col}'
-                new_parent_name_kurz = f'x{old_name_idx}{name_str}'
-            new_col_actionability = self.feat_directionality_mace[new_col]
-            new_col_mutability = True if new_col_actionability != 'none' else False
-            attributes[new_col] = DatasetAttribute(
-                attr_name_long=new_col,
-                attr_name_kurz=new_col_kurz,
-                attr_type=new_col_type,
-                node_type='input',
-                actionability=new_col_actionability,
-                mutability=new_col_mutability,
-                parent_name_long=new_parent_name_long,
-                parent_name_kurz=new_parent_name_kurz,
-                lower_bound=self.transformed_train_df[new_col].min(),
-                upper_bound=self.transformed_train_df[new_col].max())
+
         return attributes
                 
-
 def load_dataset(data_str, train_fraction, seed, step):
     """
     Function to load all datasets according to data_str and train_fraction
@@ -1118,60 +1176,60 @@ def load_dataset(data_str, train_fraction, seed, step):
         """
         MACE variables / attributes
         """
-        attributes_df = {}
-        col_name = label[0]
-        attributes_df[col_name] = DatasetAttribute(attr_name_long = col_name, attr_name_kurz = 'y', attr_type = 'binary', node_type = 'output', actionability = 'none',
-                                                   mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = df[col_name].min(), upper_bound = df[col_name].max())
-        for col_idx, col_name in enumerate(input_cols):
+        # attributes_df = {}
+        # col_name = label[0]
+        # attributes_df[col_name] = DatasetAttribute(attr_name_long = col_name, attr_name_kurz = 'y', attr_type = 'binary', node_type = 'output', actionability = 'none',
+        #                                            mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = df[col_name].min(), upper_bound = df[col_name].max())
+        # for col_idx, col_name in enumerate(input_cols):
 
-            if col_name == 'Sex':
-                attr_type = 'binary'
-                actionability = 'none'
-                mutability = False
-            elif col_name == 'Single':
-                attr_type = 'binary'
-                actionability = 'any'
-                mutability = True
-            elif col_name == 'Unemployed':
-                attr_type = 'binary'
-                actionability = 'any'
-                mutability = True
-            elif col_name == 'PurposeOfLoan':
-                attr_type = 'categorical'
-                actionability = 'any'
-                mutability = True
-            elif col_name == 'InstallmentRate':
-                attr_type = 'categorical'
-                actionability = 'Any'
-                mutability = True
-            elif col_name == 'Housing':
-                attr_type = 'categorical'
-                actionability = 'any'
-                mutability = True
-            elif col_name == 'Age':
-                attr_type = 'numeric-real'
-                actionability = 'same-or-increase'
-                mutability = True
-            elif col_name == 'Credit':
-                attr_type = 'numeric-real'
-                actionability = 'any'
-                mutability = True
-            elif col_name == 'LoanDuration':
-                attr_type = 'numeric-real'
-                actionability = 'any'
-                mutability = True
+        #     if col_name == 'Sex':
+        #         attr_type = 'binary'
+        #         actionability = 'none'
+        #         mutability = False
+        #     elif col_name == 'Single':
+        #         attr_type = 'binary'
+        #         actionability = 'any'
+        #         mutability = True
+        #     elif col_name == 'Unemployed':
+        #         attr_type = 'binary'
+        #         actionability = 'any'
+        #         mutability = True
+        #     elif col_name == 'PurposeOfLoan':
+        #         attr_type = 'categorical'
+        #         actionability = 'any'
+        #         mutability = True
+        #     elif col_name == 'InstallmentRate':
+        #         attr_type = 'categorical'
+        #         actionability = 'Any'
+        #         mutability = True
+        #     elif col_name == 'Housing':
+        #         attr_type = 'categorical'
+        #         actionability = 'any'
+        #         mutability = True
+        #     elif col_name == 'Age':
+        #         attr_type = 'numeric-real'
+        #         actionability = 'same-or-increase'
+        #         mutability = True
+        #     elif col_name == 'Credit':
+        #         attr_type = 'numeric-real'
+        #         actionability = 'any'
+        #         mutability = True
+        #     elif col_name == 'LoanDuration':
+        #         attr_type = 'numeric-real'
+        #         actionability = 'any'
+        #         mutability = True
             
-            attributes_df[col_name] = DatasetAttribute(
-                attr_name_long = col_name,
-                attr_name_kurz = f'x{col_idx}',
-                attr_type = attr_type,
-                node_type = 'input',
-                actionability = actionability,
-                mutability = mutability,
-                parent_name_long = -1,
-                parent_name_kurz = -1,
-                lower_bound = df[col_name].min(),
-                upper_bound = df[col_name].max())
+        #     attributes_df[col_name] = DatasetAttribute(
+        #         attr_name_long = col_name,
+        #         attr_name_kurz = f'x{col_idx}',
+        #         attr_type = attr_type,
+        #         node_type = 'input',
+        #         actionability = actionability,
+        #         mutability = mutability,
+        #         parent_name_long = -1,
+        #         parent_name_kurz = -1,
+        #         lower_bound = df[col_name].min(),
+        #         upper_bound = df[col_name].max())
 
     elif data_str == 'dutch':
         binary = ['Sex']
@@ -1438,44 +1496,44 @@ def load_dataset(data_str, train_fraction, seed, step):
         """
         MACE variables / attributes
         """
-        attributes_df = {}
-        col_name = label[0]
-        attributes_df[col_name] = DatasetAttribute(attr_name_long = col_name, attr_name_kurz = 'y', attr_type = 'binary', node_type = 'output', actionability = 'none',
-                                                   mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = df[col_name].min(), upper_bound = df[col_name].max())
-        for col_idx, col_name in enumerate(input_cols):
+        # attributes_df = {}
+        # col_name = label[0]
+        # attributes_df[col_name] = DatasetAttribute(attr_name_long = col_name, attr_name_kurz = 'y', attr_type = 'binary', node_type = 'output', actionability = 'none',
+        #                                            mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = df[col_name].min(), upper_bound = df[col_name].max())
+        # for col_idx, col_name in enumerate(input_cols):
 
-            if col_name == 'Race':
-                attr_type = 'binary'
-                actionability = 'none'
-                mutability = False
-            elif col_name == 'Sex':
-                attr_type = 'binary'
-                actionability = 'none'
-                mutability = False
-            elif col_name == 'ChargeDegree':
-                attr_type = 'binary'
-                actionability = 'any'
-                mutability = True
-            elif col_name == 'PriorsCount':
-                attr_type = 'ordinal'
-                actionability = 'any'
-                mutability = True
-            elif col_name == 'AgeGroup':
-                attr_type = 'ordinal'
-                actionability = 'same-or-increase'
-                mutability = True
+        #     if col_name == 'Race':
+        #         attr_type = 'binary'
+        #         actionability = 'none'
+        #         mutability = False
+        #     elif col_name == 'Sex':
+        #         attr_type = 'binary'
+        #         actionability = 'none'
+        #         mutability = False
+        #     elif col_name == 'ChargeDegree':
+        #         attr_type = 'binary'
+        #         actionability = 'any'
+        #         mutability = True
+        #     elif col_name == 'PriorsCount':
+        #         attr_type = 'ordinal'
+        #         actionability = 'any'
+        #         mutability = True
+        #     elif col_name == 'AgeGroup':
+        #         attr_type = 'ordinal'
+        #         actionability = 'same-or-increase'
+        #         mutability = True
             
-            attributes_df[col_name] = DatasetAttribute(
-                attr_name_long = col_name,
-                attr_name_kurz = f'x{col_idx}',
-                attr_type = attr_type,
-                node_type = 'input',
-                actionability = actionability,
-                mutability = mutability,
-                parent_name_long = -1,
-                parent_name_kurz = -1,
-                lower_bound = df[col_name].min(),
-                upper_bound = df[col_name].max())
+        #     attributes_df[col_name] = DatasetAttribute(
+        #         attr_name_long = col_name,
+        #         attr_name_kurz = f'x{col_idx}',
+        #         attr_type = attr_type,
+        #         node_type = 'input',
+        #         actionability = actionability,
+        #         mutability = mutability,
+        #         parent_name_long = -1,
+        #         parent_name_kurz = -1,
+        #         lower_bound = df[col_name].min(),
+        #         upper_bound = df[col_name].max())
     
     elif data_str == 'diabetes':
         binary = ['DiabetesMed']
