@@ -15,13 +15,12 @@ class Dataset:
         self.seed = seed_int
         self.train_fraction = train_fraction
         self.label_name = label_str
-        self.df = df
         self.binary = binary
         self.categorical = categorical
         self.ordinal = ordinal
         self.continuous = continuous
         self.features = binary + categorical + ordinal + continuous
-        self.df = self.df[self.features + self.label_name]
+        self.df = df[self.features + self.label_name]
         self.step = step
         self.train_df, self.test_df, self.train_target, self.test_target = train_test_split(self.df, self.df[self.label_name], train_size=self.train_fraction, random_state=self.seed)
         self.train_df, self.train_target = self.balance_train_data()
@@ -47,7 +46,7 @@ class Dataset:
         MACE attributes
         """
         self.is_one_hot = True # Set to True always since we always one-hot encode
-        self.data_frame_long = df
+        self.data_frame_long = self.df
         self.attributes_long = self.define_attributes()
         attributes_kurz = dict((self.attributes_long[key].attr_name_kurz, value) for (key, value) in self.attributes_long.items())
         transformed_train_df_target = copy.deepcopy(self.transformed_train_df)
@@ -114,9 +113,9 @@ class Dataset:
         """
         Method to obtain the undesired class
         """
-        if self.name in ['compass','credit','german','heart','synthetic_disease']:
+        if self.name in ['compass','credit','german','heart','synthetic_disease','diabetes']:
             undesired_class = 1
-        elif self.name in ['ionosphere','adult','synthetic_athlete']:
+        elif self.name in ['ionosphere','adult','kdd_census','dutch','bank','synthetic_athlete','student','oulad','law']:
             undesired_class = 0
         return undesired_class
     
@@ -963,18 +962,20 @@ class Dataset:
             
             old_col = [col for col in attributes.keys() if col in new_col][0]
             new_attr_type = self.feat_type_mace[new_col]
+            old_col_name_long = old_col
+            old_attr_name_long = attributes[old_col_name_long].attr_name_long
+            old_attr_name_kurz = attributes[old_col_name_long].attr_name_kurz
+            old_attr_type = attributes[old_col_name_long].attr_type
+            old_node_type = attributes[old_col_name_long].node_type
+            old_actionability = attributes[old_col_name_long].actionability
+            old_mutability = attributes[old_col_name_long].mutability
+            old_parent_name_long = attributes[old_col_name_long].parent_name_long
+            old_parent_name_kurz = attributes[old_col_name_long].parent_name_kurz
             if 'categorical' in new_attr_type or 'ordinal' in new_attr_type:
                 if 'categorical' in new_attr_type:
                     feat_str = 'cat'
                 elif 'ordinal' in new_attr_type:
                     feat_str = 'ord'
-                old_col_name_long = old_col
-                old_attr_name_long = attributes[old_col_name_long].attr_name_long
-                old_attr_name_kurz = attributes[old_col_name_long].attr_name_kurz
-                old_attr_type = attributes[old_col_name_long].attr_type
-                old_node_type = attributes[old_col_name_long].node_type
-                old_actionability = attributes[old_col_name_long].actionability
-                old_mutability = attributes[old_col_name_long].mutability
                 col_unique_val = int(float(new_col.split('_')[-1]))
                 new_attr_type = new_attr_type
                 new_node_type = old_node_type
@@ -991,6 +992,19 @@ class Dataset:
                     mutability = new_mutability,
                     parent_name_long = new_parent_name_long,
                     parent_name_kurz = new_parent_name_kurz,
+                    lower_bound = self.transformed_train_df[new_col].min(),
+                    upper_bound = self.transformed_train_df[new_col].max())
+            elif 'numeric' in new_attr_type:
+                del attributes[old_col]
+                attributes[new_col] = DatasetAttribute(
+                    attr_name_long = old_attr_name_long,
+                    attr_name_kurz = old_attr_name_kurz,
+                    attr_type = new_attr_type,
+                    node_type = old_node_type,
+                    actionability = old_actionability,
+                    mutability = old_mutability,
+                    parent_name_long = old_parent_name_long,
+                    parent_name_kurz = old_parent_name_kurz,
                     lower_bound = self.transformed_train_df[new_col].min(),
                     upper_bound = self.transformed_train_df[new_col].max())
 

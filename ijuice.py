@@ -243,7 +243,7 @@ class IJUICE:
         edge = gp.tupledict()
         
         """
-        CONSTRAINTS
+        CONSTRAINTS AND OBJECTIVE
         """
         len_justifiers = len(self.potential_justifiers)
         for (i,j) in G.edges:

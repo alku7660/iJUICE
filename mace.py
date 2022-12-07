@@ -456,7 +456,8 @@ def mace_method(counterfactual):
     model_trained = counterfactual.model.model
     dataset_obj = counterfactual.data
     # factual_sample = counterfactual.ioi.normal_x_df.T.to_dict()[counterfactual.ioi.normal_x_df.index[0]]
-    factual_sample = counterfactual.ioi.normal_x_df.T.to_dict()[counterfactual.ioi.normal_x_df.index[0]]
+    
+    factual_sample = counterfactual.data.data_frame_kurz.loc[counterfactual.ioi.normal_x_df.index,:].to_dict(orient='records')[0]
     factual_sample['y'] = bool(counterfactual.ioi.label)
     norm_type = 'two_norm' # Possible values: zero_norm, one_norm, two_norm, infty_norm
     epsilon = 1e-1
