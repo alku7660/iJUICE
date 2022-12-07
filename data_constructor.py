@@ -1190,60 +1190,60 @@ def load_dataset(data_str, train_fraction, seed, step):
         """
         MACE variables / attributes
         """
-        # attributes_df = {}
-        # col_name = label[0]
-        # attributes_df[col_name] = DatasetAttribute(attr_name_long = col_name, attr_name_kurz = 'y', attr_type = 'binary', node_type = 'output', actionability = 'none',
-        #                                            mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = df[col_name].min(), upper_bound = df[col_name].max())
-        # for col_idx, col_name in enumerate(input_cols):
+        attributes_df = {}
+        col_name = label[0]
+        attributes_df[col_name] = DatasetAttribute(attr_name_long = col_name, attr_name_kurz = 'y', attr_type = 'binary', node_type = 'output', actionability = 'none',
+                                                   mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = df[col_name].min(), upper_bound = df[col_name].max())
+        for col_idx, col_name in enumerate(input_cols):
 
-        #     if col_name == 'Sex':
-        #         attr_type = 'binary'
-        #         actionability = 'none'
-        #         mutability = False
-        #     elif col_name == 'Single':
-        #         attr_type = 'binary'
-        #         actionability = 'any'
-        #         mutability = True
-        #     elif col_name == 'Unemployed':
-        #         attr_type = 'binary'
-        #         actionability = 'any'
-        #         mutability = True
-        #     elif col_name == 'PurposeOfLoan':
-        #         attr_type = 'categorical'
-        #         actionability = 'any'
-        #         mutability = True
-        #     elif col_name == 'InstallmentRate':
-        #         attr_type = 'categorical'
-        #         actionability = 'Any'
-        #         mutability = True
-        #     elif col_name == 'Housing':
-        #         attr_type = 'categorical'
-        #         actionability = 'any'
-        #         mutability = True
-        #     elif col_name == 'Age':
-        #         attr_type = 'numeric-real'
-        #         actionability = 'same-or-increase'
-        #         mutability = True
-        #     elif col_name == 'Credit':
-        #         attr_type = 'numeric-real'
-        #         actionability = 'any'
-        #         mutability = True
-        #     elif col_name == 'LoanDuration':
-        #         attr_type = 'numeric-real'
-        #         actionability = 'any'
-        #         mutability = True
+            if col_name == 'Sex':
+                attr_type = 'binary'
+                actionability = 'none'
+                mutability = False
+            elif col_name == 'Single':
+                attr_type = 'binary'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Unemployed':
+                attr_type = 'binary'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'PurposeOfLoan':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'InstallmentRate':
+                attr_type = 'categorical'
+                actionability = 'Any'
+                mutability = True
+            elif col_name == 'Housing':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Age':
+                attr_type = 'numeric-real'
+                actionability = 'same-or-increase'
+                mutability = True
+            elif col_name == 'Credit':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'LoanDuration':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
             
-        #     attributes_df[col_name] = DatasetAttribute(
-        #         attr_name_long = col_name,
-        #         attr_name_kurz = f'x{col_idx}',
-        #         attr_type = attr_type,
-        #         node_type = 'input',
-        #         actionability = actionability,
-        #         mutability = mutability,
-        #         parent_name_long = -1,
-        #         parent_name_kurz = -1,
-        #         lower_bound = df[col_name].min(),
-        #         upper_bound = df[col_name].max())
+            attributes_df[col_name] = DatasetAttribute(
+                attr_name_long = col_name,
+                attr_name_kurz = f'x{col_idx}',
+                attr_type = attr_type,
+                node_type = 'input',
+                actionability = actionability,
+                mutability = mutability,
+                parent_name_long = -1,
+                parent_name_kurz = -1,
+                lower_bound = df[col_name].min(),
+                upper_bound = df[col_name].max())
 
     elif data_str == 'dutch':
         binary = ['Sex']
