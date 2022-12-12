@@ -20,6 +20,18 @@ RANDOM_SEED = 54321
 seed(RANDOM_SEED)
 np.random.seed(RANDOM_SEED)
 
+path_here = os.path.abspath('')
+dataset_dir = str(path_here)+'/Datasets/'
+results_cf_obj_dir = str(path_here)+'/Results/cf_obj/'
+
+def load_obj(file_name):
+    """
+    Method to read an Evaluator object containing the evaluation results for all the instances of a given dataset
+    """
+    with open(results_cf_obj_dir+file_name, 'rb') as input:
+        evaluator_obj = pickle.load(input)
+    return evaluator_obj
+
 def getEpsilonInString(approach_string):
     tmp_index = approach_string.find('eps')
     epsilon_string = approach_string[tmp_index + 4 : tmp_index + 8]
@@ -84,16 +96,29 @@ def runExperiments(dataset_values, model_class_values, norm_values, approaches_v
                     all_pred_data_df['y'] = X_test_pred_labels
                     neg_pred_data_df = all_pred_data_df.where(all_pred_data_df['y'] == 0).dropna()
                     pos_pred_data_df = all_pred_data_df.where(all_pred_data_df['y'] == 1).dropna()
-                    batch_start_index = batch_number * sample_count
-                    batch_end_index = (batch_number + 1) * sample_count
-                    if gen_cf_for == 'neg_only':
-                        iterate_over_data_df = neg_pred_data_df[batch_start_index : batch_end_index] # choose only a subset to compare
-                    elif gen_cf_for == 'pos_only':
-                        iterate_over_data_df = pos_pred_data_df[batch_start_index : batch_end_index] # choose only a subset to compare
-                    elif gen_cf_for == 'neg_and_pos':
-                        iterate_over_data_df = all_pred_data_df[batch_start_index : batch_end_index] # choose only a subset to compare
-                    else:
-                        raise Exception(f'{gen_cf_for} not recognized as a valid `gen_cf_for`.')
+
+                    # batch_start_index = batch_number * sample_count
+                    # batch_end_index = (batch_number + 1) * sample_count
+                    # if gen_cf_for == 'neg_only':
+                    #     iterate_over_data_df = neg_pred_data_df[batch_start_index : batch_end_index] # choose only a subset to compare
+                    # elif gen_cf_for == 'pos_only':
+                    #     iterate_over_data_df = pos_pred_data_df[batch_start_index : batch_end_index] # choose only a subset to compare
+                    # elif gen_cf_for == 'neg_and_pos':
+                    #     iterate_over_data_df = all_pred_data_df[batch_start_index : batch_end_index] # choose only a subset to compare
+                    # else:
+                    #     raise Exception(f'{gen_cf_for} not recognized as a valid `gen_cf_for`.')
+
+                    for idx in batch_number:
+                        if idx in neg_pred_data_df.index:
+                            if gen_cf_for == 'neg_only':
+                                iterate_over_data_df = neg_pred_data_df[idx] # choose only a subset to compare
+                        elif idx in pos_pred_data_df.index:
+                            if gen_cf_for == 'pos_only':
+                                iterate_over_data_df = pos_pred_data_df[idx] # choose only a subset to compare
+                        elif gen_cf_for == 'neg_and_pos':
+                            iterate_over_data_df = all_pred_data_df[idx] # choose only a subset to compare
+                        else:
+                            raise Exception(f'{gen_cf_for} not recognized as a valid `gen_cf_for`.')
 
                     pickle.dump(iterate_over_data_df, open(f'{experiment_folder_name}/{dataset_string}_mace_test_undesired.pkl', 'wb'))
                     iterate_over_data_dict = iterate_over_data_df.T.to_dict()
@@ -159,11 +184,15 @@ if __name__ == '__main__':
     dataset_undesired_class = {'adult': 'neg_only', 'kdd_census': 'neg_only', 'german':'pos_only', 'dutch':'neg_only',
                     'bank':'neg_only', 'credit':'pos_only', 'compass':'pos_only', 'diabetes':'pos_only', 'ionosphere':'neg_only',
                     'student':'neg_only', 'oulad':'neg_only', 'law':'neg_only', 'synthetic_athlete':'neg_only', 'synthetic_disease':'pos_only'}    
-    dataset_try = ['synthetic_athlete']            
+    dataset_try = ['synthetic_athlete']
+    method_try = ['nn']
+    type_try = ['euclidean']
+    lagrange_try = [0.5]
+    eval_obj = load_obj(f'{dataset_try[0]}_{method_try[0]}_{type_try[0]}_{lagrange_try[0]}.pkl')            
     model_class_try = [dataset_model_dict[dataset_try[0]]] 
     norm_type_try = ['zero_norm']
-    approach_try = ['MACE_eps_1e-5']
-    batch_number_try = 0
+    approach_try = ['MACE_eps_1e-3']
+    batch_number_try = list(eval_obj.x_dict.keys())
     sample_count_try = 5
     gen_cf_for_try = [dataset_undesired_class[dataset_try[0]]]
     process_id_try = '0'

@@ -640,7 +640,7 @@ def loadDataset(dataset_name, return_one_hot, load_from_cache = False, debug_fla
         """
         col_name = label[0]
         attributes_non_hot[col_name] = DatasetAttribute(attr_name_long = col_name, attr_name_kurz = 'y', attr_type = 'binary', node_type = 'output', actionability = 'none',
-                                                   mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = df[col_name].min(), upper_bound = df[col_name].max())
+                                                   mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = data_frame_non_hot[col_name].min(), upper_bound = data_frame_non_hot[col_name].max())
         for col_idx, col_name in enumerate(input_cols):
 
             if col_name == 'Sex':
@@ -691,3 +691,85 @@ def loadDataset(dataset_name, return_one_hot, load_from_cache = False, debug_fla
     dataset_obj = Dataset(data_frame, attributes, return_one_hot, dataset_name)
     pickle.dump(dataset_obj, open(save_file_path, 'wb'))
     return dataset_obj
+
+def getOneHotEquivalent(data_frame_non_hot, attributes_non_hot):
+
+    # TODO: see how we can switch between feature_names = col names for kurz and long (also maybe ordered)
+    data_frame = copy.deepcopy(data_frame_non_hot)
+    attributes = copy.deepcopy(attributes_non_hot)
+
+    def setOneHotValue(val):
+        return np.append(np.append(
+        np.zeros(val - 1),
+        np.ones(1)),
+        np.zeros(num_unique_values - val)
+        )
+
+    def setThermoValue(val):
+        return np.append(
+        np.ones(val),
+        np.zeros(num_unique_values - val)
+        )
+
+    for col_name in data_frame.columns.values:
+        if attributes[col_name].attr_type not in {'categorical', 'ordinal'}:
+            continue
+        old_col_name_long = col_name
+        new_col_names_long = []
+        new_col_names_kurz = []
+        old_attr_name_long = attributes[old_col_name_long].attr_name_long
+        old_attr_name_kurz = attributes[old_col_name_long].attr_name_kurz
+        old_attr_type = attributes[old_col_name_long].attr_type
+        old_node_type = attributes[old_col_name_long].node_type
+        old_actionability = attributes[old_col_name_long].actionability
+        old_mutability = attributes[old_col_name_long].mutability
+        old_lower_bound = attributes[old_col_name_long].lower_bound
+        old_upper_bound = attributes[old_col_name_long].upper_bound
+        num_unique_values = int(old_upper_bound - old_lower_bound + 1)
+
+        assert old_col_name_long == old_attr_name_long
+
+        new_attr_type = 'sub-' + old_attr_type
+        new_node_type = old_node_type
+        new_actionability = old_actionability
+        new_mutability = old_mutability
+        new_parent_name_long = old_attr_name_long
+        new_parent_name_kurz = old_attr_name_kurz
+
+        if attributes[col_name].attr_type == 'categorical': # do not do this for 'binary'!
+
+            new_col_names_long = [f'{old_attr_name_long}_cat_{i}' for i in range(num_unique_values)]
+            new_col_names_kurz = [f'{old_attr_name_kurz}_cat_{i}' for i in range(num_unique_values)]
+            print(f'Replacing column {col_name} with {{{", ".join(new_col_names_long)}}}')
+            tmp = np.array(list(map(setOneHotValue, list(data_frame[col_name].astype(int).values))))
+            data_frame_dummies = pd.DataFrame(data=tmp, columns=new_col_names_long)
+
+        elif attributes[col_name].attr_type == 'ordinal':
+
+            new_col_names_long = [f'{old_attr_name_long}_ord_{i}' for i in range(num_unique_values)]
+            new_col_names_kurz = [f'{old_attr_name_kurz}_ord_{i}' for i in range(num_unique_values)]
+            print(f'Replacing column {col_name} with {{{", ".join(new_col_names_long)}}}')
+            tmp = np.array(list(map(setThermoValue, list(data_frame[col_name].astype(int).values))))
+            data_frame_dummies = pd.DataFrame(data=tmp, columns=new_col_names_long)
+
+        # Update data_frame
+        data_frame = pd.concat([data_frame.drop(columns = old_col_name_long), data_frame_dummies], axis=1)
+
+        # Update attributes
+        del attributes[old_col_name_long]
+        for col_idx in range(len(new_col_names_long)):
+            new_col_name_long = new_col_names_long[col_idx]
+            new_col_name_kurz = new_col_names_kurz[col_idx]
+            attributes[new_col_name_long] = DatasetAttribute(
+                attr_name_long = new_col_name_long,
+                attr_name_kurz = new_col_name_kurz,
+                attr_type = new_attr_type,
+                node_type = new_node_type,
+                actionability = new_actionability,
+                mutability = new_mutability,
+                parent_name_long = new_parent_name_long,
+                parent_name_kurz = new_parent_name_kurz,
+                lower_bound = data_frame[new_col_name_long].min(),
+                upper_bound = data_frame[new_col_name_long].max())
+
+    return data_frame, attributes
