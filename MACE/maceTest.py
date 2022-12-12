@@ -188,7 +188,7 @@ if __name__ == '__main__':
     method_try = ['nn']
     type_try = ['euclidean']
     lagrange_try = [0.5]
-    eval_obj = load_obj(f'{dataset_try[0]}_{method_try[0]}_{type_try[0]}_{lagrange_try[0]}.pkl')            
+    eval_obj = load_obj(f'{dataset_try[0]}_idx_list.pkl')            
     model_class_try = [dataset_model_dict[dataset_try[0]]] 
     norm_type_try = ['zero_norm']
     approach_try = ['MACE_eps_1e-3']

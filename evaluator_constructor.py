@@ -174,14 +174,14 @@ def verify_justification(cf, counterfactual):
         train_np = counterfactual.data.transformed_train_np
         train_target = counterfactual.data.train_target
         train_pred = counterfactual.model.model.predict(train_np)
-        potential_justifiers = train_np[(train_target != ioi.label) & (train_pred != ioi.label)]
+        potential_justifiers = train_np #[(train_target != ioi.label) & (train_pred != ioi.label)]
         sort_potential_justifiers = []
         for i in range(potential_justifiers.shape[0]):
             dist = distance_calculation(potential_justifiers[i], ioi.normal_x[0], counterfactual.data, type=counterfactual.type)
             sort_potential_justifiers.append((potential_justifiers[i], dist))    
         sort_potential_justifiers.sort(key=lambda x: x[1])
         sort_potential_justifiers = [i[0] for i in sort_potential_justifiers]
-        sort_potential_justifiers = sort_potential_justifiers[:30]
+        sort_potential_justifiers = sort_potential_justifiers
         return sort_potential_justifiers
 
     def continuous_feat_values(i, min_val, max_val, data):
@@ -323,7 +323,7 @@ def verify_justification(cf, counterfactual):
     print(f'Obtained all possible feature values from potential justifiers')
     graph_nodes = get_graph_nodes(model, train_nn_list, train_nn_feat_possible_values)
     all_nodes = train_nn_list + graph_nodes 
-    cf_index = [i+1 for i in range(len(all_nodes)) if np.array_equal(all_nodes[i], cf)][0]
+    cf_index = [i+1 for i in range(len(all_nodes)+1) if np.array_equal(all_nodes[i-1], cf)][0]
     range_nodes = range(1, len(train_nn_list) + 1)
     print(f'Obtained all possible nodes in the graph: {len(all_nodes)}')
     adjacency = get_adjacency(data, all_nodes, train_nn_list)
