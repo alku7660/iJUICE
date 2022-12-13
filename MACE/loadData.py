@@ -53,10 +53,13 @@ class Dataset(object):
         self.attributes_long = attributes_long # i.e., attributes is indexed by attr_name_long
         attributes_kurz = dict((attributes[key].attr_name_kurz, value) for (key, value) in attributes_long.items())
         data_frame_kurz = copy.deepcopy(data_frame_long)
-        data_frame_kurz['y'] = data_frame_kurz[list(attributes_long.keys())[0]]
-        del data_frame_kurz[list(attributes_long.keys())[0]]
-        data_frame_kurz = data_frame_kurz[list(self.getAllAttributeNames('kurz'))]
-        data_frame_kurz.columns = self.getAllAttributeNames('kurz')
+        attr = list(self.getAllAttributeNames('kurz'))
+        new_col_list = []
+        for col in data_frame_kurz.columns:
+            new_col = [i for i in attr if attributes_kurz[i].attr_name_long == col]
+            new_col_list.extend(new_col)
+        data_frame_kurz.columns = new_col_list
+        data_frame_kurz = data_frame_kurz[attr]
         self.data_frame_kurz = data_frame_kurz # i.e., data_frame is indexed by attr_name_kurz
         self.attributes_kurz = attributes_kurz # i.e., attributes is indexed by attr_name_kurz
 
@@ -309,22 +312,19 @@ class Dataset(object):
         else:
             raise Exception(f'{long_or_kurz} not recognized as a valid `long_or_kurz`.')
     
-    def getBalancedDataFrame(self):
-        balanced_data_frame = copy.deepcopy(self.data_frame_kurz)
-        meta_cols = self.getMetaAttributeNames()
-        input_cols = self.getInputAttributeNames()
-        output_col = self.getOutputAttributeNames()[0]
-        assert np.array_equal(balanced_data_frame[output_col], np.array([0, 1]))
-        unique_values_and_count = balanced_data_frame[output_col].value_counts()
-        if self.dataset_name == 'heart':
-            number_of_subsamples_in_each_class = unique_values_and_count.min() // 50 * 50
-        else:
-            number_of_subsamples_in_each_class = unique_values_and_count.min() // 250 * 250
-        balanced_data_frame = pd.concat([
-            balanced_data_frame[balanced_data_frame.loc[:,output_col] == 0].sample(number_of_subsamples_in_each_class, random_state = RANDOM_SEED),
-            balanced_data_frame[balanced_data_frame.loc[:,output_col] == 1].sample(number_of_subsamples_in_each_class, random_state = RANDOM_SEED),
-        ]).sample(frac = 1, random_state = RANDOM_SEED)
-        return balanced_data_frame, meta_cols, input_cols, output_col
+    def balance_train_data(self, X_train, y_train):
+        """
+        Method to balance the training dataset using undersampling of majority class
+        """
+        total_data = copy.deepcopy(X_train)
+        total_data['y'] = y_train
+        label_value_counts = y_train.value_counts()
+        samples_per_class = label_value_counts.min()
+        balanced_train_df = pd.concat([total_data[(y_train == 0).to_numpy()].sample(samples_per_class, random_state = 54321),
+        total_data[(y_train == 1).to_numpy()].sample(samples_per_class, random_state = 54321),]).sample(frac = 1, random_state = 54321)
+        balanced_train_df_label = balanced_train_df['y']
+        del balanced_train_df['y']
+        return balanced_train_df, balanced_train_df_label
     
     def getTrainTestSplit(self, preprocessing = None, with_meta = False):
 
@@ -359,30 +359,20 @@ class Dataset(object):
             X_test = (X_test - x_mean) / x_std
             return X_train, X_test
 
-        balanced_data_frame, meta_cols, input_cols, output_col = self.getBalancedDataFrame()
-
-        if with_meta:
-            all_data = balanced_data_frame.loc[:,np.array((input_cols, meta_cols)).flatten()]
-            all_true_labels = balanced_data_frame.loc[:,output_col]
-            if preprocessing is not None:
-                assert with_meta == False, 'This feature is not built yet...'
-            X_train, X_test, y_train, y_test = train_test_split(all_data, all_true_labels, train_size=.7, random_state = RANDOM_SEED)
-            U_train = X_train[self.getMetaAttributeNames()]
-            U_test = X_test[self.getMetaAttributeNames()]
-            X_train = X_train[self.getInputAttributeNames()]
-            X_test = X_test[self.getInputAttributeNames()]
-            y_train = y_train
-            y_test = y_test
-            return X_train, X_test, U_train, U_test, y_train, y_test
-        else:
-            all_data = balanced_data_frame.loc[:,input_cols]
-            all_true_labels = balanced_data_frame.loc[:,output_col]
-            X_train, X_test, y_train, y_test = train_test_split(all_data, all_true_labels, train_size=.7, random_state = RANDOM_SEED)
-            if preprocessing == 'standardize':
-                X_train, X_test = standardizeData(X_train, X_test)
-            elif preprocessing == 'normalize':
-                X_train, X_test = normalizeData(X_train, X_test)
-            return X_train, X_test, y_train, y_test
+        balanced_data_frame = copy.deepcopy(self.data_frame_kurz)
+        meta_cols = self.getMetaAttributeNames()
+        input_cols = self.getInputAttributeNames()
+        output_col = self.getOutputAttributeNames()[0]
+        
+        all_data = balanced_data_frame.loc[:,input_cols]
+        all_true_labels = balanced_data_frame.loc[:,output_col]
+        X_train, X_test, y_train, y_test = train_test_split(all_data, all_true_labels, train_size=.7, random_state = RANDOM_SEED)
+        if preprocessing == 'standardize':
+            X_train, X_test = standardizeData(X_train, X_test)
+        elif preprocessing == 'normalize':
+            X_train, X_test = normalizeData(X_train, X_test)
+        X_train, y_train = self.balance_train_data(X_train, y_train)
+        return X_train, X_test, y_train, y_test
 
 class DatasetAttribute(object):
 
@@ -558,8 +548,8 @@ def loadDataset(dataset_name, return_one_hot, load_from_cache = False, debug_fla
                 mutability = mutability,
                 parent_name_long = -1,
                 parent_name_kurz = -1,
-                lower_bound = attributes_non_hot[col_name].min(),
-                upper_bound = attributes_non_hot[col_name].max())
+                lower_bound = data_frame_non_hot[col_name].min(),
+                upper_bound = data_frame_non_hot[col_name].max())
         
     elif dataset_name == 'german':
         binary = ['Sex','Single','Unemployed']
@@ -675,7 +665,7 @@ def loadDataset(dataset_name, return_one_hot, load_from_cache = False, debug_fla
 
             attributes_non_hot[col_name] = DatasetAttribute(
                 attr_name_long = col_name,
-                attr_name_kurz = col_name,
+                attr_name_kurz = f'x{col_idx}',
                 attr_type = attr_type,
                 node_type = 'input',
                 actionability = actionability,

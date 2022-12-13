@@ -49,13 +49,13 @@ def getDistanceBetweenSamples(sample_1, sample_2, norm_type, dataset_obj):
                 sub_sample_1 = [sample_1[x] for x in siblings_kurz]
                 sub_sample_2 = [sample_2[x] for x in siblings_kurz]
                 normalized_absolute_distances.append(1 - int(np.array_equal(sub_sample_1, sub_sample_2)))
-        elif 'ord' in dataset_obj.attributes_kurz[attr_name_kurz].attr_type:
-            sub_sample_1 = [sample_1[x] for x in siblings_kurz]
-            sub_sample_2 = [sample_2[x] for x in siblings_kurz]
-            normalized_absolute_distances.append(np.sum(np.abs(np.subtract(sub_sample_1, sub_sample_2))) / len(sub_sample_1))
-        else:
-            raise Exception(f'{attr_name_kurz} must include either `cat` or `ord`.')
-        already_considered.extend(siblings_kurz)
+            elif 'ord' in dataset_obj.attributes_kurz[attr_name_kurz].attr_type:
+                sub_sample_1 = [sample_1[x] for x in siblings_kurz]
+                sub_sample_2 = [sample_2[x] for x in siblings_kurz]
+                normalized_absolute_distances.append(np.sum(np.abs(np.subtract(sub_sample_1, sub_sample_2))) / len(sub_sample_1))
+            else:
+                raise Exception(f'{attr_name_kurz} must include either `cat` or `ord`.')
+            already_considered.extend(siblings_kurz)
 
     # 3. compute normalized squared distances
     normalized_squared_distances = [distance ** 2 for distance in normalized_absolute_distances]

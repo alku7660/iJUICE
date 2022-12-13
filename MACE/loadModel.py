@@ -55,7 +55,7 @@ def loadModelForDataset(model_class, dataset_string, scm_class = None, experimen
     X_train, X_test, y_train, y_test = dataset_obj.getTrainTestSplit()
     X_all = pd.concat([X_train, X_test], axis = 0)
     y_all = pd.concat([y_train, y_test], axis = 0)
-    assert sum(y_all) / len(y_all) == 0.5, 'Expected class balance should be 50/50%.'
+    # assert sum(y_all) / len(y_all) == 0.5, 'Expected class balance should be 50/50%.'
     feature_names = dataset_obj.getInputAttributeNames('kurz') # easier to read (nothing to do with one-hot vs non-hit!)
     if model_class == 'tree':
         model_pretrain = DecisionTreeClassifier()

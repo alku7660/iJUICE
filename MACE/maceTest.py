@@ -4,6 +4,7 @@ Original authors implementation: Please see https://github.com/amirhk/mace
 """
 
 import os
+import sys
 import copy
 import pickle
 import argparse
@@ -55,7 +56,7 @@ def generateExplanations(
         getEpsilonInString(approach_string)
         )
 
-def runExperiments(dataset_values, model_class_values, norm_values, approaches_values, batch_number, sample_count, gen_cf_for, process_id):
+def runExperiments(dataset_values, model_class_values, norm_values, approaches_values, batch_number, sample_count, gen_cf_for, process_id, stop=False):
     for dataset_string in dataset_values:
         print(f'\n\nExperimenting with dataset_string = `{dataset_string}`')
         for model_class_string in model_class_values:
@@ -85,7 +86,6 @@ def runExperiments(dataset_values, model_class_values, norm_values, approaches_v
                     dataset_obj = loadData.loadDataset(dataset_string, return_one_hot = one_hot, load_from_cache = False, debug_flag = False) # Load the same dataset_obj
                     # pickle.dump(dataset_obj, open(f'{experiment_folder_name}/_dataset_obj', 'wb'))
                     X_train, X_test, y_train, y_test = dataset_obj.getTrainTestSplit() # Use the same data split as in the other baselines
-                    standard_deviations = list(X_train.std())
 
                     # MODEL TRAINING
                     model_trained = loadModel.loadModelForDataset(model_class_string, dataset_string) # Cannot use same model as the one trained on other baselines
@@ -110,17 +110,19 @@ def runExperiments(dataset_values, model_class_values, norm_values, approaches_v
 
                     if gen_cf_for == 'neg_only':
                         idx_test = [idx for idx in batch_number if idx in neg_pred_data_df.index]
-                        iterate_over_data_df = neg_pred_data_df.iloc[np.r_[idx_test],:] # choose only a subset to compare
-                    if gen_cf_for == 'pos_only':
+                        iterate_over_data_df = neg_pred_data_df.loc[idx_test]# choose only a subset to compare
+                    elif gen_cf_for == 'pos_only':
                         idx_test = [idx for idx in batch_number if idx in pos_pred_data_df.index]
-                        iterate_over_data_df = pos_pred_data_df.iloc[np.r_[idx_test],:] # choose only a subset to compare
+                        iterate_over_data_df = pos_pred_data_df.loc[idx_test] # choose only a subset to compare
                     elif gen_cf_for == 'neg_and_pos':
                         idx_test = [idx for idx in batch_number if idx in all_pred_data_df.index]
-                        iterate_over_data_df = all_pred_data_df.iloc[np.r_[idx_test],:] # choose only a subset to compare
+                        iterate_over_data_df = all_pred_data_df.loc[idx_test] # choose only a subset to compare
                     else:
                         raise Exception(f'{gen_cf_for} not recognized as a valid `gen_cf_for`.')
 
-                    pickle.dump(iterate_over_data_df, open(f'{results_obj_dir}/{dataset_string}/mace_df.pkl', 'wb'))
+                    pickle.dump(iterate_over_data_df, open(f'{results_obj_dir}/{dataset_string}/{dataset_string}_mace_df.pkl', 'wb'))
+                    if stop:
+                        sys.exit()
                     iterate_over_data_dict = iterate_over_data_df.T.to_dict()
                     explanation_counter = 1
                     all_minimum_distances = {}
@@ -192,6 +194,7 @@ if __name__ == '__main__':
     approach_try = ['MACE_eps_1e-3']
     batch_number_try = load_obj(f'{dataset_try[0]}/', f'{dataset_try[0]}_idx_list.pkl')            
     sample_count_try = 5
-    gen_cf_for_try = [dataset_undesired_class[dataset_try[0]]]
+    gen_cf_for_try = dataset_undesired_class[dataset_try[0]]
     process_id_try = '0'
-    cf_df, sample_df = runExperiments(dataset_try, model_class_try, norm_type_try, approach_try, batch_number_try, sample_count_try, gen_cf_for_try, process_id_try)
+    only_indices = False
+    cf_df, sample_df = runExperiments(dataset_try, model_class_try, norm_type_try, approach_try, batch_number_try, sample_count_try, gen_cf_for_try, process_id_try, stop=only_indices)

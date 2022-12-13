@@ -116,47 +116,47 @@ def getDistanceFormula(model_symbols, dataset_obj, factual_sample, norm_type, ap
                     )
                 )
                 normalized_squared_distances.append(normalized_absolute_distances[-1])
-        elif 'ord' in dataset_obj.attributes_kurz[attr_name_kurz].attr_type:
-            normalized_absolute_distances.append(
-                Div(
-                    ToReal(
-                        getAbsoluteDifference(
-                            Plus([
-                            model_symbols[variable_to_compute_distance_on][attr_name_kurz]['symbol']
-                            for attr_name_kurz in siblings_kurz
-                            ]),
-                            Plus([
-                            factual_sample[attr_name_kurz]
-                            for attr_name_kurz in siblings_kurz
-                            ]),
-                        )
-                    ),
-                    Real(len(siblings_kurz))
-                )
-            )
-            normalized_squared_distances.append(
-                Pow(
+            elif 'ord' in dataset_obj.attributes_kurz[attr_name_kurz].attr_type:
+                normalized_absolute_distances.append(
                     Div(
                         ToReal(
-                            Minus(
+                            getAbsoluteDifference(
                                 Plus([
-                                    model_symbols[variable_to_compute_distance_on][attr_name_kurz]['symbol']
-                                    for attr_name_kurz in siblings_kurz
+                                model_symbols[variable_to_compute_distance_on][attr_name_kurz]['symbol']
+                                for attr_name_kurz in siblings_kurz
                                 ]),
                                 Plus([
-                                    factual_sample[attr_name_kurz]
-                                    for attr_name_kurz in siblings_kurz
+                                factual_sample[attr_name_kurz]
+                                for attr_name_kurz in siblings_kurz
                                 ]),
                             )
                         ),
-                    Real(len(siblings_kurz))
-                    ),
-                    Real(2)
+                        Real(len(siblings_kurz))
+                    )
                 )
-            )
-        else:
-            raise Exception(f'{attr_name_kurz} must include either `cat` or `ord`.')
-        already_considered.extend(siblings_kurz)
+                normalized_squared_distances.append(
+                    Pow(
+                        Div(
+                            ToReal(
+                                Minus(
+                                    Plus([
+                                        model_symbols[variable_to_compute_distance_on][attr_name_kurz]['symbol']
+                                        for attr_name_kurz in siblings_kurz
+                                    ]),
+                                    Plus([
+                                        factual_sample[attr_name_kurz]
+                                        for attr_name_kurz in siblings_kurz
+                                    ]),
+                                )
+                            ),
+                        Real(len(siblings_kurz))
+                        ),
+                        Real(2)
+                    )
+                )
+            else:
+                raise Exception(f'{attr_name_kurz} must include either `cat` or `ord`.')
+            already_considered.extend(siblings_kurz)
 
     # 3. compute normalized squared distances
     if norm_type == 'zero_norm':
