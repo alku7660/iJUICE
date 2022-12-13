@@ -22,13 +22,13 @@ np.random.seed(RANDOM_SEED)
 
 path_here = os.path.abspath('')
 dataset_dir = str(path_here)+'/Datasets/'
-results_cf_obj_dir = str(path_here)+'/Results/cf_obj/'
+results_obj_dir = str(path_here)+'/Results/obj/'
 
-def load_obj(file_name):
+def load_obj(file_address, file_name):
     """
     Method to read an Evaluator object containing the evaluation results for all the instances of a given dataset
     """
-    with open(results_cf_obj_dir+file_name, 'rb') as input:
+    with open(results_obj_dir+file_address+file_name, 'rb') as input:
         evaluator_obj = pickle.load(input)
     return evaluator_obj
 
@@ -72,23 +72,23 @@ def runExperiments(dataset_values, model_class_values, norm_values, approaches_v
                         raise Exception(f'{model_class_string} not recognized as a valid `model_class_string`.')
                     
                     # EXPERIMENT FOLDER
-                    experiment_name = f'{dataset_string}__{model_class_string}__{norm_type_string}__{approach_string}__batch{batch_number}__samples{sample_count}__pid{process_id}'
-                    experiment_folder_name = f"_experiments/{datetime.now().strftime('%Y.%m.%d_%H.%M.%S')}__{experiment_name}"
-                    explanation_folder_name = f'{experiment_folder_name}/__explanation_log'
-                    minimum_distance_folder_name = f'{experiment_folder_name}/__minimum_distances'
-                    os.mkdir(f'{experiment_folder_name}')
-                    os.mkdir(f'{explanation_folder_name}')
-                    os.mkdir(f'{minimum_distance_folder_name}')
-                    log_file = open(f'{experiment_folder_name}/log_experiment.txt','w')
+                    # experiment_name = f'{dataset_string}__{model_class_string}__{norm_type_string}__{approach_string}__batch{batch_number}__samples{sample_count}__pid{process_id}'
+                    # experiment_folder_name = f"_experiments/{datetime.now().strftime('%Y.%m.%d_%H.%M.%S')}__{experiment_name}"
+                    # explanation_folder_name = f'{experiment_folder_name}/__explanation_log'
+                    # minimum_distance_folder_name = f'{experiment_folder_name}/__minimum_distances'
+                    # os.mkdir(f'{experiment_folder_name}')
+                    # os.mkdir(f'{explanation_folder_name}')
+                    # os.mkdir(f'{minimum_distance_folder_name}')
+                    # log_file = open(f'{experiment_folder_name}/log_experiment.txt','w')
 
                     # DATA FILES SAVE
                     dataset_obj = loadData.loadDataset(dataset_string, return_one_hot = one_hot, load_from_cache = False, debug_flag = False) # Load the same dataset_obj
-                    pickle.dump(dataset_obj, open(f'{experiment_folder_name}/_dataset_obj', 'wb'))
+                    # pickle.dump(dataset_obj, open(f'{experiment_folder_name}/_dataset_obj', 'wb'))
                     X_train, X_test, y_train, y_test = dataset_obj.getTrainTestSplit() # Use the same data split as in the other baselines
                     standard_deviations = list(X_train.std())
 
                     # MODEL TRAINING
-                    model_trained = loadModel.loadModelForDataset(model_class_string, dataset_string, experiment_folder_name = experiment_folder_name) # Cannot use same model as the one trained on other baselines
+                    model_trained = loadModel.loadModelForDataset(model_class_string, dataset_string) # Cannot use same model as the one trained on other baselines
                     
                     # PREDICTIONS
                     X_test_pred_labels = model_trained.predict(X_test)
@@ -108,19 +108,19 @@ def runExperiments(dataset_values, model_class_values, norm_values, approaches_v
                     # else:
                     #     raise Exception(f'{gen_cf_for} not recognized as a valid `gen_cf_for`.')
 
-                    for idx in batch_number:
-                        if idx in neg_pred_data_df.index:
-                            if gen_cf_for == 'neg_only':
-                                iterate_over_data_df = neg_pred_data_df[idx] # choose only a subset to compare
-                        elif idx in pos_pred_data_df.index:
-                            if gen_cf_for == 'pos_only':
-                                iterate_over_data_df = pos_pred_data_df[idx] # choose only a subset to compare
-                        elif gen_cf_for == 'neg_and_pos':
-                            iterate_over_data_df = all_pred_data_df[idx] # choose only a subset to compare
-                        else:
-                            raise Exception(f'{gen_cf_for} not recognized as a valid `gen_cf_for`.')
+                    if gen_cf_for == 'neg_only':
+                        idx_test = [idx for idx in batch_number if idx in neg_pred_data_df.index]
+                        iterate_over_data_df = neg_pred_data_df.iloc[np.r_[idx_test],:] # choose only a subset to compare
+                    if gen_cf_for == 'pos_only':
+                        idx_test = [idx for idx in batch_number if idx in pos_pred_data_df.index]
+                        iterate_over_data_df = pos_pred_data_df.iloc[np.r_[idx_test],:] # choose only a subset to compare
+                    elif gen_cf_for == 'neg_and_pos':
+                        idx_test = [idx for idx in batch_number if idx in all_pred_data_df.index]
+                        iterate_over_data_df = all_pred_data_df.iloc[np.r_[idx_test],:] # choose only a subset to compare
+                    else:
+                        raise Exception(f'{gen_cf_for} not recognized as a valid `gen_cf_for`.')
 
-                    pickle.dump(iterate_over_data_df, open(f'{experiment_folder_name}/{dataset_string}_mace_test_undesired.pkl', 'wb'))
+                    pickle.dump(iterate_over_data_df, open(f'{results_obj_dir}/{dataset_string}/mace_df.pkl', 'wb'))
                     iterate_over_data_dict = iterate_over_data_df.T.to_dict()
                     explanation_counter = 1
                     all_minimum_distances = {}
@@ -140,7 +140,7 @@ def runExperiments(dataset_values, model_class_values, norm_values, approaches_v
                         f'sample #{explanation_counter}/{len(iterate_over_data_dict.keys())}\t'
                         f'(sample index {factual_sample_index}): ', end = '') # , file=log_file)
                         explanation_counter = explanation_counter + 1
-                        explanation_file_name = f'{explanation_folder_name}/sample_{factual_sample_index}.txt'
+                        explanation_file_name = f'sample_{factual_sample_index}.txt'
 
                         explanation_object = generateExplanations(
                         approach_string,
@@ -187,12 +187,10 @@ if __name__ == '__main__':
     dataset_try = ['synthetic_athlete']
     method_try = ['nn']
     type_try = ['euclidean']
-    lagrange_try = [0.5]
-    eval_obj = load_obj(f'{dataset_try[0]}_idx_list.pkl')            
     model_class_try = [dataset_model_dict[dataset_try[0]]] 
     norm_type_try = ['zero_norm']
     approach_try = ['MACE_eps_1e-3']
-    batch_number_try = list(eval_obj.x_dict.keys())
+    batch_number_try = load_obj(f'{dataset_try[0]}/', f'{dataset_try[0]}_idx_list.pkl')            
     sample_count_try = 5
     gen_cf_for_try = [dataset_undesired_class[dataset_try[0]]]
     process_id_try = '0'

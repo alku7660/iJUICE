@@ -12,7 +12,9 @@ import pandas as pd
 from tqdm import tqdm
 from pprint import pprint
 from sklearn.model_selection import train_test_split
-from address import dataset_dir
+
+path_here = os.path.abspath('')
+dataset_dir = str(path_here)+'/Datasets/'
 
 VALID_ATTRIBUTE_DATA_TYPES = { \
     'numeric-int', \
@@ -51,6 +53,9 @@ class Dataset(object):
         self.attributes_long = attributes_long # i.e., attributes is indexed by attr_name_long
         attributes_kurz = dict((attributes[key].attr_name_kurz, value) for (key, value) in attributes_long.items())
         data_frame_kurz = copy.deepcopy(data_frame_long)
+        data_frame_kurz['y'] = data_frame_kurz[list(attributes_long.keys())[0]]
+        del data_frame_kurz[list(attributes_long.keys())[0]]
+        data_frame_kurz = data_frame_kurz[list(self.getAllAttributeNames('kurz'))]
         data_frame_kurz.columns = self.getAllAttributeNames('kurz')
         self.data_frame_kurz = data_frame_kurz # i.e., data_frame is indexed by attr_name_kurz
         self.attributes_kurz = attributes_kurz # i.e., attributes is indexed by attr_name_kurz
@@ -309,7 +314,7 @@ class Dataset(object):
         meta_cols = self.getMetaAttributeNames()
         input_cols = self.getInputAttributeNames()
         output_col = self.getOutputAttributeNames()[0]
-        assert np.array_equal(np.unique(balanced_data_frame[output_col]), np.array([0, 1]))
+        assert np.array_equal(balanced_data_frame[output_col], np.array([0, 1]))
         unique_values_and_count = balanced_data_frame[output_col].value_counts()
         if self.dataset_name == 'heart':
             number_of_subsamples_in_each_class = unique_values_and_count.min() // 50 * 50
@@ -415,9 +420,9 @@ class DatasetAttribute(object):
             if attr_type == 'sub-categorical':
                 assert lower_bound == 0
                 assert upper_bound == 1
-        if attr_type == 'sub-ordinal':
-            assert lower_bound == 0 or lower_bound == 1
-            assert upper_bound == 1
+            if attr_type == 'sub-ordinal':
+                assert lower_bound == 0 or lower_bound == 1
+                assert upper_bound == 1
         else:
             assert parent_name_long == -1, 'Parent ID set for non-hot attribute.'
             assert parent_name_kurz == -1, 'Parent ID set for non-hot attribute.'
@@ -689,7 +694,7 @@ def loadDataset(dataset_name, return_one_hot, load_from_cache = False, debug_fla
         data_frame, attributes = data_frame_non_hot, attributes_non_hot
 
     dataset_obj = Dataset(data_frame, attributes, return_one_hot, dataset_name)
-    pickle.dump(dataset_obj, open(save_file_path, 'wb'))
+    # pickle.dump(dataset_obj, open(save_file_path, 'wb'))
     return dataset_obj
 
 def getOneHotEquivalent(data_frame_non_hot, attributes_non_hot):

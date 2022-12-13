@@ -174,7 +174,7 @@ def verify_justification(cf, counterfactual):
         train_np = counterfactual.data.transformed_train_np
         train_target = counterfactual.data.train_target
         train_pred = counterfactual.model.model.predict(train_np)
-        potential_justifiers = train_np #[(train_target != ioi.label) & (train_pred != ioi.label)]
+        potential_justifiers = train_np[train_target != ioi.label] #[(train_target != ioi.label) & (train_pred != ioi.label)]
         sort_potential_justifiers = []
         for i in range(potential_justifiers.shape[0]):
             dist = distance_calculation(potential_justifiers[i], ioi.normal_x[0], counterfactual.data, type=counterfactual.type)
@@ -322,17 +322,29 @@ def verify_justification(cf, counterfactual):
     train_nn_feat_possible_values = get_feat_possible_values(counterfactual.data, counterfactual.ioi, train_nn_list)
     print(f'Obtained all possible feature values from potential justifiers')
     graph_nodes = get_graph_nodes(model, train_nn_list, train_nn_feat_possible_values)
-    all_nodes = train_nn_list + graph_nodes 
-    cf_index = [i+1 for i in range(len(all_nodes)+1) if np.array_equal(all_nodes[i-1], cf)][0]
-    range_nodes = range(1, len(train_nn_list) + 1)
-    print(f'Obtained all possible nodes in the graph: {len(all_nodes)}')
-    adjacency = get_adjacency(data, all_nodes, train_nn_list)
-    G = nx.DiGraph()
-    G.add_edges_from(adjacency)
+    all_nodes = train_nn_list + graph_nodes
+    try:
+        cf_index = [i for i in range(1, len(all_nodes)+1) if np.array_equal(all_nodes[i-1], cf)][0]
+    except:
+        cf_index = -1
     justifiers = []
-    for i in range_nodes:
-        if nx.has_path(G, i, cf_index):
-            justifiers.append(all_nodes[i - 1])
+    if cf_index != -1:
+        if cf_index <= len(train_nn_list) + 1:
+            justifiers.append(cf)
+        range_justifier_nodes = range(1, len(train_nn_list) + 1)
+        print(f'Obtained all possible nodes in the graph: {len(all_nodes)}')
+        adjacency = get_adjacency(data, all_nodes, train_nn_list)
+        G = nx.DiGraph()
+        G.add_edges_from(adjacency)
+        if G.has_node(cf_index):
+            for i in range_justifier_nodes:
+                if G.has_node(i):
+                    if nx.has_path(G, i, cf_index):
+                        justifiers.append(all_nodes[i - 1])
+        else:
+            print(f'The CF is not found in the graph of nodes for justification verification. The instance is not justifiable.')
+    else:
+        print(f'The CF is not found in the graph of nodes for justification verification. The instance is not justifiable.')
     justifier_ratio = len(justifiers)/len(train_nn_list)
-    print(f'Evaluated Justifier Ratio: {np.round(justifier_ratio, 2)}')
+    print(f'Evaluated Justifier Ratio: {np.round(justifier_ratio*100, 3)}%')
     return justifiers, justifier_ratio
