@@ -39,8 +39,8 @@ def getEpsilonInString(approach_string):
     return float(epsilon_string)
 
 def generateExplanations(
-    approach_string,
     explanation_file_name,
+    approach_string,
     model_trained,
     dataset_obj,
     factual_sample,
@@ -145,8 +145,8 @@ def runExperiments(dataset_values, model_class_values, norm_values, approaches_v
                         explanation_file_name = f'sample_{factual_sample_index}.txt'
 
                         explanation_object = generateExplanations(
-                        approach_string,
                         explanation_file_name,
+                        approach_string,
                         model_trained,
                         dataset_obj,
                         factual_sample,
@@ -177,7 +177,7 @@ def runExperiments(dataset_values, model_class_values, norm_values, approaches_v
                         dataFrame_mace_time_cf = pd.DataFrame(all_minimum_distances[f'sample_{factual_sample_index}']['cfe_time'],index=[factual_sample_index],columns=['time'])
                         time_df = pd.concat((time_df, dataFrame_mace_time_cf),axis=0)
     
-    return cf_df, sample_df
+    return cf_df, sample_df, time_df
 
 if __name__ == '__main__':
     dataset_model_dict = {'adult': 'mlp', 'kdd_census': 'forest', 'german':'forest', 'dutch':'forest',
@@ -197,4 +197,6 @@ if __name__ == '__main__':
     gen_cf_for_try = dataset_undesired_class[dataset_try[0]]
     process_id_try = '0'
     only_indices = False
-    cf_df, sample_df = runExperiments(dataset_try, model_class_try, norm_type_try, approach_try, batch_number_try, sample_count_try, gen_cf_for_try, process_id_try, stop=only_indices)
+    cf_df, sample_df, time_df = runExperiments(dataset_try, model_class_try, norm_type_try, approach_try, batch_number_try, sample_count_try, gen_cf_for_try, process_id_try, stop=only_indices)
+    pickle.dump(cf_df, open(f'{results_obj_dir}/{dataset_try[0]}/{dataset_try[0]}_mace_cf_df.pkl', 'wb'))
+    pickle.dump(time_df, open(f'{results_obj_dir}/{dataset_try[0]}/{dataset_try[0]}_mace_time_df.pkl', 'wb'))
