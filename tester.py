@@ -8,14 +8,29 @@ from counterfactual_constructor import Counterfactual
 from address import save_obj, load_obj, results_obj
 
 datasets = ['adult'] # ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','ionosphere','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
-methods = ['nn'] # ['nn','mo','ft','rt','gs','face','dice','mace','cchvae','juice','ijuice']
+methods = ['mace'] # ['nn','mo','ft','rt','gs','face','dice','mace','cchvae','juice','ijuice']
 seed_int = 54321
 step = 0.01
 train_fraction = 0.7
 distance_type = ['euclidean'] # ['euclidean','L1','L1_L0','L1_L0_inf']
 lagranges = [0.5]    # [0, 0.25 0.50, 0.75, 1.0]
-num_instances = 5 # data.test_df.shape[0]
-prepare_for_mace = True
+num_instances = 3 # data.test_df.shape[0]
+prepare_for_mace = False
+
+"""
+Instructions to run tests:
+    1. Set prepare_for_mace = True
+    2. Set num_instances = 50
+    3. Set the datasets to the datasets desired for running the tests. Method can be any
+    4. Run tester.py: this stores the undesired class test instances indices only
+    5. In maceTest.py set the datasets equal to the datasets in tester.py
+    6. In maceTest.py set only_indices = True
+    7. Run maceTest.py: this stores the matching undesired indices of both MACE and normal frameworks
+    8. Run maceTest.py with only_indices = False: this runs the algorithm and prints the times and CF for all matching undesired instances
+    9. Run tester.py with mace among the methods.
+    10. Run plotter
+"""
+
 
 if prepare_for_mace:
     for data_str in datasets:

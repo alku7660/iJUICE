@@ -19,19 +19,28 @@ class Evaluator():
         self.data_cols = data.processed_features
         self.x_dict, self.normal_x_dict = {}, {}
         self.normal_x_cf_dict, self.x_cf_dict = {}, {}
-        self.proximity_dict, self.feasibility_dict, self.sparsity_dict, self.justifiers_dict, self.justifier_ratio, self.time_dict = {}, {}, {}, {}, {}, {}
+        self.proximity_dict, self.feasibility_dict, self.justifiers_dict, self.justifier_ratio, self.time_dict = {}, {}, {}, {}, {}, {}
 
     def add_specific_x_data(self, counterfactual):
         """
         Method to add specific data from an instance x
         """
-        x_cf = counterfactual.data.inverse(counterfactual.cf_method.normal_x_cf)
+        if self.method_name == 'mace':
+            x_cf_df = counterfactual.data.inverse(counterfactual.cf_method.normal_x_cf_df, mace=True)
+            counterfactual.cf_method.normal_x_cf = counterfactual.data.transform_data(x_cf_df).to_numpy()
+            x_cf = x_cf_df.to_numpy()
+        else:
+            x_cf = counterfactual.data.inverse(counterfactual.cf_method.normal_x_cf) 
         self.x_dict[counterfactual.ioi.idx] = counterfactual.ioi.x
         self.normal_x_dict[counterfactual.ioi.idx] = counterfactual.ioi.normal_x
         self.x_cf_dict[counterfactual.ioi.idx] = x_cf
         self.feasibility_dict[counterfactual.ioi.idx] = verify_feasibility(counterfactual.ioi.normal_x[0], counterfactual.cf_method.normal_x_cf, counterfactual.data)
-        self.proximity_dict[counterfactual.ioi.idx] = distance_calculation(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data, self.distance_type)
-        self.sparsity_dict[counterfactual.ioi.idx] = sparsity(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data)
+        L2 = distance_calculation(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data, 'euclidean')
+        L1 = distance_calculation(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data, 'L1')
+        Linf = distance_calculation(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data, 'L_inf')
+        L1_L0 = distance_calculation(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data, 'L1_L0')
+        L1_L0_Linf = distance_calculation(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data, 'L1_L0_inf')
+        self.proximity_dict[counterfactual.ioi.idx] = {'euclidean':L2, 'L1':L1, 'L_inf':Linf, 'L1_L0':L1_L0, 'L1_L0_Linf':L1_L0_Linf}
         self.justifiers_dict[counterfactual.ioi.idx], self.justifier_ratio[counterfactual.ioi.idx] = verify_justification(counterfactual.cf_method.normal_x_cf, counterfactual)
         self.time_dict[counterfactual.ioi.idx] = counterfactual.cf_method.run_time
 
@@ -91,6 +100,8 @@ def distance_calculation(x, y, data, type='euclidean'):
         distance = euclid(x, y)
     elif type == 'L1':
         distance = L1(x, y)
+    elif type == 'L_inf':
+        distance = Linf(x, y)
     elif type == 'L1_L0':
         n_con, n_cat = len(data.continuous), len(data.bin_cat_enc_cols)
         n = n_con + n_cat

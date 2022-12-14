@@ -770,25 +770,50 @@ class Dataset:
             test_target = self.test_target.to_numpy().reshape((len(self.test_target.to_numpy()),))
         return train_target, test_target
 
-    def inverse(self, normal_x):
+    def inverse(self, normal_x, mace=False):
         """
         Method that transforms an instance back into the original space
         """
-        normal_x_df = pd.DataFrame(data=normal_x.reshape(1, -1), columns=self.processed_features)
-        normal_x_df_bin, normal_x_df_cat, normal_x_df_ord_cont = normal_x_df[self.bin_enc_cols], normal_x_df[self.cat_enc_cols], normal_x_df[self.ordinal+self.continuous]
-        try:
-            x_bin = self.bin_enc.inverse_transform(normal_x_df_bin)
-        except:
-            x_bin = np.array([[]])
-        try:
-            x_cat = self.cat_enc.inverse_transform(normal_x_df_cat)
-        except:
-            x_cat = np.array([[]])
-        try:
-            x_ord_cont = self.scaler.inverse_transform(normal_x_df_ord_cont)
-        except:
-            x_ord_cont = np.array([[]])
-        x = np.concatenate((x_bin, x_cat, x_ord_cont), axis=1)
+        if mace:
+            x_df = copy.deepcopy(normal_x)
+            for col in self.categorical:
+                mace_cat_cols = [i for i in x_df.columns if '_cat_' in i and col in i]
+                for mace_col in mace_cat_cols:
+                    if x_df[mace_col] == 1:
+                        col_name_value = mace_col.split('_cat_')
+                        col_name, col_value = col_name_value[0], int(col_name_value[1]) + 1
+                        break
+                x_df[col_name] = col_value
+                x_df.drop(mace_cat_cols, axis=1, inplace=True)
+            for col in self.ordinal:
+                mace_ord_cols = [i for i in x_df.columns if '_ord_' in i and col in i]
+                current_col_with_1 = 0
+                for ord_col in mace_ord_cols:
+                    if x_df[ord_col] == 1:
+                        current_col_with_1 = ord_col
+                    elif x_df[ord_col] == 0:
+                        col_name_value = current_col_with_1.split('_ord_')
+                        col_name, col_value = col_name_value[0], int(col_name_value[1]) + 1
+                        break
+                x_df[col_name] = col_value
+                x_df.drop(mace_ord_cols, axis=1, inplace=True)
+            x = x_df[self.features]                  
+        else:
+            normal_x_df = pd.DataFrame(data=normal_x.reshape(1, -1), columns=self.processed_features)
+            normal_x_df_bin, normal_x_df_cat, normal_x_df_ord_cont = normal_x_df[self.bin_enc_cols], normal_x_df[self.cat_enc_cols], normal_x_df[self.ordinal+self.continuous]
+            try:
+                x_bin = self.bin_enc.inverse_transform(normal_x_df_bin)
+            except:
+                x_bin = np.array([[]])
+            try:
+                x_cat = self.cat_enc.inverse_transform(normal_x_df_cat)
+            except:
+                x_cat = np.array([[]])
+            try:
+                x_ord_cont = self.scaler.inverse_transform(normal_x_df_ord_cont)
+            except:
+                x_ord_cont = np.array([[]])
+            x = np.concatenate((x_bin, x_cat, x_ord_cont), axis=1)
         return x
 
     """

@@ -126,7 +126,8 @@ def runExperiments(dataset_values, model_class_values, norm_values, approaches_v
                     iterate_over_data_dict = iterate_over_data_df.T.to_dict()
                     explanation_counter = 1
                     all_minimum_distances = {}
-                    original_columns = [i for i in dataset_obj.data_frame_long.columns if 'abel' not in i]
+                    label_name = list(dataset_obj.attributes_long.keys())[0]
+                    original_columns = [i for i in dataset_obj.attributes_long.keys() if i != label_name]
                     cf_df = pd.DataFrame(columns=original_columns)
                     sample_df = pd.DataFrame(columns=original_columns)
                     time_df = pd.DataFrame(columns=['time'])
@@ -186,9 +187,8 @@ if __name__ == '__main__':
     dataset_undesired_class = {'adult': 'neg_only', 'kdd_census': 'neg_only', 'german':'pos_only', 'dutch':'neg_only',
                     'bank':'neg_only', 'credit':'pos_only', 'compass':'pos_only', 'diabetes':'pos_only', 'ionosphere':'neg_only',
                     'student':'neg_only', 'oulad':'neg_only', 'law':'neg_only', 'synthetic_athlete':'neg_only', 'synthetic_disease':'pos_only'}    
-    dataset_try = ['synthetic_athlete']
+    dataset_try = ['adult']
     method_try = ['nn']
-    type_try = ['euclidean']
     model_class_try = [dataset_model_dict[dataset_try[0]]] 
     norm_type_try = ['zero_norm']
     approach_try = ['MACE_eps_1e-3']

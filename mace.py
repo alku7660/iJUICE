@@ -17,7 +17,9 @@ from address import load_obj
 class MACE:
 
     def __init__(self, counterfactual) -> None:
-        self.normal_x_cf, self.run_time = mace_method(counterfactual)
+        self.normal_x_cf_df, self.run_time = mace_method(counterfactual)
+        self.columns = list(self.normal_x_cf_df.columns)
+        self.normal_x_cf = self.normal_x_cf_df.to_numpy()
 
 def mace_method(counterfactual):
     """
@@ -27,7 +29,7 @@ def mace_method(counterfactual):
     ioi_idx = counterfactual.ioi.idx
     mace_cf_df = load_obj(f'{data_name}/{data_name}_mace_cf_df.pkl')
     mace_time_df = load_obj(f'{data_name}/{data_name}_mace_time_df.pkl')
-    cf, run_time = mace_cf_df.loc[ioi_idx].to_numpy(), mace_time_df.loc[ioi_idx].to_numpy()
+    cf, run_time = mace_cf_df.loc[ioi_idx], mace_time_df.loc[ioi_idx].to_numpy()
     return cf, run_time
 
     
