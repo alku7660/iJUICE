@@ -4,6 +4,7 @@ path_here = os.path.abspath('')
 dataset_dir = str(path_here)+'/Datasets/'
 results_grid_search = str(path_here)+'/Results/grid_search/'
 results_obj = str(path_here)+'/Results/obj/'
+results_plots = str(path_here)+'/Results/plots/'
 
 def save_obj(evaluator_obj, file_address, file_name):
     """
