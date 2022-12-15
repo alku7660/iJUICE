@@ -779,7 +779,7 @@ class Dataset:
             for col in self.categorical:
                 mace_cat_cols = [i for i in x_df.columns if '_cat_' in i and col in i]
                 for mace_col in mace_cat_cols:
-                    if x_df[mace_col] == 1:
+                    if x_df[mace_col].values[0] == 1:
                         col_name_value = mace_col.split('_cat_')
                         col_name, col_value = col_name_value[0], int(col_name_value[1]) + 1
                         break
@@ -789,9 +789,9 @@ class Dataset:
                 mace_ord_cols = [i for i in x_df.columns if '_ord_' in i and col in i]
                 current_col_with_1 = 0
                 for ord_col in mace_ord_cols:
-                    if x_df[ord_col] == 1:
+                    if x_df[ord_col].values[0] == 1:
                         current_col_with_1 = ord_col
-                    elif x_df[ord_col] == 0:
+                    elif x_df[ord_col].values[0] == 0:
                         col_name_value = current_col_with_1.split('_ord_')
                         col_name, col_value = col_name_value[0], int(col_name_value[1]) + 1
                         break
