@@ -35,12 +35,12 @@ class Evaluator():
         self.x_dict[counterfactual.ioi.idx] = counterfactual.ioi.x
         self.normal_x_dict[counterfactual.ioi.idx] = counterfactual.ioi.normal_x
         self.x_cf_dict[counterfactual.ioi.idx] = x_cf
-        self.feasibility_dict[counterfactual.ioi.idx] = verify_feasibility(counterfactual.ioi.normal_x[0], counterfactual.cf_method.normal_x_cf, counterfactual.data)
+        self.feasibility_dict[counterfactual.ioi.idx] = verify_feasibility(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data)
         L2 = distance_calculation(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data, 'euclidean')
         L1 = distance_calculation(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data, 'L1')
         Linf = distance_calculation(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data, 'L_inf')
         L1_L0 = distance_calculation(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data, 'L1_L0')
-        L1_L0_Linf = distance_calculation(counterfactual.ioi.normal_x[0], counterfactual.cf_method.normal_x_cf, counterfactual.data, 'L1_L0_inf')
+        L1_L0_Linf = distance_calculation(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data, 'L1_L0_inf')
         self.proximity_dict[counterfactual.ioi.idx] = {'euclidean':L2, 'L1':L1, 'L_inf':Linf, 'L1_L0':L1_L0, 'L1_L0_Linf':L1_L0_Linf}
         self.justifiers_dict[counterfactual.ioi.idx], self.justifier_ratio[counterfactual.ioi.idx] = verify_justification(counterfactual.cf_method.normal_x_cf, counterfactual)
         self.time_dict[counterfactual.ioi.idx] = counterfactual.cf_method.run_time
@@ -77,7 +77,7 @@ def distance_calculation(x, y, data, type='euclidean'):
         """
         Calculates the distance components according to Sharma et al.: Please see: https://arxiv.org/pdf/1905.07857.pdf
         """
-        x_df, y_df = pd.DataFrame(data=x, index=[0], columns=data.processed_features), pd.DataFrame(data=y, index=[0], columns=data.processed_features)
+        x_df, y_df = pd.DataFrame(data=x.reshape(1, -1), index=[0], columns=data.processed_features), pd.DataFrame(data=y.reshape(1, -1), index=[0], columns=data.processed_features)
         x_original_df, y_original_df = pd.DataFrame(data=x_original, index=[0], columns=data.features), pd.DataFrame(data=y_original, index=[0], columns=data.features)
         x_continuous_df, y_continuous_df = x_df[data.ordinal + data.continuous], y_df[data.ordinal + data.continuous]
         x_continuous_np, y_continuous_np = x_continuous_df.to_numpy()[0], y_continuous_df.to_numpy()[0]
