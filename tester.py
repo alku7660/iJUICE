@@ -20,7 +20,7 @@ prepare_for_mace = False
 """
 Instructions to run tests:
     1. Set prepare_for_mace = True
-    2. Set num_instances = 50
+    2. Set num_instances = 30
     3. Set the datasets to the datasets desired for running the tests. Method can be any
     4. Run tester.py: this stores the undesired class test instances indices only
     5. In maceTest.py set the datasets equal to the datasets in tester.py

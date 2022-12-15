@@ -4,8 +4,9 @@ import networkx as nx
 import gurobipy as gp
 from gurobipy import GRB, tuplelist
 from evaluator_constructor import distance_calculation, verify_feasibility
-from nnt import near_neigh, nn_for_juice
+from nnt import nn_for_juice
 import time
+from scipy.stats import norm
 
 class IJUICE:
 
@@ -68,8 +69,17 @@ class IJUICE:
         # if split in ['2','5','10','20','50','100']:
         #     value = list(np.linspace(min_val, max_val, num = int(split) + 1, endpoint = True))
         # elif split == 'train': # Most likely only using this, because the others require several divisions for each of the continuous features ranges
-        sorted_feat_i = list(np.sort(data.transformed_train_np[:,i][(data.transformed_train_np[:,i] >= min_val) & (data.transformed_train_np[:,i] <= max_val)]))
-        value = list(np.unique(sorted_feat_i))
+        
+        # sorted_feat_i = list(np.sort(data.transformed_train_np[:,i][(data.transformed_train_np[:,i] >= min_val) & (data.transformed_train_np[:,i] <= max_val)]))
+        # value = list(np.unique(sorted_feat_i))
+        
+        mean_val, std_val = np.mean(data.transformed_train_np[:,i]), np.std(data.transformed_train_np[:,i])
+        percentiles_range = list(np.linspace(0, 1, 101))
+        value = []
+        for perc in percentiles_range:
+            value.append(norm.ppf(perc, loc=mean_val, scale=std_val))
+        value = [val for val in value if val >= min_val and val <= max_val]
+        
         return value
 
     def get_feat_possible_values(self, data):

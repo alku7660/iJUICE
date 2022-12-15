@@ -4,6 +4,7 @@ from itertools import product
 import networkx as nx
 import gurobipy as gp
 from gurobipy import GRB, tuplelist
+from scipy.stats import norm
 
 class Evaluator():
 
@@ -95,6 +96,34 @@ def distance_calculation(x, y, data, type='euclidean'):
         Linf_distance = Linf(x, y)
         return alpha*L0_distance + beta*L1_distance + gamma*Linf_distance
 
+    def max_percentile_shift(x_original, y_original, data):
+        """
+        Calculates the maximum percentile shift as a cost function between two instances
+        """
+        perc_shift_list = []
+        x_original_df, y_original_df = pd.DataFrame(data=x_original, index=[0], columns=data.features), pd.DataFrame(data=y_original, index=[0], columns=data.features)
+        for col in data.features:
+            x_col_value = x_original_df[col]
+            y_col_value = y_original_df[col]
+            distribution = data.feat_dist[col]
+            if x_col_value == y_col_value:
+                continue
+            else:
+                if col in data.binary or col in data.categorical:
+                    perc_shift = np.abs(distribution[x_col_value] - distribution[y_col_value])
+                elif col in data.ordinal:
+                    min_val, max_val = min(x_col_value, y_col_value), max(x_col_value, y_col_value)
+                    values_range = [i for i in distribution.keys() if i >= min_val and i <= max_val].sort()
+                    prob_values = np.cumsum([distribution[val] for val in values_range])
+                    perc_shift = np.abs(prob_values[-1] - prob_values[0])
+                elif col in data.continuous:
+                    mean_val, std_val = distribution['mean'], distribution['std']
+                    normalized_x = (x_col_value - mean_val)/std_val
+                    normalized_y = (y_col_value - mean_val)/std_val
+                    perc_shift = np.abs(norm.cdf(normalized_x) - norm.cdf(normalized_y))
+            perc_shift_list.append(perc_shift)
+        return max(perc_shift_list)
+
     x_original, y_original = data.inverse(x), data.inverse(y)
     if type == 'euclidean':
         distance = euclid(x, y)
@@ -112,6 +141,8 @@ def distance_calculation(x, y, data, type='euclidean'):
         distance = (n_con/n)*L1_distance + (n_cat/n)*L0_distance
     elif type == 'L1_L0_Linf':
         distance = L1_L0_Linf(x, y, x_original, y_original, data)
+    elif type == 'prob':
+        distance = max_percentile_shift(x_original, y_original, data)
     return distance
 
 def verify_feasibility(x, cf, data):
