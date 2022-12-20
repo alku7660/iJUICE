@@ -7,15 +7,15 @@ from evaluator_constructor import Evaluator
 from counterfactual_constructor import Counterfactual
 from address import save_obj, load_obj, results_obj
 
-datasets = ['adult'] # ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','ionosphere','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
+datasets = ['kdd_census'] # ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','ionosphere','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
 methods = ['mace'] # ['nn','mo','ft','rt','gs','face','dice','mace','cchvae','juice','ijuice']
 seed_int = 54321
 step = 0.01
 train_fraction = 0.7
 distance_type = ['euclidean'] # ['euclidean','L1','L1_L0','L1_L0_inf','prob']
 lagranges = [0.5]    # np.linspace(start=0, stop=1, num=11)
-num_instances = 3 # data.test_df.shape[0]
-prepare_for_mace = False
+num_instances = 5 # data.test_df.shape[0]
+prepare_for_mace = True
 
 """
 Instructions to run tests:
