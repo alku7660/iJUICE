@@ -1881,12 +1881,12 @@ def load_dataset(data_str, train_fraction, seed, step):
                 upper_bound = df[col_name].max())
     
     elif data_str == 'heart':
-        binary = ['Sex']
-        categorical = ['Diet','Sport','TrainingTime']
-        ordinal = []
-        continuous = ['Age','SleepHours']
+        binary = ['Sex','BloodSugar']
+        categorical = ['ChestPain']
+        ordinal = ['ECG']
+        continuous = ['Age','RestBloodPressure','Chol']
         input_cols = binary + categorical + ordinal + continuous
-        label = ['Label']
+        label = ['class']
         df = pd.read_csv(dataset_dir+'heart/processed_heart.csv',index_col=0)
 
         """
@@ -1896,7 +1896,48 @@ def load_dataset(data_str, train_fraction, seed, step):
         col_name = label[0]
         attributes_df[col_name] = DatasetAttribute(attr_name_long = col_name, attr_name_kurz = 'y', attr_type = 'binary', node_type = 'output', actionability = 'none',
                                                    mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = df[col_name].min(), upper_bound = df[col_name].max())
-        # for col_idx, col_name in enumerate(input_cols):
+        for col_idx, col_name in enumerate(input_cols):
+
+            if col_name == 'Sex':
+                attr_type = 'binary'
+                actionability = 'none'
+                mutability = False
+            elif col_name == 'BloodSugar':
+                attr_type = 'binary'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'ChestPain':
+                attr_type = 'categorical'
+                actionability = 'none'
+                mutability = False
+            elif col_name == 'ECG':
+                attr_type = 'ordinal'
+                actionability = 'none'
+                mutability = False
+            elif col_name == 'Age':
+                attr_type = 'numeric-real'
+                actionability = 'same-or-increase'
+                mutability = True
+            elif col_name == 'RestBloodPressure':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Chol':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            
+            attributes_df[col_name] = DatasetAttribute(
+                attr_name_long = col_name,
+                attr_name_kurz = f'x{col_idx}',
+                attr_type = attr_type,
+                node_type = 'input',
+                actionability = actionability,
+                mutability = mutability,
+                parent_name_long = -1,
+                parent_name_kurz = -1,
+                lower_bound = df[col_name].min(),
+                upper_bound = df[col_name].max())
 
     elif data_str == 'synthetic_athlete':
         binary = ['Sex']
