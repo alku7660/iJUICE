@@ -223,6 +223,14 @@ class Dataset:
                     feat_type.loc[i] = 'cat'
                 elif i in ['Age','SleepHours']:
                     feat_type.loc[i] = 'cont'
+        elif self.name == 'heart':
+            for i in feat_list:
+                if 'Sex' in i or 'BloodSugar' in i or 'ChestPain' in i:
+                    feat_type.loc[i] = 'bin'
+                elif 'ECG' in i:
+                    feat_type.loc[i] = 'ord'
+                elif 'Age' in i or 'RestBloodPressure' in i or 'Chol' in i:
+                    feat_type.loc[i] = 'cont'
         elif self.name == 'synthetic_athlete':
             for i in feat_list:
                 if 'Sex' in i or 'Training' in i or 'Sport' in i or 'Diet' in i:
@@ -314,6 +322,12 @@ class Dataset:
         elif self.name == 'ionosphere':
             for i in feat_list:
                 if i == '0':
+                    feat_mutable[i] = 0
+                else:
+                    feat_mutable[i] = 1
+        elif self.name == 'heart':
+            for i in feat_list:
+                if 'Sex' in i or 'ChestPain' in i or 'ECG' in i:
                     feat_mutable[i] = 0
                 else:
                     feat_mutable[i] = 1
@@ -425,6 +439,14 @@ class Dataset:
         elif self.name == 'ionosphere':
             for i in feat_list:
                 feat_directionality[i] = 'any'
+        elif self.name == 'heart':
+            for i in feat_list:
+                if 'BloodSugar' in i or 'RestBloodPressure' in i or 'Chol' in i:
+                    feat_directionality[i] = 'any'
+                elif 'Sex' in i or 'ChestPain' in i or 'ECG' in i:
+                    feat_directionality[i] = 0
+                elif 'Age' in i:
+                    feat_directionality[i] = 'pos'
         elif self.name == 'synthetic_athlete':
             for i in feat_list:
                 if 'Age' in i or 'Sex' in i:
@@ -1887,7 +1909,7 @@ def load_dataset(data_str, train_fraction, seed, step):
         continuous = ['Age','RestBloodPressure','Chol']
         input_cols = binary + categorical + ordinal + continuous
         label = ['class']
-        df = pd.read_csv(dataset_dir+'heart/processed_heart.csv',index_col=0)
+        df = pd.read_csv(dataset_dir+'heart/preprocessed_heart.csv',index_col=0)
 
         """
         MACE variables / attributes
