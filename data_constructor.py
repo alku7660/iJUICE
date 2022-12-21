@@ -1881,7 +1881,22 @@ def load_dataset(data_str, train_fraction, seed, step):
                 upper_bound = df[col_name].max())
     
     elif data_str == 'heart':
-        
+        binary = ['Sex']
+        categorical = ['Diet','Sport','TrainingTime']
+        ordinal = []
+        continuous = ['Age','SleepHours']
+        input_cols = binary + categorical + ordinal + continuous
+        label = ['Label']
+        df = pd.read_csv(dataset_dir+'heart/processed_heart.csv',index_col=0)
+
+        """
+        MACE variables / attributes
+        """
+        attributes_df = {}
+        col_name = label[0]
+        attributes_df[col_name] = DatasetAttribute(attr_name_long = col_name, attr_name_kurz = 'y', attr_type = 'binary', node_type = 'output', actionability = 'none',
+                                                   mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = df[col_name].min(), upper_bound = df[col_name].max())
+        # for col_idx, col_name in enumerate(input_cols):
 
     elif data_str == 'synthetic_athlete':
         binary = ['Sex']
