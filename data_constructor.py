@@ -1880,6 +1880,9 @@ def load_dataset(data_str, train_fraction, seed, step):
                 lower_bound = df[col_name].min(),
                 upper_bound = df[col_name].max())
     
+    elif data_str == 'heart':
+        
+
     elif data_str == 'synthetic_athlete':
         binary = ['Sex']
         categorical = ['Diet','Sport','TrainingTime']
