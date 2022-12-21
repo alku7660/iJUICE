@@ -33,10 +33,10 @@ class Dataset:
         self.transformed_test_np = self.transformed_test_df.to_numpy()
         self.train_target, self.test_target = self.change_targets_to_numpy()
         self.undesired_class = self.undesired_class_data()
-        self.feat_type, self.feat_type_mace = self.define_feat_type()
+        self.feat_type = self.define_feat_type()
         self.feat_mutable = self.define_feat_mutability()
         self.immutables = self.get_immutables()
-        self.feat_directionality, self.feat_directionality_mace = self.define_feat_directionality()
+        self.feat_directionality = self.define_feat_directionality()
         self.feat_step = self.define_feat_step()
         self.feat_cat = self.define_feat_cat()
         self.idx_cat_cols_dict = self.idx_cat_columns()
@@ -45,19 +45,19 @@ class Dataset:
         """
         MACE attributes
         """
-        self.is_one_hot = True # Set to True always since we always one-hot encode
-        self.data_frame_long = self.df
-        self.attributes_long = self.define_attributes()
-        attributes_kurz = dict((self.attributes_long[key].attr_name_kurz, value) for (key, value) in self.attributes_long.items())
-        transformed_train_df_target = copy.deepcopy(self.transformed_train_df)
-        transformed_test_df_target = copy.deepcopy(self.transformed_test_df)
-        transformed_train_df_target[self.label_name[0]] = self.train_target
-        transformed_test_df_target[self.label_name[0]] = self.test_target
-        all_data = pd.concat((transformed_train_df_target, transformed_test_df_target), axis=0)
-        data_frame_kurz = copy.deepcopy(all_data)
-        data_frame_kurz.columns = self.getAllAttributeNames('kurz')
-        self.data_frame_kurz = data_frame_kurz # i.e., data_frame is indexed by attr_name_kurz
-        self.attributes_kurz = attributes_kurz # i.e., attributes is indexed by attr_name_kurz
+        # self.is_one_hot = True # Set to True always since we always one-hot encode
+        # self.data_frame_long = self.df
+        # self.attributes_long = self.define_attributes()
+        # attributes_kurz = dict((self.attributes_long[key].attr_name_kurz, value) for (key, value) in self.attributes_long.items())
+        # transformed_train_df_target = copy.deepcopy(self.transformed_train_df)
+        # transformed_test_df_target = copy.deepcopy(self.transformed_test_df)
+        # transformed_train_df_target[self.label_name[0]] = self.train_target
+        # transformed_test_df_target[self.label_name[0]] = self.test_target
+        # all_data = pd.concat((transformed_train_df_target, transformed_test_df_target), axis=0)
+        # data_frame_kurz = copy.deepcopy(all_data)
+        # data_frame_kurz.columns = self.getAllAttributeNames('kurz')
+        # self.data_frame_kurz = data_frame_kurz # i.e., data_frame is indexed by attr_name_kurz
+        # self.attributes_kurz = attributes_kurz # i.e., attributes is indexed by attr_name_kurz
 
     def balance_train_data(self):
         """
@@ -131,7 +131,6 @@ class Dataset:
         Method that obtains a feature type vector corresponding to each of the features
         """
         feat_type = copy.deepcopy(self.transformed_train_df.dtypes)
-        feat_type_mace = copy.deepcopy(self.transformed_train_df.dtypes)
         feat_list = feat_type.index.tolist()
         if self.name == 'adult':
             for i in feat_list:
@@ -139,117 +138,66 @@ class Dataset:
                     feat_type.loc[i] = 'bin'
                 elif 'EducationLevel' in i or 'Age' in i:
                     feat_type.loc[i] = 'ord'
-                    feat_type_mace.loc[i] = 'numeric-int'
                 elif 'EducationNumber' in i or 'Capital' in i or 'Hours' in i:
                     feat_type.loc[i] = 'cont'
-                    feat_type_mace.loc[i] = 'numeric-real'
-                if 'Sex' in i or 'Native' in i or 'Race' in i:
-                    feat_type_mace.loc[i] = 'binary'
-                elif 'WorkClass' in i or 'Marital' in i or 'Occupation' in i or 'Relationship' in i:
-                    feat_type_mace.loc[i] = 'sub-categorical'
         elif self.name == 'kdd_census':
             for i in feat_list:
                 if 'Sex' in i or 'Race' in i or 'Industry' in i or 'Occupation' in i:
                     feat_type.loc[i] = 'bin'
                 elif 'Age' in i or 'WageHour' in i or 'Capital' in i or 'Dividends' in i or 'WorkWeeksYear' in i:
                     feat_type.loc[i] = 'cont'
-                    feat_type_mace.loc[i] = 'numeric-real'
-                if 'Sex' in i or 'Race' in i:
-                    feat_type_mace.loc[i] = 'binary'
-                elif 'Industry' in i or 'Occupation' in i:
-                    feat_type_mace.loc[i] = 'sub-categorical'
         elif self.name == 'german':
             for i in feat_list:
                 if 'Sex' in i or 'Single' in i or 'Unemployed' in i or 'Housing' in i or 'PurposeOfLoan' in i or 'InstallmentRate' in i:
                     feat_type.loc[i] = 'bin'
                 elif 'Age' in i or 'Credit' in i or 'Loan' in i:
                     feat_type.loc[i] = 'cont'
-                    feat_type_mace.loc[i] = 'numeric-real'
-                if 'Sex' in i or 'Single' in i or 'Unemployed' in i:
-                    feat_type_mace.loc[i] = 'binary'
-                elif 'Housing' in i or 'PurposeOfLoan' in i or 'InstallmentRate' in i:
-                    feat_type_mace.loc[i] = 'sub-categorical'
         elif self.name == 'dutch':
             for i in feat_list:
                 if 'Sex' in i or 'HouseholdPosition' in i or 'HouseholdSize' in i or 'Country' in i or 'EconomicStatus' in i or 'CurEcoActivity' in i or 'MaritalStatus' in i:
                     feat_type.loc[i] = 'bin'
                 elif 'EducationLevel' in i:
                     feat_type.loc[i] = 'ord'
-                    feat_type_mace.loc[i] = 'numeric-int'
                 elif 'Age' in i:
                     feat_type.loc[i] = 'cont'
-                    feat_type_mace.loc[i] = 'numeric-real'
-                if 'Sex' in i:
-                    feat_type_mace.loc[i] = 'binary'
-                elif 'HouseholdPosition' in i or 'HouseholdSize' in i or 'Country' in i or 'EconomicStatus' in i or 'CurEcoActivity' in i or 'MaritalStatus' in i:
-                    feat_type_mace.loc[i] = 'sub-categorical'
         elif self.name == 'bank':
             for i in feat_list:
                 if 'Default' in i or 'Housing' in i or 'Loan' in i or 'Job' in i or 'MaritalStatus' in i or 'Education' in i or 'Contact' in i or 'Month' in i or 'Poutcome' in i:
                     feat_type.loc[i] = 'bin'
                 elif 'Age' in i:
                     feat_type.loc[i] = 'ord'
-                    feat_type_mace.loc[i] = 'numeric-int'
                 elif 'Balance' in i or 'Day' in i or 'Duration' in i or 'Campaign' in i or 'Pdays' in i or 'Previous' in i:
                     feat_type.loc[i] = 'cont'
-                    feat_type_mace.loc[i] = 'numeric-real'
-                if 'Default' in i or 'Housing' in i or 'Loan' in i:
-                    feat_type_mace.loc[i] = 'binary'
-                elif 'Job' in i or 'MaritalStatus' in i or 'Education' in i or 'Contact' in i or 'Month' in i or 'Poutcome' in i:
-                    feat_type_mace.loc[i] = 'sub-categorical'
         elif self.name == 'credit':
             for i in feat_list:
                 if 'Male' in i or 'Married' in i or 'History' in i:
                     feat_type.loc[i] = 'bin'
-                    feat_type_mace.loc[i] = 'binary'
                 elif 'Total' in i or 'Age' in i or 'Education' in i:
                     feat_type.loc[i] = 'ord'
-                    feat_type_mace.loc[i] = 'numeric-int'
                 elif 'Amount' in i or 'Balance' in i or 'Spending' in i:
                     feat_type.loc[i] = 'cont'
-                    feat_type_mace.loc[i] = 'numeric-real'
         elif self.name == 'compass':
             for i in feat_list:
                 if 'Sex' in i or 'Race' in i or 'Charge' in i:
                     feat_type.loc[i] = 'bin'
-                    feat_type_mace.loc[i] = 'binary'
                 elif 'Priors' in i or 'Age' in i:
                     feat_type.loc[i] = 'ord'
-                    feat_type_mace.loc[i] = 'numeric-int'
         elif self.name == 'diabetes':
             for i in feat_list:
                 if 'DiabetesMed' in i or 'Race' in i or 'Sex' in i or 'A1CResult' in i or 'Metformin' in i or 'Chlorpropamide' in i or 'Glipizide' in i or 'Rosiglitazone' in i or 'Acarbose' in i or 'Miglitol' in i:
                     feat_type.loc[i] = 'bin'
                 elif 'AgeGroup' in i:
                     feat_type.loc[i] = 'ord'
-                    feat_type_mace.loc[i] = 'numeric-int'
                 elif 'TimeInHospital' in i or 'NumProcedures' in i or 'NumMedications' in i or 'NumEmergency' in i:
                     feat_type.loc[i] = 'cont'
-                if 'DiabetesMed' in i:
-                    feat_type_mace.loc[i] = 'binary'
-                elif 'Race' in i or 'Sex' in i or 'A1CResult' in i or 'Metformin' in i or 'Chlorpropamide' in i or 'Glipizide' in i or 'Rosiglitazone' in i or 'Acarbose' in i or 'Miglitol' in i:
-                    feat_type_mace.loc[i] = 'sub-categorical'
-                elif 'TimeInHospital' in i:
-                    feat_type_mace.loc[i] = 'numeric-real'
-                elif 'NumProcedures' in i or 'NumMedications' in i or 'NumEmergency' in i:
-                    feat_type_mace.loc[i] = 'numeric-int'
         elif self.name == 'student':
             for i in feat_list:
                 if 'Age' in i or 'School' in i or 'Sex' in i or 'Address' in i or 'FamilySize' in i or 'ParentStatus' in i or 'SchoolSupport' in i or 'FamilySupport' in i or 'ExtraPaid' in i or 'ExtraActivities' in i or 'Nursery' in i or 'HigherEdu' in i or 'Internet' in i or 'Romantic' in i or 'MotherJob' in i or 'FatherJob' in i or 'SchoolReason' in i:
                     feat_type.loc[i] = 'bin'
                 elif 'MotherEducation' in i or 'FatherEducation' in i:
                     feat_type.loc[i] = 'ord'
-                    feat_type_mace.loc[i] = 'numeric-int'
                 elif 'TravelTime' in i or 'ClassFailures' in i or 'GoOut' in i:
                     feat_type.loc[i] = 'cont'
-                if 'School' in i or 'Sex' in i or 'Age' in i or 'Address' in i or 'FamilySize' in i or 'ParentStatus' in i or 'SchoolSupport' in i or 'FamilySupport' in i or 'ExtraPaid' in i or 'ExtraActivities' in i or 'Nursery' in i or 'HigherEdu' in i or 'Internet' in i or 'Romantic' in i or 'NumEmergency' in i:
-                    feat_type_mace.loc[i] = 'binary'
-                elif 'MotherJob' in i or 'FatherJob' in i or 'SchoolReason' in i:
-                    feat_type_mace.loc[i] = 'sub-categorical'
-                elif 'ClassFailures' in i or 'GoOut' in i:
-                    feat_type_mace.loc[i] = 'numeric-int'
-                elif 'TravelTime' in i :
-                    feat_type_mace.loc[i] = 'numeric-real'
         elif self.name == 'oulad':
             for i in feat_list:
                 if 'Sex' in i or 'Disability' in i or 'Region' in i or 'CodeModule' in i or 'CodePresentation' in i or 'HighestEducation' in i or 'IMDBand' in i:
@@ -258,67 +206,38 @@ class Dataset:
                     feat_type.loc[i] = 'cont'
                 elif 'AgeGroup' in i:
                     feat_type.loc[i] = 'ord'
-                    feat_type_mace.loc[i] = 'numeric-int'
-                if 'Sex' in i or 'Disability' in i:
-                    feat_type_mace.loc[i] = 'binary'
-                elif 'Region' in i or 'CodeModule' in i or 'CodePresentation' in i or 'HighestEducation' in i or 'IMDBand' in i:
-                    feat_type_mace.loc[i] = 'sub-categorical'
-                elif 'NumPrevAttempts' in i:
-                    feat_type_mace.loc[i] = 'numeric-int'
-                elif 'StudiedCredits' in i:
-                    feat_type_mace.loc[i] = 'numeric-real'
         elif self.name == 'law':
             for i in feat_list:
                 if 'FamilyIncome' in i or 'Tier' in i or 'Race' in i or 'WorkFullTime' in i or 'Sex' in i:
                     feat_type.loc[i] = 'bin'
                 elif 'Decile1stYear' in i or 'Decile3rdYear' in i or 'LSAT' in i or 'UndergradGPA' in i or 'FirstYearGPA' in i or 'CumulativeGPA' in i:
                     feat_type.loc[i] = 'cont'
-                    feat_type_mace.loc[i] = 'numeric-real'
-                if 'WorkFullTime' in i or 'Sex' in i:
-                    feat_type_mace.loc[i] = 'binary'
-                elif 'FamilyIncome' in i or 'Tier' in i or 'Race' in i:
-                    feat_type_mace.loc[i] = 'sub-categorical'
         elif self.name == 'ionosphere':
             for i in feat_list:
                 feat_type.loc[i] = 'cont'
-                feat_type_mace.loc[i] = 'numeric-real'
         elif self.name == 'synthetic_athlete':
             for i in feat_list:
                 if 'Sex' in i:
                     feat_type.loc[i] = 'bin'
-                    feat_type_mace.loc[i] = 'binary'
                 elif 'TrainingTime' in i or 'Diet' in i or 'Sport' in i:
                     feat_type.loc[i] = 'cat'
-                    feat_type_mace.loc[i] = 'sub-categorical'
                 elif i in ['Age','SleepHours']:
                     feat_type.loc[i] = 'cont'
-                    feat_type_mace.loc[i] = 'numeric-real'
         elif self.name == 'synthetic_athlete':
             for i in feat_list:
                 if 'Sex' in i or 'Training' in i or 'Sport' in i or 'Diet' in i:
                     feat_type.loc[i] = 'bin'
                 elif i in ['Age','SleepHours']:
                     feat_type.loc[i] = 'cont'
-                    feat_type_mace.loc[i] = 'numeric-real'
-                if 'Sex' in i:
-                    feat_type_mace.loc[i] = 'binary'
-                elif 'Training' in i or 'Sport' in i or 'Diet' in i:
-                    feat_type_mace.loc[i] = 'sub-categorical'
         elif self.name == 'synthetic_disease':
             for i in feat_list:
                 if 'Smokes' in i or 'Diet' in i or 'Stress' in i:
                     feat_type.loc[i] = 'bin'
                 elif 'Weight' in i:
                     feat_type.loc[i] = 'ord'
-                    feat_type_mace.loc[i] = 'numeric-int'
                 elif i in ['Age','ExerciseMinutes','SleepHours']:
                     feat_type.loc[i] = 'cont'
-                    feat_type_mace.loc[i] = 'numeric-real'
-                if 'Smokes' in i:
-                    feat_type_mace.loc[i] = 'binary'
-                elif 'Diet' in i or 'Stress' in i:
-                    feat_type_mace.loc[i] = 'sub-categorical'
-        return feat_type, feat_type_mace
+        return feat_type
 
     def define_feat_mutability(self):
         """
@@ -424,137 +343,101 @@ class Dataset:
         Method that outputs change directionality of features per dataset
         """
         feat_directionality = copy.deepcopy(self.transformed_train_df.dtypes)
-        feat_directionality_mace = copy.deepcopy(self.transformed_train_df.dtypes)
         feat_list = feat_directionality.index.tolist()
         if self.name == 'adult':
             for i in feat_list:
                 if 'Age' in i or 'Sex' in i or 'Race' in i or 'Native' in i:
                     feat_directionality[i] = 0
-                    feat_directionality_mace[i] = 'none'
                 elif 'Education' in i:
                     feat_directionality[i] = 'pos'
-                    feat_directionality_mace[i] = 'same-or-increase'
                 else:
                     feat_directionality[i] = 'any'
-                    feat_directionality_mace[i] = 'any'
         elif self.name == 'kdd_census':
             for i in feat_list:
                 if 'Sex' in i or 'Race' in i:
                     feat_directionality[i] = 0
-                    feat_directionality_mace[i] = 'none'
                 elif 'Industry' in i or 'Occupation' in i or 'WageHour' in i or 'CapitalGain' in i or 'CapitalLoss' in i or 'Dividends' in i or 'WorkWeeksYear' or 'Age' in i:
                     feat_directionality[i] = 'any'
-                    feat_directionality_mace[i] = 'any'
         elif self.name == 'german':
             for i in feat_list:
                 if 'Age' in i or 'Sex' in i:
                     feat_directionality[i] = 0
                 else:
                     feat_directionality[i] = 'any'
-                if 'Age' in i:
-                    feat_directionality_mace[i] = 'same-or-increase'
-                elif 'Sex' in i:
-                    feat_directionality_mace[i] = 'none'
-                else:
-                    feat_directionality_mace[i] = 'any'
         elif self.name == 'dutch':
             for i in feat_list:
                 if 'Sex' in i or 'Country' in i:
                     feat_directionality[i] = 0
-                    feat_directionality_mace[i] = 'none'
                 elif 'HouseholdPosition' in i or 'HouseholdSize' in i or 'EconomicStatus' in i or 'CurEcoActivity' in i or 'MaritalStatus' in i:
                     feat_directionality[i] = 'any'
-                    feat_directionality_mace[i] = 'any'
                 elif 'EducationLevel' in i or 'Age' in i:
                     feat_directionality[i] = 'pos'
-                    feat_directionality_mace[i] = 'same-or-increase'
         elif self.name == 'bank':
             for i in feat_list:
                 if 'Age' in i or 'Marital' in i:
                     feat_directionality[i] = 0
-                    feat_directionality_mace[i] = 'none'
                 elif 'Default' in i or 'Housing' in i or 'Loan' in i or 'Job' in i or 'Contact' in i or 'Month' in i or 'Poutcome' or 'Balance' in i or 'Day' in i or 'Duration' in i or 'Campaign' in i or 'Pdays' in i or 'Previous' in i:
                     feat_directionality[i] = 'any'
-                    feat_directionality_mace[i] = 'any'
         elif self.name == 'credit':
             for i in feat_list:
                 if 'Male' in i or 'Married' in i:
                     feat_directionality[i] = 0
-                    feat_directionality_mace[i] = 'none'
                 elif 'OverLast6Months' in i or 'MostRecent' in i or 'Total' in i or 'History' in i:
                     feat_directionality[i] = 'any'
-                    feat_directionality_mace[i] = 'any'
                 if 'Age' in i or 'Education' in i:
                     feat_directionality[i] = 'pos'
-                    feat_directionality_mace[i] = 'same-or-increase'
         elif self.name == 'compass':
             for i in feat_list:
                 if 'Sex' in i or 'Race' in i:
                     feat_directionality[i] = 0
-                    feat_directionality_mace[i] = 'none'
                 elif 'Age' in i:
                     feat_directionality[i] = 'pos'
-                    feat_directionality_mace[i] = 'same-or-increase'
                 elif 'Charge' in i or 'Priors' in i:
                     feat_directionality[i] = 'any'
-                    feat_directionality_mace[i] = 'any'
         elif self.name == 'diabetes':
             for i in feat_list:
                 if 'Sex' in i or 'Race' in i:
                     feat_directionality[i] = 0
-                    feat_directionality_mace[i] = 'none'
                 elif 'Age' in i:
                     feat_directionality[i] = 'pos'
-                    feat_directionality_mace[i] = 'same-or-increase'
                 else:
                     feat_directionality[i] = 'any'
-                    feat_directionality_mace[i] = 'any'
         elif self.name == 'student':
             for i in feat_list:
                 if 'Sex' in i or 'Age' in i:
                     feat_directionality[i] = 0
-                    feat_directionality_mace[i] = 'none'
                 elif 'MotherEducation' in i or 'FatherEducation' in i:
                     feat_directionality[i] = 'pos'
-                    feat_directionality_mace[i] = 'same-or-increase' 
                 else:
                     feat_directionality[i] = 'any'
-                    feat_directionality_mace[i] = 'any' 
         elif self.name == 'oulad':
             for i in feat_list:
                 if 'Sex' in i or 'Disability' in i:
                     feat_directionality[i] = 0
-                    feat_directionality_mace[i] = 'none'
                 else:
                     feat_directionality[i] = 'any'
-                    feat_directionality_mace[i] = 'any' 
         elif self.name == 'law':
             for i in feat_list:
                 if 'Sex' in i or 'Race' in i:
                     feat_directionality[i] = 0
-                    feat_directionality_mace[i] = 'none'
                 else:
                     feat_directionality[i] = 'any'
-                    feat_directionality_mace[i] = 'any' 
         elif self.name == 'ionosphere':
             for i in feat_list:
                 feat_directionality[i] = 'any'
-                feat_directionality_mace[i] = 'any'
         elif self.name == 'synthetic_athlete':
             for i in feat_list:
                 if 'Age' in i or 'Sex' in i:
                     feat_directionality[i] = 0
-                    feat_directionality_mace[i] = 'none'
                 elif 'TrainingTime' in i or 'Diet' in i or 'Sport' in i or 'SleepHours' in i:
                     feat_directionality[i] = 'any'
-                    feat_directionality_mace[i] = 'any' 
         elif self.name == 'synthetic_disease':
             for i in feat_list:
                 if 'Age' in i:
                     feat_directionality[i] = 'pos'
                 elif 'ExerciseMinutes' in i or 'SleepHours' in i or 'Weight' in i or 'Diet' in i or 'Stress' in i or 'Smokes' in i:
                     feat_directionality[i] = 'any'
-        return feat_directionality, feat_directionality_mace
+        return feat_directionality
 
     def define_feat_step(self):
         """
@@ -819,231 +702,231 @@ class Dataset:
     """
     MACE Methodology methods / classes (based on Model-Agnostic Counterfactual Explanations (MACE) authors implementation: See https://github.com/amirhk/mace)
     """
-    def getAttributeNames(self, allowed_node_types, long_or_kurz = 'kurz'):
-        names = []
-        # We must loop through all attributes and check attr_name
-        for attr_name in self.attributes_long.keys():
-            attr_obj = self.attributes_long[attr_name]
-            if attr_obj.node_type not in allowed_node_types:
-                continue
-            if long_or_kurz == 'long':
-                names.append(attr_obj.attr_name_long)
-            elif long_or_kurz == 'kurz':
-                names.append(attr_obj.attr_name_kurz)
-            else:
-                raise Exception(f'{long_or_kurz} not recognized as a valid `long_or_kurz`.')
-        return np.array(names)
+    # def getAttributeNames(self, allowed_node_types, long_or_kurz = 'kurz'):
+    #     names = []
+    #     # We must loop through all attributes and check attr_name
+    #     for attr_name in self.attributes_long.keys():
+    #         attr_obj = self.attributes_long[attr_name]
+    #         if attr_obj.node_type not in allowed_node_types:
+    #             continue
+    #         if long_or_kurz == 'long':
+    #             names.append(attr_obj.attr_name_long)
+    #         elif long_or_kurz == 'kurz':
+    #             names.append(attr_obj.attr_name_kurz)
+    #         else:
+    #             raise Exception(f'{long_or_kurz} not recognized as a valid `long_or_kurz`.')
+    #     return np.array(names)
 
-    def getInputAttributeNames(self, long_or_kurz = 'kurz'):
-        return self.getAttributeNames({'input'}, long_or_kurz)
+    # def getInputAttributeNames(self, long_or_kurz = 'kurz'):
+    #     return self.getAttributeNames({'input'}, long_or_kurz)
     
-    def getOutputAttributeNames(self, long_or_kurz = 'kurz'):
-        return self.getAttributeNames({'output'}, long_or_kurz)
+    # def getOutputAttributeNames(self, long_or_kurz = 'kurz'):
+    #     return self.getAttributeNames({'output'}, long_or_kurz)
 
-    def getInputOutputAttributeNames(self, long_or_kurz = 'kurz'):
-        return self.getAttributeNames({'input', 'output'}, long_or_kurz)
+    # def getInputOutputAttributeNames(self, long_or_kurz = 'kurz'):
+    #     return self.getAttributeNames({'input', 'output'}, long_or_kurz)
     
-    def getAllAttributeNames(self, long_or_kurz = 'kurz'):
-        return self.getAttributeNames({'meta', 'input', 'output'}, long_or_kurz)
+    # def getAllAttributeNames(self, long_or_kurz = 'kurz'):
+    #     return self.getAttributeNames({'meta', 'input', 'output'}, long_or_kurz)
     
-    def getDictOfSiblings(self, long_or_kurz = 'kurz'):
-        if long_or_kurz == 'long':
-            dict_of_siblings_long = {}
-            dict_of_siblings_long['cat'] = {}
-            dict_of_siblings_long['ord'] = {}
-            for attr_name_long in self.getInputAttributeNames('long'):
-                attr_obj = self.attributes_long[attr_name_long]
-                if attr_obj.attr_type == 'sub-categorical':
-                    if attr_obj.parent_name_long not in dict_of_siblings_long['cat'].keys():
-                        dict_of_siblings_long['cat'][attr_obj.parent_name_long] = [] # initiate key-value pair
-                    dict_of_siblings_long['cat'][attr_obj.parent_name_long].append(attr_obj.attr_name_long)
-                elif attr_obj.attr_type == 'sub-ordinal':
-                    if attr_obj.parent_name_long not in dict_of_siblings_long['ord'].keys():
-                        dict_of_siblings_long['ord'][attr_obj.parent_name_long] = [] # initiate key-value pair
-                    dict_of_siblings_long['ord'][attr_obj.parent_name_long].append(attr_obj.attr_name_long)
-            # sort sub-arrays
-            for key in dict_of_siblings_long['cat'].keys():
-                dict_of_siblings_long['cat'][key] = sorted(dict_of_siblings_long['cat'][key], key = lambda x : int(float(x.split('_')[-1])))
-            for key in dict_of_siblings_long['ord'].keys():
-                dict_of_siblings_long['ord'][key] = sorted(dict_of_siblings_long['ord'][key], key = lambda x : int(float(x.split('_')[-1])))
-            return dict_of_siblings_long
-        elif long_or_kurz == 'kurz':
-            dict_of_siblings_kurz = {}
-            dict_of_siblings_kurz['cat'] = {}
-            dict_of_siblings_kurz['ord'] = {}
-            for attr_name_kurz in self.getInputAttributeNames('kurz'):
-                attr_obj = self.attributes_kurz[attr_name_kurz]
-                if attr_obj.attr_type == 'sub-categorical':
-                    if attr_obj.parent_name_kurz not in dict_of_siblings_kurz['cat'].keys():
-                        dict_of_siblings_kurz['cat'][attr_obj.parent_name_kurz] = [] # initiate key-value pair
-                    dict_of_siblings_kurz['cat'][attr_obj.parent_name_kurz].append(attr_obj.attr_name_kurz)
-                elif attr_obj.attr_type == 'sub-ordinal':
-                    if attr_obj.parent_name_kurz not in dict_of_siblings_kurz['ord'].keys():
-                        dict_of_siblings_kurz['ord'][attr_obj.parent_name_kurz] = [] # initiate key-value pair
-                    dict_of_siblings_kurz['ord'][attr_obj.parent_name_kurz].append(attr_obj.attr_name_kurz)
-            # sort sub-arrays
-            for key in dict_of_siblings_kurz['cat'].keys():
-                dict_of_siblings_kurz['cat'][key] = sorted(dict_of_siblings_kurz['cat'][key], key = lambda x : int(float(x.split('_')[-1])))
-            for key in dict_of_siblings_kurz['ord'].keys():
-                dict_of_siblings_kurz['ord'][key] = sorted(dict_of_siblings_kurz['ord'][key], key = lambda x : int(float(x.split('_')[-1])))
-            return dict_of_siblings_kurz
-        else:
-            raise Exception(f'{long_or_kurz} not recognized as a valid `long_or_kurz`.')
+    # def getDictOfSiblings(self, long_or_kurz = 'kurz'):
+    #     if long_or_kurz == 'long':
+    #         dict_of_siblings_long = {}
+    #         dict_of_siblings_long['cat'] = {}
+    #         dict_of_siblings_long['ord'] = {}
+    #         for attr_name_long in self.getInputAttributeNames('long'):
+    #             attr_obj = self.attributes_long[attr_name_long]
+    #             if attr_obj.attr_type == 'sub-categorical':
+    #                 if attr_obj.parent_name_long not in dict_of_siblings_long['cat'].keys():
+    #                     dict_of_siblings_long['cat'][attr_obj.parent_name_long] = [] # initiate key-value pair
+    #                 dict_of_siblings_long['cat'][attr_obj.parent_name_long].append(attr_obj.attr_name_long)
+    #             elif attr_obj.attr_type == 'sub-ordinal':
+    #                 if attr_obj.parent_name_long not in dict_of_siblings_long['ord'].keys():
+    #                     dict_of_siblings_long['ord'][attr_obj.parent_name_long] = [] # initiate key-value pair
+    #                 dict_of_siblings_long['ord'][attr_obj.parent_name_long].append(attr_obj.attr_name_long)
+    #         # sort sub-arrays
+    #         for key in dict_of_siblings_long['cat'].keys():
+    #             dict_of_siblings_long['cat'][key] = sorted(dict_of_siblings_long['cat'][key], key = lambda x : int(float(x.split('_')[-1])))
+    #         for key in dict_of_siblings_long['ord'].keys():
+    #             dict_of_siblings_long['ord'][key] = sorted(dict_of_siblings_long['ord'][key], key = lambda x : int(float(x.split('_')[-1])))
+    #         return dict_of_siblings_long
+    #     elif long_or_kurz == 'kurz':
+    #         dict_of_siblings_kurz = {}
+    #         dict_of_siblings_kurz['cat'] = {}
+    #         dict_of_siblings_kurz['ord'] = {}
+    #         for attr_name_kurz in self.getInputAttributeNames('kurz'):
+    #             attr_obj = self.attributes_kurz[attr_name_kurz]
+    #             if attr_obj.attr_type == 'sub-categorical':
+    #                 if attr_obj.parent_name_kurz not in dict_of_siblings_kurz['cat'].keys():
+    #                     dict_of_siblings_kurz['cat'][attr_obj.parent_name_kurz] = [] # initiate key-value pair
+    #                 dict_of_siblings_kurz['cat'][attr_obj.parent_name_kurz].append(attr_obj.attr_name_kurz)
+    #             elif attr_obj.attr_type == 'sub-ordinal':
+    #                 if attr_obj.parent_name_kurz not in dict_of_siblings_kurz['ord'].keys():
+    #                     dict_of_siblings_kurz['ord'][attr_obj.parent_name_kurz] = [] # initiate key-value pair
+    #                 dict_of_siblings_kurz['ord'][attr_obj.parent_name_kurz].append(attr_obj.attr_name_kurz)
+    #         # sort sub-arrays
+    #         for key in dict_of_siblings_kurz['cat'].keys():
+    #             dict_of_siblings_kurz['cat'][key] = sorted(dict_of_siblings_kurz['cat'][key], key = lambda x : int(float(x.split('_')[-1])))
+    #         for key in dict_of_siblings_kurz['ord'].keys():
+    #             dict_of_siblings_kurz['ord'][key] = sorted(dict_of_siblings_kurz['ord'][key], key = lambda x : int(float(x.split('_')[-1])))
+    #         return dict_of_siblings_kurz
+    #     else:
+    #         raise Exception(f'{long_or_kurz} not recognized as a valid `long_or_kurz`.')
 
-    def getSiblingsFor(self, attr_name_long_or_kurz):
-    # If attr_name_long is given, we will return siblings_long (the same length)
-    # but not siblings_kurz. Same for the opposite direction.
-        # assert \
-        #     'cat' in attr_name_long_or_kurz or 'ord' in attr_name_long_or_kurz, \
-        #     'attr_name must include either `cat` or `ord`.'
-        if attr_name_long_or_kurz in self.getInputOutputAttributeNames('long'):
-            attr_name_long = attr_name_long_or_kurz
-            dict_of_siblings_long = self.getDictOfSiblings('long')
-            for parent_name_long in dict_of_siblings_long['cat']:
-                siblings_long = dict_of_siblings_long['cat'][parent_name_long]
-                if attr_name_long_or_kurz in siblings_long:
-                    return siblings_long
-            for parent_name_long in dict_of_siblings_long['ord']:
-                siblings_long = dict_of_siblings_long['ord'][parent_name_long]
-                if attr_name_long_or_kurz in siblings_long:
-                    return siblings_long
-        elif attr_name_long_or_kurz in self.getInputOutputAttributeNames('kurz'):
-            attr_name_kurz = attr_name_long_or_kurz
-            dict_of_siblings_kurz = self.getDictOfSiblings('kurz')
-            for parent_name_kurz in dict_of_siblings_kurz['cat']:
-                siblings_kurz = dict_of_siblings_kurz['cat'][parent_name_kurz]
-                if attr_name_long_or_kurz in siblings_kurz:
-                    return siblings_kurz
-            for parent_name_kurz in dict_of_siblings_kurz['ord']:
-                siblings_kurz = dict_of_siblings_kurz['ord'][parent_name_kurz]
-                if attr_name_long_or_kurz in siblings_kurz:
-                    return siblings_kurz
-        else:
-            raise Exception(f'{attr_name_long_or_kurz} not recognized as a valid `attr_name_long_or_kurz`.')
+    # def getSiblingsFor(self, attr_name_long_or_kurz):
+    # # If attr_name_long is given, we will return siblings_long (the same length)
+    # # but not siblings_kurz. Same for the opposite direction.
+    #     # assert \
+    #     #     'cat' in attr_name_long_or_kurz or 'ord' in attr_name_long_or_kurz, \
+    #     #     'attr_name must include either `cat` or `ord`.'
+    #     if attr_name_long_or_kurz in self.getInputOutputAttributeNames('long'):
+    #         attr_name_long = attr_name_long_or_kurz
+    #         dict_of_siblings_long = self.getDictOfSiblings('long')
+    #         for parent_name_long in dict_of_siblings_long['cat']:
+    #             siblings_long = dict_of_siblings_long['cat'][parent_name_long]
+    #             if attr_name_long_or_kurz in siblings_long:
+    #                 return siblings_long
+    #         for parent_name_long in dict_of_siblings_long['ord']:
+    #             siblings_long = dict_of_siblings_long['ord'][parent_name_long]
+    #             if attr_name_long_or_kurz in siblings_long:
+    #                 return siblings_long
+    #     elif attr_name_long_or_kurz in self.getInputOutputAttributeNames('kurz'):
+    #         attr_name_kurz = attr_name_long_or_kurz
+    #         dict_of_siblings_kurz = self.getDictOfSiblings('kurz')
+    #         for parent_name_kurz in dict_of_siblings_kurz['cat']:
+    #             siblings_kurz = dict_of_siblings_kurz['cat'][parent_name_kurz]
+    #             if attr_name_long_or_kurz in siblings_kurz:
+    #                 return siblings_kurz
+    #         for parent_name_kurz in dict_of_siblings_kurz['ord']:
+    #             siblings_kurz = dict_of_siblings_kurz['ord'][parent_name_kurz]
+    #             if attr_name_long_or_kurz in siblings_kurz:
+    #                 return siblings_kurz
+    #     else:
+    #         raise Exception(f'{attr_name_long_or_kurz} not recognized as a valid `attr_name_long_or_kurz`.')
 
-    def getMutableAttributeNames(self, long_or_kurz = 'kurz'):
-        names = []
-        # We must loop through all attributes and check mutability
-        for attr_name_long in self.getInputAttributeNames('long'):
-            attr_obj = self.attributes_long[attr_name_long]
-            if attr_obj.node_type == 'input' and attr_obj.mutability != False:
-                if long_or_kurz == 'long':
-                    names.append(attr_obj.attr_name_long)
-                elif long_or_kurz == 'kurz':
-                    names.append(attr_obj.attr_name_kurz)
-                else:
-                    raise Exception(f'{long_or_kurz} not recognized as a valid `long_or_kurz`.')
-        return np.array(names)
+    # def getMutableAttributeNames(self, long_or_kurz = 'kurz'):
+    #     names = []
+    #     # We must loop through all attributes and check mutability
+    #     for attr_name_long in self.getInputAttributeNames('long'):
+    #         attr_obj = self.attributes_long[attr_name_long]
+    #         if attr_obj.node_type == 'input' and attr_obj.mutability != False:
+    #             if long_or_kurz == 'long':
+    #                 names.append(attr_obj.attr_name_long)
+    #             elif long_or_kurz == 'kurz':
+    #                 names.append(attr_obj.attr_name_kurz)
+    #             else:
+    #                 raise Exception(f'{long_or_kurz} not recognized as a valid `long_or_kurz`.')
+    #     return np.array(names)
 
-    def getOneHotAttributesNames(self, long_or_kurz = 'kurz'):
-        tmp = self.getDictOfSiblings(long_or_kurz)
-        names = []
-        for key1 in tmp.keys():
-            for key2 in tmp[key1].keys():
-                names.extend(tmp[key1][key2])
-        return np.array(names)
+    # def getOneHotAttributesNames(self, long_or_kurz = 'kurz'):
+    #     tmp = self.getDictOfSiblings(long_or_kurz)
+    #     names = []
+    #     for key1 in tmp.keys():
+    #         for key2 in tmp[key1].keys():
+    #             names.extend(tmp[key1][key2])
+    #     return np.array(names)
 
-    def getNonHotAttributesNames(self, long_or_kurz = 'kurz'):
-        a = self.getInputAttributeNames(long_or_kurz)
-        b = self.getOneHotAttributesNames(long_or_kurz)
-        return np.setdiff1d(a,b)
+    # def getNonHotAttributesNames(self, long_or_kurz = 'kurz'):
+    #     a = self.getInputAttributeNames(long_or_kurz)
+    #     b = self.getOneHotAttributesNames(long_or_kurz)
+    #     return np.setdiff1d(a,b)
 
-    def define_attributes(self):
-        """
-        Method that defines the attributes based on the MACE methodology and the loading for the rest of the methods
-        """
-        attributes = {}        
-        old_attributes = list(self.train_df.columns)
-        new_attributes = list(self.transformed_train_df.columns)
+    # def define_attributes(self):
+    #     """
+    #     Method that defines the attributes based on the MACE methodology and the loading for the rest of the methods
+    #     """
+    #     attributes = {}        
+    #     old_attributes = list(self.train_df.columns)
+    #     new_attributes = list(self.transformed_train_df.columns)
 
-        for old_col_idx, old_col in enumerate(old_attributes):
+    #     for old_col_idx, old_col in enumerate(old_attributes):
 
-            any_old_col = [col for col in self.feat_type_mace.keys() if old_col in col][0]
-            old_col_type = self.feat_type_mace[any_old_col]
+    #         any_old_col = [col for col in self.feat_type_mace.keys() if old_col in col][0]
+    #         old_col_type = self.feat_type_mace[any_old_col]
         
-            if old_col_type in ['binary', 'numeric-int', 'numeric-real']:
-                parent_name_long = -1
-                parent_name_kurz = -1
-            else:
-                parent_name_long = -1
-                parent_name_kurz = -1
-                old_col_type = 'categorical'
+    #         if old_col_type in ['binary', 'numeric-int', 'numeric-real']:
+    #             parent_name_long = -1
+    #             parent_name_kurz = -1
+    #         else:
+    #             parent_name_long = -1
+    #             parent_name_kurz = -1
+    #             old_col_type = 'categorical'
 
-            old_col_actionability = self.feat_directionality_mace[any_old_col]
-            old_col_mutability = True if self.feat_directionality_mace[any_old_col] != 'none' else False
-            attributes[old_col] = DatasetAttribute(
-                attr_name_long = old_col,
-                attr_name_kurz = f'x{old_col_idx}',
-                attr_type = old_col_type,
-                node_type = 'input',
-                actionability = old_col_actionability,
-                mutability = old_col_mutability,
-                parent_name_long = parent_name_long,
-                parent_name_kurz = parent_name_kurz,
-                lower_bound = self.train_df[old_col].min(),
-                upper_bound = self.train_df[old_col].max())
+    #         old_col_actionability = self.feat_directionality_mace[any_old_col]
+    #         old_col_mutability = True if self.feat_directionality_mace[any_old_col] != 'none' else False
+    #         attributes[old_col] = DatasetAttribute(
+    #             attr_name_long = old_col,
+    #             attr_name_kurz = f'x{old_col_idx}',
+    #             attr_type = old_col_type,
+    #             node_type = 'input',
+    #             actionability = old_col_actionability,
+    #             mutability = old_col_mutability,
+    #             parent_name_long = parent_name_long,
+    #             parent_name_kurz = parent_name_kurz,
+    #             lower_bound = self.train_df[old_col].min(),
+    #             upper_bound = self.train_df[old_col].max())
 
-        for new_col in new_attributes:
+    #     for new_col in new_attributes:
             
-            old_col = [col for col in attributes.keys() if col in new_col][0]
-            new_attr_type = self.feat_type_mace[new_col]
-            old_col_name_long = old_col
-            old_attr_name_long = attributes[old_col_name_long].attr_name_long
-            old_attr_name_kurz = attributes[old_col_name_long].attr_name_kurz
-            old_attr_type = attributes[old_col_name_long].attr_type
-            old_node_type = attributes[old_col_name_long].node_type
-            old_actionability = attributes[old_col_name_long].actionability
-            old_mutability = attributes[old_col_name_long].mutability
-            old_parent_name_long = attributes[old_col_name_long].parent_name_long
-            old_parent_name_kurz = attributes[old_col_name_long].parent_name_kurz
-            if 'categorical' in new_attr_type or 'ordinal' in new_attr_type:
-                if 'categorical' in new_attr_type:
-                    feat_str = 'cat'
-                elif 'ordinal' in new_attr_type:
-                    feat_str = 'ord'
-                col_unique_val = int(float(new_col.split('_')[-1]))
-                new_attr_type = new_attr_type
-                new_node_type = old_node_type
-                new_actionability = old_actionability
-                new_mutability = old_mutability
-                new_parent_name_long = old_attr_name_long
-                new_parent_name_kurz = old_attr_name_kurz
-                attributes[new_col] = DatasetAttribute(
-                    attr_name_long = new_col,
-                    attr_name_kurz = f'{old_attr_name_kurz}_{feat_str}_{col_unique_val}',
-                    attr_type = new_attr_type,
-                    node_type = new_node_type,
-                    actionability = new_actionability,
-                    mutability = new_mutability,
-                    parent_name_long = new_parent_name_long,
-                    parent_name_kurz = new_parent_name_kurz,
-                    lower_bound = self.transformed_train_df[new_col].min(),
-                    upper_bound = self.transformed_train_df[new_col].max())
-            elif 'numeric' in new_attr_type:
-                del attributes[old_col]
-                attributes[new_col] = DatasetAttribute(
-                    attr_name_long = old_attr_name_long,
-                    attr_name_kurz = old_attr_name_kurz,
-                    attr_type = new_attr_type,
-                    node_type = old_node_type,
-                    actionability = old_actionability,
-                    mutability = old_mutability,
-                    parent_name_long = old_parent_name_long,
-                    parent_name_kurz = old_parent_name_kurz,
-                    lower_bound = self.transformed_train_df[new_col].min(),
-                    upper_bound = self.transformed_train_df[new_col].max())
+    #         old_col = [col for col in attributes.keys() if col in new_col][0]
+    #         new_attr_type = self.feat_type_mace[new_col]
+    #         old_col_name_long = old_col
+    #         old_attr_name_long = attributes[old_col_name_long].attr_name_long
+    #         old_attr_name_kurz = attributes[old_col_name_long].attr_name_kurz
+    #         old_attr_type = attributes[old_col_name_long].attr_type
+    #         old_node_type = attributes[old_col_name_long].node_type
+    #         old_actionability = attributes[old_col_name_long].actionability
+    #         old_mutability = attributes[old_col_name_long].mutability
+    #         old_parent_name_long = attributes[old_col_name_long].parent_name_long
+    #         old_parent_name_kurz = attributes[old_col_name_long].parent_name_kurz
+    #         if 'categorical' in new_attr_type or 'ordinal' in new_attr_type:
+    #             if 'categorical' in new_attr_type:
+    #                 feat_str = 'cat'
+    #             elif 'ordinal' in new_attr_type:
+    #                 feat_str = 'ord'
+    #             col_unique_val = int(float(new_col.split('_')[-1]))
+    #             new_attr_type = new_attr_type
+    #             new_node_type = old_node_type
+    #             new_actionability = old_actionability
+    #             new_mutability = old_mutability
+    #             new_parent_name_long = old_attr_name_long
+    #             new_parent_name_kurz = old_attr_name_kurz
+    #             attributes[new_col] = DatasetAttribute(
+    #                 attr_name_long = new_col,
+    #                 attr_name_kurz = f'{old_attr_name_kurz}_{feat_str}_{col_unique_val}',
+    #                 attr_type = new_attr_type,
+    #                 node_type = new_node_type,
+    #                 actionability = new_actionability,
+    #                 mutability = new_mutability,
+    #                 parent_name_long = new_parent_name_long,
+    #                 parent_name_kurz = new_parent_name_kurz,
+    #                 lower_bound = self.transformed_train_df[new_col].min(),
+    #                 upper_bound = self.transformed_train_df[new_col].max())
+    #         elif 'numeric' in new_attr_type:
+    #             del attributes[old_col]
+    #             attributes[new_col] = DatasetAttribute(
+    #                 attr_name_long = old_attr_name_long,
+    #                 attr_name_kurz = old_attr_name_kurz,
+    #                 attr_type = new_attr_type,
+    #                 node_type = old_node_type,
+    #                 actionability = old_actionability,
+    #                 mutability = old_mutability,
+    #                 parent_name_long = old_parent_name_long,
+    #                 parent_name_kurz = old_parent_name_kurz,
+    #                 lower_bound = self.transformed_train_df[new_col].min(),
+    #                 upper_bound = self.transformed_train_df[new_col].max())
 
-        for old_col in old_attributes:
-            any_old_col = [col for col in self.feat_type_mace.keys() if old_col in col][0]
-            old_col_type = self.feat_type_mace[any_old_col]
-            if old_col_type in ['sub-categorical','sub-ordinal']:
-                del attributes[old_col]
+    #     for old_col in old_attributes:
+    #         any_old_col = [col for col in self.feat_type_mace.keys() if old_col in col][0]
+    #         old_col_type = self.feat_type_mace[any_old_col]
+    #         if old_col_type in ['sub-categorical','sub-ordinal']:
+    #             del attributes[old_col]
 
-        col_name = self.label_name[0]
-        attributes[col_name] = DatasetAttribute(attr_name_long = col_name, attr_name_kurz = 'y', attr_type = 'binary', node_type = 'output', actionability = 'none',
-                                                   mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = min(self.train_target), upper_bound = max(self.train_target))
+    #     col_name = self.label_name[0]
+    #     attributes[col_name] = DatasetAttribute(attr_name_long = col_name, attr_name_kurz = 'y', attr_type = 'binary', node_type = 'output', actionability = 'none',
+    #                                                mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = min(self.train_target), upper_bound = max(self.train_target))
 
-        return attributes
+    #     return attributes
                 
 def load_dataset(data_str, train_fraction, seed, step):
     """
@@ -1239,7 +1122,7 @@ def load_dataset(data_str, train_fraction, seed, step):
                 mutability = True
             elif col_name == 'InstallmentRate':
                 attr_type = 'categorical'
-                actionability = 'Any'
+                actionability = 'any'
                 mutability = True
             elif col_name == 'Housing':
                 attr_type = 'categorical'
@@ -1306,7 +1189,7 @@ def load_dataset(data_str, train_fraction, seed, step):
                 mutability = False
             elif col_name == 'EconomicStatus':
                 attr_type = 'categorical'
-                actionability = 'Any'
+                actionability = 'any'
                 mutability = True
             elif col_name == 'CurEcoActivity':
                 attr_type = 'categorical'
