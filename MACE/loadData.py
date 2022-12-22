@@ -550,7 +550,89 @@ def loadDataset(dataset_name, return_one_hot, load_from_cache = False, debug_fla
                 parent_name_kurz = -1,
                 lower_bound = data_frame_non_hot[col_name].min(),
                 upper_bound = data_frame_non_hot[col_name].max())
+    
+    elif dataset_name == 'kdd_census':
+        binary = ['Sex','Race']
+        categorical = ['Industry','Occupation']
+        ordinal = []
+        continuous = ['Age','WageHour','CapitalGain','CapitalLoss','Dividends','WorkWeeksYear']
+        input_cols = binary + categorical + ordinal + continuous
+        label = ['Label']
+        data_frame_non_hot = pd.read_csv(dataset_dir+'kdd_census/preprocessed_kdd_census.csv', index_col=0)
+        data_frame_non_hot = data_frame_non_hot.reset_index(drop=True)
+        attributes_non_hot = {}
+        input_cols, output_col = getInputOutputColumns(data_frame_non_hot)
+        col_name = output_col
+        attributes_non_hot[col_name] = DatasetAttribute(
+            attr_name_long = col_name,
+            attr_name_kurz = 'y',
+            attr_type = 'binary',
+            node_type = 'output',
+            actionability = 'none',
+            mutability = False,
+            parent_name_long = -1,
+            parent_name_kurz = -1,
+            lower_bound = data_frame_non_hot[col_name].min(),
+            upper_bound = data_frame_non_hot[col_name].max())
         
+        col_name = label[0]
+        attributes_non_hot[col_name] = DatasetAttribute(attr_name_long = col_name, attr_name_kurz = 'y', attr_type = 'binary', node_type = 'output', actionability = 'none',
+                                                   mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = df[col_name].min(), upper_bound = df[col_name].max())
+        for col_idx, col_name in enumerate(input_cols):
+
+            if col_name == 'Sex':
+                attr_type = 'binary'
+                actionability = 'none' # 'none'
+                mutability = False
+            elif col_name == 'Race':
+                attr_type = 'binary'
+                actionability = 'none' # 'none'
+                mutability = False
+            elif col_name == 'Industry':
+                attr_type = 'categorical'
+                actionability = 'any' # 'none'
+                mutability = True
+            elif col_name == 'Occupation':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Age':
+                attr_type = 'numeric-real'
+                actionability = 'same-or-increase'
+                mutability = True
+            elif col_name == 'WageHour':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'CapitalGain':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'CapitalLoss':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Dividends':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'WorkWeeksYear':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+
+            attributes_non_hot[col_name] = DatasetAttribute(
+                attr_name_long = col_name,
+                attr_name_kurz = f'x{col_idx}',
+                attr_type = attr_type,
+                node_type = 'input',
+                actionability = actionability,
+                mutability = mutability,
+                parent_name_long = -1,
+                parent_name_kurz = -1,
+                lower_bound = data_frame_non_hot[col_name].min(),
+                upper_bound = data_frame_non_hot[col_name].max())
+
     elif dataset_name == 'german':
         binary = ['Sex','Single','Unemployed']
         categorical = ['PurposeOfLoan','InstallmentRate','Housing']
@@ -619,6 +701,855 @@ def loadDataset(dataset_name, return_one_hot, load_from_cache = False, debug_fla
                 lower_bound = data_frame_non_hot[col_name].min(),
                 upper_bound = data_frame_non_hot[col_name].max())
     
+    elif dataset_name == 'dutch':
+        binary = ['Sex']
+        categorical = ['HouseholdPosition','HouseholdSize','Country','EconomicStatus','CurEcoActivity','MaritalStatus']
+        ordinal = ['EducationLevel']
+        continuous = ['Age']
+        input_cols = binary + categorical + ordinal + continuous
+        label = ['Occupation']
+        data_frame_non_hot = pd.read_csv(dataset_dir+'dutch/preprocessed_dutch.csv', index_col=0)
+        data_frame_non_hot = data_frame_non_hot.reset_index(drop=True)
+        attributes_non_hot = {}
+        input_cols, output_col = getInputOutputColumns(data_frame_non_hot)
+        col_name = output_col
+        attributes_non_hot[col_name] = DatasetAttribute(
+            attr_name_long = col_name,
+            attr_name_kurz = 'y',
+            attr_type = 'binary',
+            node_type = 'output',
+            actionability = 'none',
+            mutability = False,
+            parent_name_long = -1,
+            parent_name_kurz = -1,
+            lower_bound = data_frame_non_hot[col_name].min(),
+            upper_bound = data_frame_non_hot[col_name].max())
+        
+        col_name = label[0]
+        attributes_non_hot[col_name] = DatasetAttribute(attr_name_long = col_name, attr_name_kurz = 'y', attr_type = 'binary', node_type = 'output', actionability = 'none',
+                                                   mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = df[col_name].min(), upper_bound = df[col_name].max())
+        for col_idx, col_name in enumerate(input_cols):
+            if col_name == 'Sex':
+                attr_type = 'binary'
+                actionability = 'none'
+                mutability = False
+            elif col_name == 'HouseholdPosition':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'HouseholdSize':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Country':
+                attr_type = 'categorical'
+                actionability = 'none'
+                mutability = False
+            elif col_name == 'EconomicStatus':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'CurEcoActivity':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'MaritalStatus':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'EducationLevel':
+                attr_type = 'ordinal'
+                actionability = 'same-or-increase'
+                mutability = True
+            elif col_name == 'Age':
+                attr_type = 'numeric-real'
+                actionability = 'same-or-increase'
+                mutability = True
+            
+            attributes_non_hot[col_name] = DatasetAttribute(
+                attr_name_long = col_name,
+                attr_name_kurz = f'x{col_idx}',
+                attr_type = attr_type,
+                node_type = 'input',
+                actionability = actionability,
+                mutability = mutability,
+                parent_name_long = -1,
+                parent_name_kurz = -1,
+                lower_bound = data_frame_non_hot[col_name].min(),
+                upper_bound = data_frame_non_hot[col_name].max())
+        
+    elif dataset_name == 'bank':
+        binary = ['Default','Housing','Loan']
+        categorical = ['Job','MaritalStatus','Education','Contact','Month','Poutcome']
+        ordinal = ['AgeGroup']
+        continuous = ['Balance','Day','Duration','Campaign','Pdays','Previous']
+        input_cols = binary + categorical + ordinal + continuous
+        label = ['Subscribed']
+        data_frame_non_hot = pd.read_csv(dataset_dir+'bank/preprocessed_bank.csv', index_col=0)
+        data_frame_non_hot = data_frame_non_hot.reset_index(drop=True)
+        attributes_non_hot = {}
+        input_cols, output_col = getInputOutputColumns(data_frame_non_hot)
+        col_name = output_col
+        attributes_non_hot[col_name] = DatasetAttribute(
+            attr_name_long = col_name,
+            attr_name_kurz = 'y',
+            attr_type = 'binary',
+            node_type = 'output',
+            actionability = 'none',
+            mutability = False,
+            parent_name_long = -1,
+            parent_name_kurz = -1,
+            lower_bound = data_frame_non_hot[col_name].min(),
+            upper_bound = data_frame_non_hot[col_name].max())
+        
+        col_name = label[0]
+        attributes_non_hot[col_name] = DatasetAttribute(attr_name_long = col_name, attr_name_kurz = 'y', attr_type = 'binary', node_type = 'output', actionability = 'none',
+                                                   mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = df[col_name].min(), upper_bound = df[col_name].max())
+        for col_idx, col_name in enumerate(input_cols):
+
+            if col_name == 'Default':
+                attr_type = 'binary'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Housing':
+                attr_type = 'binary'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Loan':
+                attr_type = 'binary'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Job':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'MaritalStatus':
+                attr_type = 'categorical'
+                actionability = 'none'
+                mutability = False
+            elif col_name == 'Education':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Contact':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Month':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Poutcome':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'AgeGroup':
+                attr_type = 'ordinal'
+                actionability = 'none'
+                mutability = False
+            elif col_name == 'Balance':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Day':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Duration':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Campaign':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Pdays':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Previous':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+
+            attributes_non_hot[col_name] = DatasetAttribute(
+                attr_name_long = col_name,
+                attr_name_kurz = f'x{col_idx}',
+                attr_type = attr_type,
+                node_type = 'input',
+                actionability = actionability,
+                mutability = mutability,
+                parent_name_long = -1,
+                parent_name_kurz = -1,
+                lower_bound = data_frame_non_hot[col_name].min(),
+                upper_bound = data_frame_non_hot[col_name].max())
+
+    elif dataset_name == 'credit':
+        binary = ['isMale','isMarried','HasHistoryOfOverduePayments']
+        categorical = []
+        ordinal = ['TotalOverdueCounts','TotalMonthsOverdue','AgeGroup','EducationLevel']
+        continuous = ['MaxBillAmountOverLast6Months','MaxPaymentAmountOverLast6Months','MonthsWithZeroBalanceOverLast6Months',
+                'MonthsWithLowSpendingOverLast6Months','MonthsWithHighSpendingOverLast6Months','MostRecentBillAmount',
+                'MostRecentPaymentAmount']
+        input_cols = binary + categorical + ordinal + continuous
+        label = ['NoDefaultNextMonth (label)']
+        data_frame_non_hot = pd.read_csv(dataset_dir+'/credit/preprocessed_credit.csv')
+        data_frame_non_hot = data_frame_non_hot.reset_index(drop=True)
+        attributes_non_hot = {}
+
+        col_name = label[0]
+        attributes_non_hot[col_name] = DatasetAttribute(attr_name_long = col_name, attr_name_kurz = 'y', attr_type = 'binary', node_type = 'output', actionability = 'none',
+                                                   mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = data_frame_non_hot[col_name].min(), upper_bound = data_frame_non_hot[col_name].max())
+        for col_idx, col_name in enumerate(input_cols):
+
+            if col_name == 'isMale':
+                attr_type = 'binary'
+                actionability = 'none'
+                mutability = False
+            elif col_name == 'isMarried':
+                attr_type = 'binary'
+                actionability = 'none'
+                mutability = False
+            elif col_name == 'HasHistoryOfOverduePayments':
+                attr_type = 'binary'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'TotalOverdueCounts':
+                attr_type = 'ordinal'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'TotalMonthsOverdue':
+                attr_type = 'ordinal'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'AgeGroup':
+                attr_type = 'ordinal'
+                actionability = 'same-or-increase'
+                mutability = True
+            elif col_name == 'EducationLevel':
+                attr_type = 'ordinal'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'MaxBillAmountOverLast6Months':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'MaxPaymentAmountOverLast6Months':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'MonthsWithZeroBalanceOverLast6Months':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'MonthsWithLowSpendingOverLast6Months':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'MonthsWithHighSpendingOverLast6Months':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'MostRecentBillAmount':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'MostRecentPaymentAmount':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            
+            attributes_non_hot[col_name] = DatasetAttribute(
+                attr_name_long = col_name,
+                attr_name_kurz = f'x{col_idx}',
+                attr_type = attr_type,
+                node_type = 'input',
+                actionability = actionability,
+                mutability = mutability,
+                parent_name_long = -1,
+                parent_name_kurz = -1,
+                lower_bound = data_frame_non_hot[col_name].min(),
+                upper_bound = data_frame_non_hot[col_name].max())
+
+    elif dataset_name == 'compass':
+        binary = ['Race','Sex','ChargeDegree']
+        categorical = []
+        ordinal = ['PriorsCount','AgeGroup']
+        continuous = []
+        input_cols = binary + categorical + ordinal + continuous
+        label = ['TwoYearRecid (label)']
+        data_frame_non_hot = pd.read_csv(dataset_dir+'/compass/preprocessed_compass.csv')
+        data_frame_non_hot = data_frame_non_hot.reset_index(drop=True)
+        attributes_non_hot = {}
+    
+        """
+        MACE variables / attributes
+        """
+        col_name = label[0]
+        attributes_non_hot[col_name] = DatasetAttribute(attr_name_long = col_name, attr_name_kurz = 'y', attr_type = 'binary', node_type = 'output', actionability = 'none',
+                                                   mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = data_frame_non_hot[col_name].min(), upper_bound = data_frame_non_hot[col_name].max())
+        for col_idx, col_name in enumerate(input_cols):
+            
+            if col_name == 'Race':
+                attr_type = 'binary'
+                actionability = 'none'
+                mutability = False
+            elif col_name == 'Sex':
+                attr_type = 'binary'
+                actionability = 'none'
+                mutability = False
+            elif col_name == 'ChargeDegree':
+                attr_type = 'binary'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'PriorsCount':
+                attr_type = 'ordinal'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'AgeGroup':
+                attr_type = 'ordinal'
+                actionability = 'same-or-increase'
+                mutability = True
+            
+            attributes_non_hot[col_name] = DatasetAttribute(
+                attr_name_long = col_name,
+                attr_name_kurz = f'x{col_idx}',
+                attr_type = attr_type,
+                node_type = 'input',
+                actionability = actionability,
+                mutability = mutability,
+                parent_name_long = -1,
+                parent_name_kurz = -1,
+                lower_bound = data_frame_non_hot[col_name].min(),
+                upper_bound = data_frame_non_hot[col_name].max())
+
+    elif dataset_name == 'diabetes':
+        binary = ['DiabetesMed']
+        categorical = ['Race','Sex','A1CResult','Metformin','Chlorpropamide','Glipizide','Rosiglitazone','Acarbose','Miglitol']
+        ordinal = ['AgeGroup']
+        continuous = ['TimeInHospital','NumProcedures','NumMedications','NumEmergency']
+        input_cols = binary + categorical + ordinal + continuous
+        label = ['Label']
+        data_frame_non_hot = pd.read_csv(dataset_dir+'/diabetes/preprocessed_diabetes.csv')
+        attributes_non_hot = {}
+    
+        """
+        MACE variables / attributes
+        """
+        col_name = label[0]
+        attributes_non_hot[col_name] = DatasetAttribute(attr_name_long = col_name, attr_name_kurz = 'y', attr_type = 'binary', node_type = 'output', actionability = 'none',
+                                                   mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = data_frame_non_hot[col_name].min(), upper_bound = data_frame_non_hot[col_name].max())
+        for col_idx, col_name in enumerate(input_cols):
+            
+            if col_name == 'DiabetesMed':
+                attr_type = 'binary'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Race':
+                attr_type = 'categorical'
+                actionability = 'none'
+                mutability = False
+            elif col_name == 'Sex':
+                attr_type = 'categorical'
+                actionability = 'none'
+                mutability = False
+            elif col_name == 'A1CResult':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Metformin':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Chlorpropamide':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Glipizide':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Rosiglitazone':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Acarbose':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Miglitol':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'AgeGroup':
+                attr_type = 'ordinal'
+                actionability = 'same-or-increase'
+                mutability = True
+            elif col_name == 'TimeInHospital':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'NumProcedures':
+                attr_type = 'numeric-int'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'NumMedications':
+                attr_type = 'numeric-int'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'NumEmergency':
+                attr_type = 'numeric-int'
+                actionability = 'any'
+                mutability = True
+            
+            attributes_non_hot[col_name] = DatasetAttribute(
+                attr_name_long = col_name,
+                attr_name_kurz = f'x{col_idx}',
+                attr_type = attr_type,
+                node_type = 'input',
+                actionability = actionability,
+                mutability = mutability,
+                parent_name_long = -1,
+                parent_name_kurz = -1,
+                lower_bound = data_frame_non_hot[col_name].min(),
+                upper_bound = data_frame_non_hot[col_name].max())
+
+    elif dataset_name == 'student':
+        binary = ['School','Sex','AgeGroup','Address','FamilySize','ParentStatus','SchoolSupport','FamilySupport','ExtraPaid','ExtraActivities','Nursery','HigherEdu','Internet','Romantic']
+        categorical = ['MotherJob','FatherJob','SchoolReason']
+        ordinal = ['MotherEducation','FatherEducation']
+        continuous = ['TravelTime','ClassFailures','GoOut']
+        input_cols = binary + categorical + ordinal + continuous
+        label = ['Grade']
+        data_frame_non_hot = pd.read_csv(dataset_dir+'/student/preprocessed_student.csv')
+        data_frame_non_hot = data_frame_non_hot.reset_index(drop=True)
+        attributes_non_hot = {}
+    
+        """
+        MACE variables / attributes
+        """
+        col_name = label[0]
+        attributes_non_hot[col_name] = DatasetAttribute(attr_name_long = col_name, attr_name_kurz = 'y', attr_type = 'binary', node_type = 'output', actionability = 'none',
+                                                   mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = data_frame_non_hot[col_name].min(), upper_bound = data_frame_non_hot[col_name].max())
+        for col_idx, col_name in enumerate(input_cols):
+
+            if col_name == 'School':
+                attr_type = 'binary'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Sex':
+                attr_type = 'binary'
+                actionability = 'none'
+                mutability = False
+            elif col_name == 'AgeGroup':
+                attr_type = 'binary'
+                actionability = 'none'
+                mutability = False
+            elif col_name == 'Address':
+                attr_type = 'binary'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'FamilySize':
+                attr_type = 'binary'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'ParentStatus':
+                attr_type = 'binary'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'SchoolSupport':
+                attr_type = 'binary'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'FamilySupport':
+                attr_type = 'binary'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'ExtraPaid':
+                attr_type = 'binary'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'ExtraActivities':
+                attr_type = 'binary'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Nursery':
+                attr_type = 'binary'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'HigherEdu':
+                attr_type = 'binary'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Internet':
+                attr_type = 'binary'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Romantic':
+                attr_type = 'binary'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'NumEmergency':
+                attr_type = 'binary'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'MotherJob':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'FatherJob':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'SchoolReason':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'MotherEducation':
+                attr_type = 'ordinal'
+                actionability = 'same-or-increase'
+                mutability = True
+            elif col_name == 'FatherEducation':
+                attr_type = 'ordinal'
+                actionability = 'same-or-increase'
+                mutability = True
+            elif col_name == 'TravelTime':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'ClassFailures':
+                attr_type = 'numeric-int'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'GoOut':
+                attr_type = 'numeric-int'
+                actionability = 'any'
+                mutability = True
+            
+            attributes_non_hot[col_name] = DatasetAttribute(
+                attr_name_long = col_name,
+                attr_name_kurz = f'x{col_idx}',
+                attr_type = attr_type,
+                node_type = 'input',
+                actionability = actionability,
+                mutability = mutability,
+                parent_name_long = -1,
+                parent_name_kurz = -1,
+                lower_bound = data_frame_non_hot[col_name].min(),
+                upper_bound = data_frame_non_hot[col_name].max())
+        
+    elif dataset_name == 'oulad':
+        binary = ['Sex','Disability']
+        categorical = ['Region','CodeModule','CodePresentation','HighestEducation','IMDBand']
+        ordinal = ['AgeGroup']
+        continuous = ['NumPrevAttempts','StudiedCredits']
+        input_cols = binary + categorical + ordinal + continuous
+        label = ['Grade']
+        data_frame_non_hot = pd.read_csv(dataset_dir+'/oulad/preprocessed_oulad.csv')
+        data_frame_non_hot = data_frame_non_hot.reset_index(drop=True)
+        attributes_non_hot = {}
+        input_cols, output_col = getInputOutputColumns(data_frame_non_hot)
+        col_name = output_col
+        attributes_non_hot[col_name] = DatasetAttribute(
+            attr_name_long = col_name,
+            attr_name_kurz = 'y',
+            attr_type = 'binary',
+            node_type = 'output',
+            actionability = 'none',
+            mutability = False,
+            parent_name_long = -1,
+            parent_name_kurz = -1,
+            lower_bound = data_frame_non_hot[col_name].min(),
+            upper_bound = data_frame_non_hot[col_name].max())
+        
+        col_name = label[0]
+        attributes_non_hot[col_name] = DatasetAttribute(attr_name_long = col_name, attr_name_kurz = 'y', attr_type = 'binary', node_type = 'output', actionability = 'none',
+                                                   mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = df[col_name].min(), upper_bound = df[col_name].max())
+        for col_idx, col_name in enumerate(input_cols):
+
+            if col_name == 'Sex':
+                attr_type = 'binary'
+                actionability = 'none'
+                mutability = False
+            elif col_name == 'Disability':
+                attr_type = 'binary'
+                actionability = 'none'
+                mutability = False
+            elif col_name == 'Region':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'CodeModule':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'CodePresentation':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'HighestEducation':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'IMDBand':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'AgeGroup':
+                attr_type = 'ordinal'
+                actionability = 'same-or-increase'
+                mutability = True
+            elif col_name == 'NumPrevAttempts':
+                attr_type = 'numeric-int'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'StudiedCredits':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            
+            attributes_non_hot[col_name] = DatasetAttribute(
+                attr_name_long = col_name,
+                attr_name_kurz = f'x{col_idx}',
+                attr_type = attr_type,
+                node_type = 'input',
+                actionability = actionability,
+                mutability = mutability,
+                parent_name_long = -1,
+                parent_name_kurz = -1,
+                lower_bound = data_frame_non_hot[col_name].min(),
+                upper_bound = data_frame_non_hot[col_name].max())
+
+    elif dataset_name == 'law':
+        binary = ['WorkFullTime','Sex']
+        categorical = ['FamilyIncome','Tier','Race']
+        ordinal = []
+        continuous = ['Decile1stYear','Decile3rdYear','LSAT','UndergradGPA','FirstYearGPA','CumulativeGPA']
+        input_cols = binary + categorical + ordinal + continuous
+        label = ['BarExam']
+        data_frame_non_hot = pd.read_csv(dataset_dir+'/law/preprocessed_law.csv')
+        data_frame_non_hot = data_frame_non_hot.reset_index(drop=True)
+        attributes_non_hot = {}
+        input_cols, output_col = getInputOutputColumns(data_frame_non_hot)
+        col_name = output_col
+        attributes_non_hot[col_name] = DatasetAttribute(
+            attr_name_long = col_name,
+            attr_name_kurz = 'y',
+            attr_type = 'binary',
+            node_type = 'output',
+            actionability = 'none',
+            mutability = False,
+            parent_name_long = -1,
+            parent_name_kurz = -1,
+            lower_bound = data_frame_non_hot[col_name].min(),
+            upper_bound = data_frame_non_hot[col_name].max())
+        
+        col_name = label[0]
+        attributes_non_hot[col_name] = DatasetAttribute(attr_name_long = col_name, attr_name_kurz = 'y', attr_type = 'binary', node_type = 'output', actionability = 'none',
+                                                   mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = df[col_name].min(), upper_bound = df[col_name].max())
+        for col_idx, col_name in enumerate(input_cols):
+
+            if col_name == 'WorkFullTime':
+                attr_type = 'binary'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Sex':
+                attr_type = 'binary'
+                actionability = 'none'
+                mutability = False
+            elif col_name == 'FamilyIncome':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Tier':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Race':
+                attr_type = 'categorical'
+                actionability = 'none'
+                mutability = False
+            elif col_name == 'Decile1stYear':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Decile3rdYear':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'LSAT':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'UndergradGPA':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'FirstYearGPA':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'CumulativeGPA':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+
+            attributes_non_hot[col_name] = DatasetAttribute(
+                attr_name_long = col_name,
+                attr_name_kurz = f'x{col_idx}',
+                attr_type = attr_type,
+                node_type = 'input',
+                actionability = actionability,
+                mutability = mutability,
+                parent_name_long = -1,
+                parent_name_kurz = -1,
+                lower_bound = data_frame_non_hot[col_name].min(),
+                upper_bound = data_frame_non_hot[col_name].max())
+    
+    elif dataset_name == 'ionosphere':
+        binary = []
+        categorical = []
+        ordinal = []
+        continuous = ['0','2','4','5','6','7','26','30'] # Chosen based on MDI
+        input_cols = binary + categorical + ordinal + continuous
+        label = ['label']
+        data_frame_non_hot = pd.read_csv(dataset_dir+'/ionosphere/processed_ionosphere.csv',index_col=0)
+        data_frame_non_hot = data_frame_non_hot.reset_index(drop=True)
+        attributes_non_hot = {}
+        input_cols, output_col = getInputOutputColumns(data_frame_non_hot)
+        col_name = output_col
+        attributes_non_hot[col_name] = DatasetAttribute(
+            attr_name_long = col_name,
+            attr_name_kurz = 'y',
+            attr_type = 'binary',
+            node_type = 'output',
+            actionability = 'none',
+            mutability = False,
+            parent_name_long = -1,
+            parent_name_kurz = -1,
+            lower_bound = data_frame_non_hot[col_name].min(),
+            upper_bound = data_frame_non_hot[col_name].max())
+        
+        col_name = label[0]
+        attributes_non_hot[col_name] = DatasetAttribute(attr_name_long = col_name, attr_name_kurz = 'y', attr_type = 'binary', node_type = 'output', actionability = 'none',
+                                                   mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = df[col_name].min(), upper_bound = df[col_name].max())
+        for col_idx, col_name in enumerate(input_cols):
+
+            if col_name == '0':
+                attr_type = 'numeric-real'
+                actionability = 'none'
+                mutability = False
+            elif col_name == '2':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            elif col_name == '4':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            elif col_name == '5':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            elif col_name == '6':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            elif col_name == '7':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            elif col_name == '26':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            elif col_name == '30':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+        
+            attributes_non_hot[col_name] = DatasetAttribute(
+                attr_name_long = col_name,
+                attr_name_kurz = f'x{col_idx}',
+                attr_type = attr_type,
+                node_type = 'input',
+                actionability = actionability,
+                mutability = mutability,
+                parent_name_long = -1,
+                parent_name_kurz = -1,
+                lower_bound = data_frame_non_hot[col_name].min(),
+                upper_bound = data_frame_non_hot[col_name].max())
+    
+    elif dataset_name == 'heart':
+        binary = ['Sex','BloodSugar']
+        categorical = ['ChestPain']
+        ordinal = ['ECG']
+        continuous = ['Age','RestBloodPressure','Chol']
+        input_cols = binary + categorical + ordinal + continuous
+        label = ['class']
+        data_frame_non_hot = pd.read_csv(dataset_dir+'heart/preprocessed_heart.csv',index_col=0)
+        data_frame_non_hot = data_frame_non_hot.reset_index(drop=True)
+        attributes_non_hot = {}
+        input_cols, output_col = getInputOutputColumns(data_frame_non_hot)
+        col_name = output_col
+        attributes_non_hot[col_name] = DatasetAttribute(
+            attr_name_long = col_name,
+            attr_name_kurz = 'y',
+            attr_type = 'binary',
+            node_type = 'output',
+            actionability = 'none',
+            mutability = False,
+            parent_name_long = -1,
+            parent_name_kurz = -1,
+            lower_bound = data_frame_non_hot[col_name].min(),
+            upper_bound = data_frame_non_hot[col_name].max())
+        
+        col_name = label[0]
+        attributes_non_hot[col_name] = DatasetAttribute(attr_name_long = col_name, attr_name_kurz = 'y', attr_type = 'binary', node_type = 'output', actionability = 'none',
+                                                   mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = df[col_name].min(), upper_bound = df[col_name].max())
+        for col_idx, col_name in enumerate(input_cols):
+
+            if col_name == 'Sex':
+                attr_type = 'binary'
+                actionability = 'none'
+                mutability = False
+            elif col_name == 'BloodSugar':
+                attr_type = 'binary'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'ChestPain':
+                attr_type = 'categorical'
+                actionability = 'none'
+                mutability = False
+            elif col_name == 'ECG':
+                attr_type = 'ordinal'
+                actionability = 'none'
+                mutability = False
+            elif col_name == 'Age':
+                attr_type = 'numeric-real'
+                actionability = 'same-or-increase'
+                mutability = True
+            elif col_name == 'RestBloodPressure':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Chol':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            
+            attributes_non_hot[col_name] = DatasetAttribute(
+                attr_name_long = col_name,
+                attr_name_kurz = f'x{col_idx}',
+                attr_type = attr_type,
+                node_type = 'input',
+                actionability = actionability,
+                mutability = mutability,
+                parent_name_long = -1,
+                parent_name_kurz = -1,
+                lower_bound = data_frame_non_hot[col_name].min(),
+                upper_bound = data_frame_non_hot[col_name].max())
+
     elif dataset_name == 'synthetic_athlete':
         binary = ['Sex']
         categorical = ['Diet','Sport','TrainingTime']
@@ -675,6 +1606,75 @@ def loadDataset(dataset_name, return_one_hot, load_from_cache = False, debug_fla
                 lower_bound = data_frame_non_hot[col_name].min(),
                 upper_bound = data_frame_non_hot[col_name].max())
     
+    elif dataset_name == 'synthetic_disease':
+        binary = ['Smokes']
+        categorical = ['Diet','Stress']
+        ordinal = ['Weight']
+        continuous = ['Age','ExerciseMinutes','SleepHours']
+        input_cols = binary + categorical + ordinal + continuous
+        label = ['Label']
+        data_frame_non_hot = pd.read_csv(dataset_dir+'synthetic_disease/preprocessed_synthetic_disease.csv',index_col=0)
+        data_frame_non_hot = data_frame_non_hot.reset_index(drop=True)
+        attributes_non_hot = {}
+        input_cols, output_col = getInputOutputColumns(data_frame_non_hot)
+        col_name = output_col
+        attributes_non_hot[col_name] = DatasetAttribute(
+            attr_name_long = col_name,
+            attr_name_kurz = 'y',
+            attr_type = 'binary',
+            node_type = 'output',
+            actionability = 'none',
+            mutability = False,
+            parent_name_long = -1,
+            parent_name_kurz = -1,
+            lower_bound = data_frame_non_hot[col_name].min(),
+            upper_bound = data_frame_non_hot[col_name].max())
+        
+        col_name = label[0]
+        attributes_non_hot[col_name] = DatasetAttribute(attr_name_long = col_name, attr_name_kurz = 'y', attr_type = 'binary', node_type = 'output', actionability = 'none',
+                                                   mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = df[col_name].min(), upper_bound = df[col_name].max())
+        for col_idx, col_name in enumerate(input_cols):
+            if col_name == 'Smokes':
+                attr_type = 'binary'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Diet':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Stress':
+                attr_type = 'categorical'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Weight':
+                attr_type = 'ordinal'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'Age':
+                attr_type = 'numeric-real'
+                actionability = 'same-or-increase'
+                mutability = True
+            elif col_name == 'ExerciseMinutes':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+            elif col_name == 'SleepHours':
+                attr_type = 'numeric-real'
+                actionability = 'any'
+                mutability = True
+
+            attributes_non_hot[col_name] = DatasetAttribute(
+                attr_name_long = col_name,
+                attr_name_kurz = f'x{col_idx}',
+                attr_type = attr_type,
+                node_type = 'input',
+                actionability = actionability,
+                mutability = mutability,
+                parent_name_long = -1,
+                parent_name_kurz = -1,
+                lower_bound = data_frame_non_hot[col_name].min(),
+                upper_bound = data_frame_non_hot[col_name].max())
+
     else:
         raise Exception(f'{dataset_name} not recognized as a valid dataset.')
     

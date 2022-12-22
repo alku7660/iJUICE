@@ -56,6 +56,72 @@ def generateExplanations(
         getEpsilonInString(approach_string)
         )
 
+def runIndices(dataset_values, model_class_values, norm_values, approaches_values, batch_number, sample_count, gen_cf_for, process_id, stop=False):
+    for dataset_string in dataset_values:
+        print(f'\n\nExperimenting with dataset_string = `{dataset_string}`')
+        for model_class_string in model_class_values:
+            print(f'\tExperimenting with model_class_string = `{model_class_string}`')
+            for norm_type_string in norm_values:
+                print(f'\t\tExperimenting with norm_type_string = `{norm_type_string}`')
+                for approach_string in approaches_values:
+                    print(f'\t\t\tExperimenting with approach_string = `{approach_string}`')
+                    if model_class_string in {'tree', 'forest'}:
+                        one_hot = False
+                    elif model_class_string in {'lr', 'mlp'}:
+                        one_hot = True
+                    else:
+                        raise Exception(f'{model_class_string} not recognized as a valid `model_class_string`.')
+                    
+                    # EXPERIMENT FOLDER
+                    # experiment_name = f'{dataset_string}__{model_class_string}__{norm_type_string}__{approach_string}__batch{batch_number}__samples{sample_count}__pid{process_id}'
+                    # experiment_folder_name = f"_experiments/{datetime.now().strftime('%Y.%m.%d_%H.%M.%S')}__{experiment_name}"
+                    # explanation_folder_name = f'{experiment_folder_name}/__explanation_log'
+                    # minimum_distance_folder_name = f'{experiment_folder_name}/__minimum_distances'
+                    # os.mkdir(f'{experiment_folder_name}')
+                    # os.mkdir(f'{explanation_folder_name}')
+                    # os.mkdir(f'{minimum_distance_folder_name}')
+                    # log_file = open(f'{experiment_folder_name}/log_experiment.txt','w')
+
+                    # DATA FILES SAVE
+                    dataset_obj = loadData.loadDataset(dataset_string, return_one_hot = one_hot, load_from_cache = False, debug_flag = False) # Load the same dataset_obj
+                    # pickle.dump(dataset_obj, open(f'{experiment_folder_name}/_dataset_obj', 'wb'))
+                    X_train, X_test, y_train, y_test = dataset_obj.getTrainTestSplit() # Use the same data split as in the other baselines
+
+                    # MODEL TRAINING
+                    model_trained = loadModel.loadModelForDataset(model_class_string, dataset_string) # Cannot use same model as the one trained on other baselines
+                    
+                    # PREDICTIONS
+                    X_test_pred_labels = model_trained.predict(X_test)
+                    all_pred_data_df = X_test
+                    all_pred_data_df['y'] = X_test_pred_labels
+                    neg_pred_data_df = all_pred_data_df.where(all_pred_data_df['y'] == 0).dropna()
+                    pos_pred_data_df = all_pred_data_df.where(all_pred_data_df['y'] == 1).dropna()
+
+                    # batch_start_index = batch_number * sample_count
+                    # batch_end_index = (batch_number + 1) * sample_count
+                    # if gen_cf_for == 'neg_only':
+                    #     iterate_over_data_df = neg_pred_data_df[batch_start_index : batch_end_index] # choose only a subset to compare
+                    # elif gen_cf_for == 'pos_only':
+                    #     iterate_over_data_df = pos_pred_data_df[batch_start_index : batch_end_index] # choose only a subset to compare
+                    # elif gen_cf_for == 'neg_and_pos':
+                    #     iterate_over_data_df = all_pred_data_df[batch_start_index : batch_end_index] # choose only a subset to compare
+                    # else:
+                    #     raise Exception(f'{gen_cf_for} not recognized as a valid `gen_cf_for`.')
+
+                    if gen_cf_for == 'neg_only':
+                        idx_test = [idx for idx in batch_number if idx in neg_pred_data_df.index]
+                        iterate_over_data_df = neg_pred_data_df.loc[idx_test]# choose only a subset to compare
+                    elif gen_cf_for == 'pos_only':
+                        idx_test = [idx for idx in batch_number if idx in pos_pred_data_df.index]
+                        iterate_over_data_df = pos_pred_data_df.loc[idx_test] # choose only a subset to compare
+                    elif gen_cf_for == 'neg_and_pos':
+                        idx_test = [idx for idx in batch_number if idx in all_pred_data_df.index]
+                        iterate_over_data_df = all_pred_data_df.loc[idx_test] # choose only a subset to compare
+                    else:
+                        raise Exception(f'{gen_cf_for} not recognized as a valid `gen_cf_for`.')
+
+                    pickle.dump(iterate_over_data_df, open(f'{results_obj_dir}/{dataset_string}/{dataset_string}_mace_df.pkl', 'wb'))
+
 def runExperiments(dataset_values, model_class_values, norm_values, approaches_values, batch_number, sample_count, gen_cf_for, process_id, stop=False):
     for dataset_string in dataset_values:
         print(f'\n\nExperimenting with dataset_string = `{dataset_string}`')
@@ -122,7 +188,7 @@ def runExperiments(dataset_values, model_class_values, norm_values, approaches_v
 
                     pickle.dump(iterate_over_data_df, open(f'{results_obj_dir}/{dataset_string}/{dataset_string}_mace_df.pkl', 'wb'))
                     if stop:
-                        sys.exit()
+                        return
                     iterate_over_data_dict = iterate_over_data_df.T.to_dict()
                     explanation_counter = 1
                     all_minimum_distances = {}
@@ -183,20 +249,24 @@ def runExperiments(dataset_values, model_class_values, norm_values, approaches_v
 if __name__ == '__main__':
     dataset_model_dict = {'adult': 'mlp', 'kdd_census': 'forest', 'german':'forest', 'dutch':'forest',
                     'bank':'forest', 'credit':'mlp', 'compass':'mlp', 'diabetes':'mlp', 'ionosphere':'forest',
-                    'student':'forest', 'oulad':'mlp', 'law':'mlp', 'synthetic_athlete':'mlp', 'synthetic_disease':'mlp'}
+                    'student':'forest', 'oulad':'mlp', 'law':'mlp', 'synthetic_athlete':'mlp', 'synthetic_disease':'mlp', 'heart':'rf'}
     dataset_undesired_class = {'adult': 'neg_only', 'kdd_census': 'neg_only', 'german':'pos_only', 'dutch':'neg_only',
                     'bank':'neg_only', 'credit':'pos_only', 'compass':'pos_only', 'diabetes':'pos_only', 'ionosphere':'neg_only',
-                    'student':'neg_only', 'oulad':'neg_only', 'law':'neg_only', 'synthetic_athlete':'neg_only', 'synthetic_disease':'pos_only'}    
-    dataset_try = ['adult']
+                    'student':'neg_only', 'oulad':'neg_only', 'law':'neg_only', 'synthetic_athlete':'neg_only', 'synthetic_disease':'pos_only', 'heart':'pos_only'}    
+    dataset_try = ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','ionosphere','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
     method_try = ['nn']
-    model_class_try = [dataset_model_dict[dataset_try[0]]] 
     norm_type_try = ['zero_norm']
     approach_try = ['MACE_eps_1e-3']
-    batch_number_try = load_obj(f'{dataset_try[0]}/', f'{dataset_try[0]}_idx_list.pkl')            
-    sample_count_try = 5
-    gen_cf_for_try = dataset_undesired_class[dataset_try[0]]
     process_id_try = '0'
-    only_indices = False
-    cf_df, sample_df, time_df = runExperiments(dataset_try, model_class_try, norm_type_try, approach_try, batch_number_try, sample_count_try, gen_cf_for_try, process_id_try, stop=only_indices)
-    pickle.dump(cf_df, open(f'{results_obj_dir}/{dataset_try[0]}/{dataset_try[0]}_mace_cf_df.pkl', 'wb'))
-    pickle.dump(time_df, open(f'{results_obj_dir}/{dataset_try[0]}/{dataset_try[0]}_mace_time_df.pkl', 'wb'))
+    sample_count_try = 5
+    only_indices = True
+    for i in range(len(dataset_try)):
+        model_class_try = [dataset_model_dict[dataset_try[i]]] 
+        batch_number_try = load_obj(f'{dataset_try[i]}/', f'{dataset_try[i]}_idx_list.pkl')            
+        gen_cf_for_try = dataset_undesired_class[dataset_try[i]]
+        if only_indices:
+            runIndices([dataset_try[i]], model_class_try, norm_type_try, approach_try, batch_number_try, sample_count_try, gen_cf_for_try, process_id_try, stop=only_indices)
+        else:
+            cf_df, sample_df, time_df = runExperiments([dataset_try[i]], model_class_try, norm_type_try, approach_try, batch_number_try, sample_count_try, gen_cf_for_try, process_id_try, stop=only_indices)
+            pickle.dump(cf_df, open(f'{results_obj_dir}/{dataset_try[i]}/{dataset_try[i]}_mace_cf_df.pkl', 'wb'))
+            pickle.dump(time_df, open(f'{results_obj_dir}/{dataset_try[i]}/{dataset_try[i]}_mace_time_df.pkl', 'wb'))
