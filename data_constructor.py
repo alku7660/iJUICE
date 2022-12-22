@@ -1021,12 +1021,13 @@ def load_dataset(data_str, train_fraction, seed, step):
     
     elif data_str == 'bank':
         binary = ['Default','Housing','Loan']
-        categorical = ['Job','MaritalStatus','Education','Contact','Month','Poutcome']
+        categorical = ['Job','MaritalStatus','Education','Contact','Poutcome']
         ordinal = ['AgeGroup']
         continuous = ['Balance','Day','Duration','Campaign','Pdays','Previous']
         input_cols = binary + categorical + ordinal + continuous
         label = ['Subscribed']
         df = pd.read_csv(dataset_dir+'bank/preprocessed_bank.csv', index_col=0)
+        df = df[input_cols + label]
 
         """
         MACE variables / attributes
@@ -1123,7 +1124,7 @@ def load_dataset(data_str, train_fraction, seed, step):
                 'MostRecentPaymentAmount']
         input_cols = binary + categorical + ordinal + continuous
         label = ['NoDefaultNextMonth (label)']
-        df = pd.read_csv(dataset_dir+'/credit/preprocessed_credit.csv')
+        df = pd.read_csv(dataset_dir+'/credit/preprocessed_credit.csv', index_col=0)
 
         """
         MACE variables / attributes
@@ -1211,7 +1212,7 @@ def load_dataset(data_str, train_fraction, seed, step):
         continuous = []
         input_cols = binary + categorical + ordinal + continuous
         label = ['TwoYearRecid (label)']
-        df = pd.read_csv(dataset_dir+'/compass/preprocessed_compass.csv')
+        df = pd.read_csv(dataset_dir+'/compass/preprocessed_compass.csv', index_col=0)
     
         """
         MACE variables / attributes
@@ -1262,7 +1263,7 @@ def load_dataset(data_str, train_fraction, seed, step):
         continuous = ['TimeInHospital','NumProcedures','NumMedications','NumEmergency']
         input_cols = binary + categorical + ordinal + continuous
         label = ['Label']
-        df = pd.read_csv(dataset_dir+'/diabetes/preprocessed_diabetes.csv')
+        df = pd.read_csv(dataset_dir+'/diabetes/preprocessed_diabetes.csv', index_col=0)
     
         """
         MACE variables / attributes
@@ -1347,13 +1348,14 @@ def load_dataset(data_str, train_fraction, seed, step):
                 upper_bound = df[col_name].max())
 
     elif data_str == 'student':
-        binary = ['School','Sex','AgeGroup','Address','FamilySize','ParentStatus','SchoolSupport','FamilySupport','ExtraPaid','ExtraActivities','Nursery','HigherEdu','Internet','Romantic']
+        binary = ['School','Sex','AgeGroup','FamilySize','ParentStatus','SchoolSupport','FamilySupport','ExtraPaid','ExtraActivities','Nursery','HigherEdu','Internet','Romantic']
         categorical = ['MotherJob','FatherJob','SchoolReason']
         ordinal = ['MotherEducation','FatherEducation']
         continuous = ['TravelTime','ClassFailures','GoOut']
         input_cols = binary + categorical + ordinal + continuous
         label = ['Grade']
-        df = pd.read_csv(dataset_dir+'/student/preprocessed_student.csv')
+        df = pd.read_csv(dataset_dir+'/student/preprocessed_student.csv', index_col=0)
+        df = df[input_cols + label]
     
         """
         MACE variables / attributes
@@ -1476,7 +1478,7 @@ def load_dataset(data_str, train_fraction, seed, step):
         continuous = ['NumPrevAttempts','StudiedCredits']
         input_cols = binary + categorical + ordinal + continuous
         label = ['Grade']
-        df = pd.read_csv(dataset_dir+'/oulad/preprocessed_oulad.csv')
+        df = pd.read_csv(dataset_dir+'/oulad/preprocessed_oulad.csv', index_col=0)
 
         """
         MACE variables / attributes
@@ -1547,7 +1549,7 @@ def load_dataset(data_str, train_fraction, seed, step):
         continuous = ['Decile1stYear','Decile3rdYear','LSAT','UndergradGPA','FirstYearGPA','CumulativeGPA']
         input_cols = binary + categorical + ordinal + continuous
         label = ['BarExam']
-        df = pd.read_csv(dataset_dir+'/law/preprocessed_law.csv')
+        df = pd.read_csv(dataset_dir+'/law/preprocessed_law.csv', index_col=0)
 
         """
         MACE variables / attributes
@@ -1622,7 +1624,7 @@ def load_dataset(data_str, train_fraction, seed, step):
         continuous = ['0','2','4','5','6','7','26','30'] # Chosen based on MDI
         input_cols = binary + categorical + ordinal + continuous
         label = ['label']
-        df = pd.read_csv(dataset_dir+'/ionosphere/processed_ionosphere.csv',index_col=0)
+        df = pd.read_csv(dataset_dir+'/ionosphere/processed_ionosphere.csv', index_col=0)
     
         """
         MACE variables / attributes
@@ -1685,7 +1687,7 @@ def load_dataset(data_str, train_fraction, seed, step):
         continuous = ['Age','RestBloodPressure','Chol']
         input_cols = binary + categorical + ordinal + continuous
         label = ['class']
-        df = pd.read_csv(dataset_dir+'heart/preprocessed_heart.csv',index_col=0)
+        df = pd.read_csv(dataset_dir+'heart/preprocessed_heart.csv', index_col=0)
 
         """
         MACE variables / attributes
@@ -1744,7 +1746,7 @@ def load_dataset(data_str, train_fraction, seed, step):
         continuous = ['Age','SleepHours']
         input_cols = binary + categorical + ordinal + continuous
         label = ['Label']
-        df = pd.read_csv(dataset_dir+'synthetic_athlete/preprocessed_synthetic_athlete.csv',index_col=0)
+        df = pd.read_csv(dataset_dir+'synthetic_athlete/preprocessed_synthetic_athlete.csv', index_col=0)
     
         """
         MACE variables / attributes
@@ -1799,7 +1801,7 @@ def load_dataset(data_str, train_fraction, seed, step):
         continuous = ['Age','ExerciseMinutes','SleepHours']
         input_cols = binary + categorical + ordinal + continuous
         label = ['Label']
-        df = pd.read_csv(dataset_dir+'synthetic_disease/preprocessed_synthetic_disease.csv',index_col=0)
+        df = pd.read_csv(dataset_dir+'synthetic_disease/preprocessed_synthetic_disease.csv', index_col=0)
     
         """
         MACE variables / attributes

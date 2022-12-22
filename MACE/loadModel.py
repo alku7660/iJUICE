@@ -42,7 +42,7 @@ def loadModelForDataset(model_class, dataset_string, scm_class = None, experimen
     log_file = sys.stdout if experiment_folder_name == None else open(f'{experiment_folder_name}/log_training.txt','w')
     if not (model_class in {'lr', 'mlp', 'tree', 'forest'}):
         raise Exception(f'{model_class} not supported.')
-    if not (dataset_string in {'synthetic_simple', 'synthetic_severe_disease', 'synthetic_athlete', 'synthetic', 'mortgage', 'twomoon', 'german', 'credit', 'compass', 'adult', 'heart', 'test'}):
+    if not (dataset_string in {'adult','kdd_census','german','dutch','bank','credit','compass','diabetes','ionosphere','student','oulad','law','heart','synthetic_athlete','synthetic_disease'}):
         raise Exception(f'{dataset_string} not supported.')
     if model_class in {'tree', 'forest'}:
         one_hot = False

@@ -56,7 +56,7 @@ def generateExplanations(
         getEpsilonInString(approach_string)
         )
 
-def runIndices(dataset_values, model_class_values, norm_values, approaches_values, batch_number, sample_count, gen_cf_for, process_id, stop=False):
+def runIndices(dataset_values, model_class_values, norm_values, approaches_values, batch_number, gen_cf_for):
     for dataset_string in dataset_values:
         print(f'\n\nExperimenting with dataset_string = `{dataset_string}`')
         for model_class_string in model_class_values:
@@ -122,7 +122,7 @@ def runIndices(dataset_values, model_class_values, norm_values, approaches_value
 
                     pickle.dump(iterate_over_data_df, open(f'{results_obj_dir}/{dataset_string}/{dataset_string}_mace_df.pkl', 'wb'))
 
-def runExperiments(dataset_values, model_class_values, norm_values, approaches_values, batch_number, sample_count, gen_cf_for, process_id, stop=False):
+def runExperiments(dataset_values, model_class_values, norm_values, approaches_values, batch_number, gen_cf_for):
     for dataset_string in dataset_values:
         print(f'\n\nExperimenting with dataset_string = `{dataset_string}`')
         for model_class_string in model_class_values:
@@ -186,9 +186,6 @@ def runExperiments(dataset_values, model_class_values, norm_values, approaches_v
                     else:
                         raise Exception(f'{gen_cf_for} not recognized as a valid `gen_cf_for`.')
 
-                    pickle.dump(iterate_over_data_df, open(f'{results_obj_dir}/{dataset_string}/{dataset_string}_mace_df.pkl', 'wb'))
-                    if stop:
-                        return
                     iterate_over_data_dict = iterate_over_data_df.T.to_dict()
                     explanation_counter = 1
                     all_minimum_distances = {}
@@ -249,7 +246,7 @@ def runExperiments(dataset_values, model_class_values, norm_values, approaches_v
 if __name__ == '__main__':
     dataset_model_dict = {'adult': 'mlp', 'kdd_census': 'forest', 'german':'forest', 'dutch':'forest',
                     'bank':'forest', 'credit':'mlp', 'compass':'mlp', 'diabetes':'mlp', 'ionosphere':'forest',
-                    'student':'forest', 'oulad':'mlp', 'law':'mlp', 'synthetic_athlete':'mlp', 'synthetic_disease':'mlp', 'heart':'rf'}
+                    'student':'forest', 'oulad':'mlp', 'law':'mlp', 'synthetic_athlete':'mlp', 'synthetic_disease':'mlp', 'heart':'forest'}
     dataset_undesired_class = {'adult': 'neg_only', 'kdd_census': 'neg_only', 'german':'pos_only', 'dutch':'neg_only',
                     'bank':'neg_only', 'credit':'pos_only', 'compass':'pos_only', 'diabetes':'pos_only', 'ionosphere':'neg_only',
                     'student':'neg_only', 'oulad':'neg_only', 'law':'neg_only', 'synthetic_athlete':'neg_only', 'synthetic_disease':'pos_only', 'heart':'pos_only'}    
@@ -258,15 +255,14 @@ if __name__ == '__main__':
     norm_type_try = ['zero_norm']
     approach_try = ['MACE_eps_1e-3']
     process_id_try = '0'
-    sample_count_try = 5
-    only_indices = True
+    only_indices = False
     for i in range(len(dataset_try)):
         model_class_try = [dataset_model_dict[dataset_try[i]]] 
         batch_number_try = load_obj(f'{dataset_try[i]}/', f'{dataset_try[i]}_idx_list.pkl')            
         gen_cf_for_try = dataset_undesired_class[dataset_try[i]]
         if only_indices:
-            runIndices([dataset_try[i]], model_class_try, norm_type_try, approach_try, batch_number_try, sample_count_try, gen_cf_for_try, process_id_try, stop=only_indices)
+            runIndices([dataset_try[i]], model_class_try, norm_type_try, approach_try, batch_number_try, gen_cf_for_try)
         else:
-            cf_df, sample_df, time_df = runExperiments([dataset_try[i]], model_class_try, norm_type_try, approach_try, batch_number_try, sample_count_try, gen_cf_for_try, process_id_try, stop=only_indices)
+            cf_df, sample_df, time_df = runExperiments([dataset_try[i]], model_class_try, norm_type_try, approach_try, batch_number_try, gen_cf_for_try)
             pickle.dump(cf_df, open(f'{results_obj_dir}/{dataset_try[i]}/{dataset_try[i]}_mace_cf_df.pkl', 'wb'))
             pickle.dump(time_df, open(f'{results_obj_dir}/{dataset_try[i]}/{dataset_try[i]}_mace_time_df.pkl', 'wb'))

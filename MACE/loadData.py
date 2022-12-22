@@ -69,17 +69,17 @@ class Dataset(object):
         for attr_name in np.setdiff1d(self.getInputAttributeNames('long'), self.getRealBasedAttributeNames('long'), ):
             unique_values = np.unique(data_frame_long[attr_name].to_numpy())
             # all non-numerical-real values should be integer or {0,1}
-        for value in unique_values:
-            assert value == np.floor(value)
-        if is_one_hot and attributes_long[attr_name].attr_type != 'numeric-int': # binary, sub-categorical, sub-ordinal
-            try:
-                assert \
-                    np.array_equal(unique_values, [0,1]) or \
-                    np.array_equal(unique_values, [1,2]) or \
-                    np.array_equal(unique_values, [1]) # the first sub-ordinal attribute is always 1
-                    # race (binary) in compass is encoded as {1,2}
-            except:
-                print(f'Assertion error: values not valid in {attr_name}')
+            for value in unique_values:
+                assert value == np.floor(value)
+            if is_one_hot and attributes_long[attr_name].attr_type != 'numeric-int': # binary, sub-categorical, sub-ordinal
+                try:
+                    assert \
+                        np.array_equal(unique_values, [0,1]) or \
+                        np.array_equal(unique_values, [1,2]) or \
+                        np.array_equal(unique_values, [1]) # the first sub-ordinal attribute is always 1
+                        # race (binary) in compass is encoded as {1,2}
+                except:
+                    print(f'Assertion error: values not valid in {attr_name}')
 
         self.assertSiblingsShareAttributes('long')
         self.assertSiblingsShareAttributes('kurz')
@@ -577,7 +577,7 @@ def loadDataset(dataset_name, return_one_hot, load_from_cache = False, debug_fla
         
         col_name = label[0]
         attributes_non_hot[col_name] = DatasetAttribute(attr_name_long = col_name, attr_name_kurz = 'y', attr_type = 'binary', node_type = 'output', actionability = 'none',
-                                                   mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = df[col_name].min(), upper_bound = df[col_name].max())
+                                                   mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = data_frame_non_hot[col_name].min(), upper_bound = data_frame_non_hot[col_name].max())
         for col_idx, col_name in enumerate(input_cols):
 
             if col_name == 'Sex':
@@ -670,7 +670,7 @@ def loadDataset(dataset_name, return_one_hot, load_from_cache = False, debug_fla
                 mutability = True
             elif col_name == 'InstallmentRate':
                 attr_type = 'categorical'
-                actionability = 'Any'
+                actionability = 'any'
                 mutability = True
             elif col_name == 'Housing':
                 attr_type = 'categorical'
@@ -707,8 +707,10 @@ def loadDataset(dataset_name, return_one_hot, load_from_cache = False, debug_fla
         ordinal = ['EducationLevel']
         continuous = ['Age']
         input_cols = binary + categorical + ordinal + continuous
-        label = ['Occupation']
+        label = ['Label']
         data_frame_non_hot = pd.read_csv(dataset_dir+'dutch/preprocessed_dutch.csv', index_col=0)
+        data_frame_non_hot['Label'] = data_frame_non_hot['Occupation']
+        del data_frame_non_hot['Occupation']
         data_frame_non_hot = data_frame_non_hot.reset_index(drop=True)
         attributes_non_hot = {}
         input_cols, output_col = getInputOutputColumns(data_frame_non_hot)
@@ -727,7 +729,7 @@ def loadDataset(dataset_name, return_one_hot, load_from_cache = False, debug_fla
         
         col_name = label[0]
         attributes_non_hot[col_name] = DatasetAttribute(attr_name_long = col_name, attr_name_kurz = 'y', attr_type = 'binary', node_type = 'output', actionability = 'none',
-                                                   mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = df[col_name].min(), upper_bound = df[col_name].max())
+                                                   mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = data_frame_non_hot[col_name].min(), upper_bound = data_frame_non_hot[col_name].max())
         for col_idx, col_name in enumerate(input_cols):
             if col_name == 'Sex':
                 attr_type = 'binary'
@@ -780,12 +782,15 @@ def loadDataset(dataset_name, return_one_hot, load_from_cache = False, debug_fla
         
     elif dataset_name == 'bank':
         binary = ['Default','Housing','Loan']
-        categorical = ['Job','MaritalStatus','Education','Contact','Month','Poutcome']
+        categorical = ['Job','MaritalStatus','Education','Contact','Poutcome']
         ordinal = ['AgeGroup']
         continuous = ['Balance','Day','Duration','Campaign','Pdays','Previous']
         input_cols = binary + categorical + ordinal + continuous
-        label = ['Subscribed']
+        label = ['Label']
         data_frame_non_hot = pd.read_csv(dataset_dir+'bank/preprocessed_bank.csv', index_col=0)
+        data_frame_non_hot['Label'] = data_frame_non_hot['Subscribed']
+        del data_frame_non_hot['Subscribed']
+        data_frame_non_hot = data_frame_non_hot[input_cols + label]
         data_frame_non_hot = data_frame_non_hot.reset_index(drop=True)
         attributes_non_hot = {}
         input_cols, output_col = getInputOutputColumns(data_frame_non_hot)
@@ -804,7 +809,7 @@ def loadDataset(dataset_name, return_one_hot, load_from_cache = False, debug_fla
         
         col_name = label[0]
         attributes_non_hot[col_name] = DatasetAttribute(attr_name_long = col_name, attr_name_kurz = 'y', attr_type = 'binary', node_type = 'output', actionability = 'none',
-                                                   mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = df[col_name].min(), upper_bound = df[col_name].max())
+                                                   mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = data_frame_non_hot[col_name].min(), upper_bound = data_frame_non_hot[col_name].max())
         for col_idx, col_name in enumerate(input_cols):
 
             if col_name == 'Default':
@@ -832,10 +837,6 @@ def loadDataset(dataset_name, return_one_hot, load_from_cache = False, debug_fla
                 actionability = 'any'
                 mutability = True
             elif col_name == 'Contact':
-                attr_type = 'categorical'
-                actionability = 'any'
-                mutability = True
-            elif col_name == 'Month':
                 attr_type = 'categorical'
                 actionability = 'any'
                 mutability = True
@@ -892,8 +893,10 @@ def loadDataset(dataset_name, return_one_hot, load_from_cache = False, debug_fla
                 'MonthsWithLowSpendingOverLast6Months','MonthsWithHighSpendingOverLast6Months','MostRecentBillAmount',
                 'MostRecentPaymentAmount']
         input_cols = binary + categorical + ordinal + continuous
-        label = ['NoDefaultNextMonth (label)']
-        data_frame_non_hot = pd.read_csv(dataset_dir+'/credit/preprocessed_credit.csv')
+        label = ['Label']
+        data_frame_non_hot = pd.read_csv(dataset_dir+'/credit/preprocessed_credit.csv', index_col=0)
+        data_frame_non_hot['Label'] = data_frame_non_hot['NoDefaultNextMonth (label)']
+        del data_frame_non_hot['NoDefaultNextMonth (label)']
         data_frame_non_hot = data_frame_non_hot.reset_index(drop=True)
         attributes_non_hot = {}
 
@@ -977,8 +980,10 @@ def loadDataset(dataset_name, return_one_hot, load_from_cache = False, debug_fla
         ordinal = ['PriorsCount','AgeGroup']
         continuous = []
         input_cols = binary + categorical + ordinal + continuous
-        label = ['TwoYearRecid (label)']
-        data_frame_non_hot = pd.read_csv(dataset_dir+'/compass/preprocessed_compass.csv')
+        label = ['Label']
+        data_frame_non_hot = pd.read_csv(dataset_dir+'/compass/preprocessed_compass.csv', index_col=0)
+        data_frame_non_hot['Label'] = data_frame_non_hot['TwoYearRecid (label)']
+        del data_frame_non_hot['TwoYearRecid (label)']
         data_frame_non_hot = data_frame_non_hot.reset_index(drop=True)
         attributes_non_hot = {}
     
@@ -1030,7 +1035,8 @@ def loadDataset(dataset_name, return_one_hot, load_from_cache = False, debug_fla
         continuous = ['TimeInHospital','NumProcedures','NumMedications','NumEmergency']
         input_cols = binary + categorical + ordinal + continuous
         label = ['Label']
-        data_frame_non_hot = pd.read_csv(dataset_dir+'/diabetes/preprocessed_diabetes.csv')
+        data_frame_non_hot = pd.read_csv(dataset_dir+'/diabetes/preprocessed_diabetes.csv', index_col=0)
+        data_frame_non_hot = data_frame_non_hot.reset_index(drop=True)
         attributes_non_hot = {}
     
         """
@@ -1115,13 +1121,16 @@ def loadDataset(dataset_name, return_one_hot, load_from_cache = False, debug_fla
                 upper_bound = data_frame_non_hot[col_name].max())
 
     elif dataset_name == 'student':
-        binary = ['School','Sex','AgeGroup','Address','FamilySize','ParentStatus','SchoolSupport','FamilySupport','ExtraPaid','ExtraActivities','Nursery','HigherEdu','Internet','Romantic']
+        binary = ['School','Sex','AgeGroup','FamilySize','ParentStatus','SchoolSupport','FamilySupport','ExtraPaid','ExtraActivities','Nursery','HigherEdu','Internet','Romantic']
         categorical = ['MotherJob','FatherJob','SchoolReason']
         ordinal = ['MotherEducation','FatherEducation']
         continuous = ['TravelTime','ClassFailures','GoOut']
         input_cols = binary + categorical + ordinal + continuous
-        label = ['Grade']
-        data_frame_non_hot = pd.read_csv(dataset_dir+'/student/preprocessed_student.csv')
+        label = ['Label']
+        data_frame_non_hot = pd.read_csv(dataset_dir+'/student/preprocessed_student.csv', index_col=0)
+        data_frame_non_hot['Label'] = data_frame_non_hot['Grade']
+        del data_frame_non_hot['Grade']
+        data_frame_non_hot = data_frame_non_hot[input_cols + label]
         data_frame_non_hot = data_frame_non_hot.reset_index(drop=True)
         attributes_non_hot = {}
     
@@ -1145,10 +1154,6 @@ def loadDataset(dataset_name, return_one_hot, load_from_cache = False, debug_fla
                 attr_type = 'binary'
                 actionability = 'none'
                 mutability = False
-            elif col_name == 'Address':
-                attr_type = 'binary'
-                actionability = 'any'
-                mutability = True
             elif col_name == 'FamilySize':
                 attr_type = 'binary'
                 actionability = 'any'
@@ -1244,8 +1249,10 @@ def loadDataset(dataset_name, return_one_hot, load_from_cache = False, debug_fla
         ordinal = ['AgeGroup']
         continuous = ['NumPrevAttempts','StudiedCredits']
         input_cols = binary + categorical + ordinal + continuous
-        label = ['Grade']
-        data_frame_non_hot = pd.read_csv(dataset_dir+'/oulad/preprocessed_oulad.csv')
+        label = ['Label']
+        data_frame_non_hot = pd.read_csv(dataset_dir+'/oulad/preprocessed_oulad.csv', index_col=0)
+        data_frame_non_hot['Label'] = data_frame_non_hot['Grade']
+        del data_frame_non_hot['Grade']
         data_frame_non_hot = data_frame_non_hot.reset_index(drop=True)
         attributes_non_hot = {}
         input_cols, output_col = getInputOutputColumns(data_frame_non_hot)
@@ -1264,7 +1271,7 @@ def loadDataset(dataset_name, return_one_hot, load_from_cache = False, debug_fla
         
         col_name = label[0]
         attributes_non_hot[col_name] = DatasetAttribute(attr_name_long = col_name, attr_name_kurz = 'y', attr_type = 'binary', node_type = 'output', actionability = 'none',
-                                                   mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = df[col_name].min(), upper_bound = df[col_name].max())
+                                                   mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = data_frame_non_hot[col_name].min(), upper_bound = data_frame_non_hot[col_name].max())
         for col_idx, col_name in enumerate(input_cols):
 
             if col_name == 'Sex':
@@ -1326,8 +1333,10 @@ def loadDataset(dataset_name, return_one_hot, load_from_cache = False, debug_fla
         ordinal = []
         continuous = ['Decile1stYear','Decile3rdYear','LSAT','UndergradGPA','FirstYearGPA','CumulativeGPA']
         input_cols = binary + categorical + ordinal + continuous
-        label = ['BarExam']
-        data_frame_non_hot = pd.read_csv(dataset_dir+'/law/preprocessed_law.csv')
+        label = ['Label']
+        data_frame_non_hot = pd.read_csv(dataset_dir+'/law/preprocessed_law.csv', index_col=0)
+        data_frame_non_hot['Label'] = data_frame_non_hot['BarExam']
+        del data_frame_non_hot['BarExam']
         data_frame_non_hot = data_frame_non_hot.reset_index(drop=True)
         attributes_non_hot = {}
         input_cols, output_col = getInputOutputColumns(data_frame_non_hot)
@@ -1346,7 +1355,7 @@ def loadDataset(dataset_name, return_one_hot, load_from_cache = False, debug_fla
         
         col_name = label[0]
         attributes_non_hot[col_name] = DatasetAttribute(attr_name_long = col_name, attr_name_kurz = 'y', attr_type = 'binary', node_type = 'output', actionability = 'none',
-                                                   mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = df[col_name].min(), upper_bound = df[col_name].max())
+                                                   mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = data_frame_non_hot[col_name].min(), upper_bound = data_frame_non_hot[col_name].max())
         for col_idx, col_name in enumerate(input_cols):
 
             if col_name == 'WorkFullTime':
@@ -1412,8 +1421,10 @@ def loadDataset(dataset_name, return_one_hot, load_from_cache = False, debug_fla
         ordinal = []
         continuous = ['0','2','4','5','6','7','26','30'] # Chosen based on MDI
         input_cols = binary + categorical + ordinal + continuous
-        label = ['label']
-        data_frame_non_hot = pd.read_csv(dataset_dir+'/ionosphere/processed_ionosphere.csv',index_col=0)
+        label = ['Label']
+        data_frame_non_hot = pd.read_csv(dataset_dir+'/ionosphere/processed_ionosphere.csv', index_col=0)
+        data_frame_non_hot['Label'] = data_frame_non_hot['label']
+        del data_frame_non_hot['label']
         data_frame_non_hot = data_frame_non_hot.reset_index(drop=True)
         attributes_non_hot = {}
         input_cols, output_col = getInputOutputColumns(data_frame_non_hot)
@@ -1432,7 +1443,7 @@ def loadDataset(dataset_name, return_one_hot, load_from_cache = False, debug_fla
         
         col_name = label[0]
         attributes_non_hot[col_name] = DatasetAttribute(attr_name_long = col_name, attr_name_kurz = 'y', attr_type = 'binary', node_type = 'output', actionability = 'none',
-                                                   mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = df[col_name].min(), upper_bound = df[col_name].max())
+                                                   mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = data_frame_non_hot[col_name].min(), upper_bound = data_frame_non_hot[col_name].max())
         for col_idx, col_name in enumerate(input_cols):
 
             if col_name == '0':
@@ -1486,8 +1497,10 @@ def loadDataset(dataset_name, return_one_hot, load_from_cache = False, debug_fla
         ordinal = ['ECG']
         continuous = ['Age','RestBloodPressure','Chol']
         input_cols = binary + categorical + ordinal + continuous
-        label = ['class']
-        data_frame_non_hot = pd.read_csv(dataset_dir+'heart/preprocessed_heart.csv',index_col=0)
+        label = ['Label']
+        data_frame_non_hot = pd.read_csv(dataset_dir+'heart/preprocessed_heart.csv', index_col=0)
+        data_frame_non_hot['Label'] = data_frame_non_hot['class']
+        del data_frame_non_hot['class']
         data_frame_non_hot = data_frame_non_hot.reset_index(drop=True)
         attributes_non_hot = {}
         input_cols, output_col = getInputOutputColumns(data_frame_non_hot)
@@ -1506,7 +1519,7 @@ def loadDataset(dataset_name, return_one_hot, load_from_cache = False, debug_fla
         
         col_name = label[0]
         attributes_non_hot[col_name] = DatasetAttribute(attr_name_long = col_name, attr_name_kurz = 'y', attr_type = 'binary', node_type = 'output', actionability = 'none',
-                                                   mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = df[col_name].min(), upper_bound = df[col_name].max())
+                                                   mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = data_frame_non_hot[col_name].min(), upper_bound = data_frame_non_hot[col_name].max())
         for col_idx, col_name in enumerate(input_cols):
 
             if col_name == 'Sex':
@@ -1557,7 +1570,7 @@ def loadDataset(dataset_name, return_one_hot, load_from_cache = False, debug_fla
         continuous = ['Age','SleepHours']
         input_cols = binary + categorical + ordinal + continuous
         label = ['Label']
-        data_frame_non_hot = pd.read_csv(dataset_dir+'synthetic_athlete/processed_synthetic_athlete.csv',index_col=0)
+        data_frame_non_hot = pd.read_csv(dataset_dir+'synthetic_athlete/preprocessed_synthetic_athlete.csv', index_col=0)
         data_frame_non_hot = data_frame_non_hot.reset_index(drop=True)
         attributes_non_hot = {}
 
@@ -1613,7 +1626,7 @@ def loadDataset(dataset_name, return_one_hot, load_from_cache = False, debug_fla
         continuous = ['Age','ExerciseMinutes','SleepHours']
         input_cols = binary + categorical + ordinal + continuous
         label = ['Label']
-        data_frame_non_hot = pd.read_csv(dataset_dir+'synthetic_disease/preprocessed_synthetic_disease.csv',index_col=0)
+        data_frame_non_hot = pd.read_csv(dataset_dir+'synthetic_disease/preprocessed_synthetic_disease.csv', index_col=0)
         data_frame_non_hot = data_frame_non_hot.reset_index(drop=True)
         attributes_non_hot = {}
         input_cols, output_col = getInputOutputColumns(data_frame_non_hot)
@@ -1632,7 +1645,7 @@ def loadDataset(dataset_name, return_one_hot, load_from_cache = False, debug_fla
         
         col_name = label[0]
         attributes_non_hot[col_name] = DatasetAttribute(attr_name_long = col_name, attr_name_kurz = 'y', attr_type = 'binary', node_type = 'output', actionability = 'none',
-                                                   mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = df[col_name].min(), upper_bound = df[col_name].max())
+                                                   mutability = False, parent_name_long = -1, parent_name_kurz = -1, lower_bound = data_frame_non_hot[col_name].min(), upper_bound = data_frame_non_hot[col_name].max())
         for col_idx, col_name in enumerate(input_cols):
             if col_name == 'Smokes':
                 attr_type = 'binary'
