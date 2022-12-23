@@ -81,7 +81,7 @@ def distance_calculation(x, y, data, type='euclidean'):
         x_original_df, y_original_df = pd.DataFrame(data=x_original, index=[0], columns=data.features), pd.DataFrame(data=y_original, index=[0], columns=data.features)
         x_continuous_df, y_continuous_df = x_df[data.ordinal + data.continuous], y_df[data.ordinal + data.continuous]
         x_continuous_np, y_continuous_np = x_continuous_df.to_numpy()[0], y_continuous_df.to_numpy()[0]
-        x_categorical_df, y_categorical_df = x_original_df[data.bin_cat_enc_cols], y_original_df[data.bin_cat_enc_cols]
+        x_categorical_df, y_categorical_df = x_original_df[data.binary + data.categorical], y_original_df[data.binary + data.categorical]
         x_categorical_np, y_categorical_np = x_categorical_df.to_numpy()[0], y_categorical_df.to_numpy()[0]
         L1_distance, L0_distance = L1(x_continuous_np, y_continuous_np), L0(x_categorical_np, y_categorical_np)
         return L1_distance, L0_distance
