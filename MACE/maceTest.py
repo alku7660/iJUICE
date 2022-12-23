@@ -71,20 +71,9 @@ def runIndices(dataset_values, model_class_values, norm_values, approaches_value
                         one_hot = True
                     else:
                         raise Exception(f'{model_class_string} not recognized as a valid `model_class_string`.')
-                    
-                    # EXPERIMENT FOLDER
-                    # experiment_name = f'{dataset_string}__{model_class_string}__{norm_type_string}__{approach_string}__batch{batch_number}__samples{sample_count}__pid{process_id}'
-                    # experiment_folder_name = f"_experiments/{datetime.now().strftime('%Y.%m.%d_%H.%M.%S')}__{experiment_name}"
-                    # explanation_folder_name = f'{experiment_folder_name}/__explanation_log'
-                    # minimum_distance_folder_name = f'{experiment_folder_name}/__minimum_distances'
-                    # os.mkdir(f'{experiment_folder_name}')
-                    # os.mkdir(f'{explanation_folder_name}')
-                    # os.mkdir(f'{minimum_distance_folder_name}')
-                    # log_file = open(f'{experiment_folder_name}/log_experiment.txt','w')
 
                     # DATA FILES SAVE
                     dataset_obj = loadData.loadDataset(dataset_string, return_one_hot = one_hot, load_from_cache = False, debug_flag = False) # Load the same dataset_obj
-                    # pickle.dump(dataset_obj, open(f'{experiment_folder_name}/_dataset_obj', 'wb'))
                     X_train, X_test, y_train, y_test = dataset_obj.getTrainTestSplit() # Use the same data split as in the other baselines
 
                     # MODEL TRAINING
@@ -96,17 +85,6 @@ def runIndices(dataset_values, model_class_values, norm_values, approaches_value
                     all_pred_data_df['y'] = X_test_pred_labels
                     neg_pred_data_df = all_pred_data_df.where(all_pred_data_df['y'] == 0).dropna()
                     pos_pred_data_df = all_pred_data_df.where(all_pred_data_df['y'] == 1).dropna()
-
-                    # batch_start_index = batch_number * sample_count
-                    # batch_end_index = (batch_number + 1) * sample_count
-                    # if gen_cf_for == 'neg_only':
-                    #     iterate_over_data_df = neg_pred_data_df[batch_start_index : batch_end_index] # choose only a subset to compare
-                    # elif gen_cf_for == 'pos_only':
-                    #     iterate_over_data_df = pos_pred_data_df[batch_start_index : batch_end_index] # choose only a subset to compare
-                    # elif gen_cf_for == 'neg_and_pos':
-                    #     iterate_over_data_df = all_pred_data_df[batch_start_index : batch_end_index] # choose only a subset to compare
-                    # else:
-                    #     raise Exception(f'{gen_cf_for} not recognized as a valid `gen_cf_for`.')
 
                     if gen_cf_for == 'neg_only':
                         idx_test = [idx for idx in batch_number if idx in neg_pred_data_df.index]
@@ -137,20 +115,9 @@ def runExperiments(dataset_values, model_class_values, norm_values, approaches_v
                         one_hot = True
                     else:
                         raise Exception(f'{model_class_string} not recognized as a valid `model_class_string`.')
-                    
-                    # EXPERIMENT FOLDER
-                    # experiment_name = f'{dataset_string}__{model_class_string}__{norm_type_string}__{approach_string}__batch{batch_number}__samples{sample_count}__pid{process_id}'
-                    # experiment_folder_name = f"_experiments/{datetime.now().strftime('%Y.%m.%d_%H.%M.%S')}__{experiment_name}"
-                    # explanation_folder_name = f'{experiment_folder_name}/__explanation_log'
-                    # minimum_distance_folder_name = f'{experiment_folder_name}/__minimum_distances'
-                    # os.mkdir(f'{experiment_folder_name}')
-                    # os.mkdir(f'{explanation_folder_name}')
-                    # os.mkdir(f'{minimum_distance_folder_name}')
-                    # log_file = open(f'{experiment_folder_name}/log_experiment.txt','w')
 
                     # DATA FILES SAVE
                     dataset_obj = loadData.loadDataset(dataset_string, return_one_hot = one_hot, load_from_cache = False, debug_flag = False) # Load the same dataset_obj
-                    # pickle.dump(dataset_obj, open(f'{experiment_folder_name}/_dataset_obj', 'wb'))
                     X_train, X_test, y_train, y_test = dataset_obj.getTrainTestSplit() # Use the same data split as in the other baselines
 
                     # MODEL TRAINING
@@ -162,17 +129,6 @@ def runExperiments(dataset_values, model_class_values, norm_values, approaches_v
                     all_pred_data_df['y'] = X_test_pred_labels
                     neg_pred_data_df = all_pred_data_df.where(all_pred_data_df['y'] == 0).dropna()
                     pos_pred_data_df = all_pred_data_df.where(all_pred_data_df['y'] == 1).dropna()
-
-                    # batch_start_index = batch_number * sample_count
-                    # batch_end_index = (batch_number + 1) * sample_count
-                    # if gen_cf_for == 'neg_only':
-                    #     iterate_over_data_df = neg_pred_data_df[batch_start_index : batch_end_index] # choose only a subset to compare
-                    # elif gen_cf_for == 'pos_only':
-                    #     iterate_over_data_df = pos_pred_data_df[batch_start_index : batch_end_index] # choose only a subset to compare
-                    # elif gen_cf_for == 'neg_and_pos':
-                    #     iterate_over_data_df = all_pred_data_df[batch_start_index : batch_end_index] # choose only a subset to compare
-                    # else:
-                    #     raise Exception(f'{gen_cf_for} not recognized as a valid `gen_cf_for`.')
 
                     if gen_cf_for == 'neg_only':
                         idx_test = [idx for idx in batch_number if idx in neg_pred_data_df.index]
