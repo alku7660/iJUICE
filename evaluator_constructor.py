@@ -226,7 +226,7 @@ def verify_justification(cf, counterfactual):
         sort_potential_justifiers = sort_potential_justifiers
         return sort_potential_justifiers
 
-    def continuous_feat_values(self, i, min_val, max_val, data):
+    def continuous_feat_values(i, min_val, max_val, data):
         """
         Method that defines how to discretize the continuous features
         """
