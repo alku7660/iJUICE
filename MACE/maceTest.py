@@ -209,7 +209,7 @@ if __name__ == '__main__':
     dataset_try = ['compass','diabetes','ionosphere','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
     method_try = ['nn']
     norm_type_try = ['zero_norm']
-    approach_try = ['MACE_eps_1e-3']
+    approach_try = ['MACE_eps_1e-1']
     process_id_try = '0'
     only_indices = False
     for i in range(len(dataset_try)):

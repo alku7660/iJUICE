@@ -40,8 +40,8 @@ class Evaluator():
         L1 = distance_calculation(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data, 'L1')
         Linf = distance_calculation(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data, 'L_inf')
         L1_L0 = distance_calculation(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data, 'L1_L0')
-        L1_L0_Linf = distance_calculation(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data, 'L1_L0_inf')
-        self.proximity_dict[counterfactual.ioi.idx] = {'euclidean':L2, 'L1':L1, 'L_inf':Linf, 'L1_L0':L1_L0, 'L1_L0_Linf':L1_L0_Linf}
+        L1_L0_L_inf = distance_calculation(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data, 'L1_L0_L_inf')
+        self.proximity_dict[counterfactual.ioi.idx] = {'euclidean':L2, 'L1':L1, 'L_inf':Linf, 'L1_L0':L1_L0, 'L1_L0_L_inf':L1_L0_L_inf}
         self.justifiers_dict[counterfactual.ioi.idx], self.justifier_ratio[counterfactual.ioi.idx] = verify_justification(counterfactual.cf_method.normal_x_cf, counterfactual)
         self.time_dict[counterfactual.ioi.idx] = counterfactual.cf_method.run_time
 
@@ -86,7 +86,7 @@ def distance_calculation(x, y, data, type='euclidean'):
         L1_distance, L0_distance = L1(x_continuous_np, y_continuous_np), L0(x_categorical_np, y_categorical_np)
         return L1_distance, L0_distance
     
-    def L1_L0_Linf(x, y, x_original, y_original, data, alpha=1/4, beta=1/4):
+    def L1_L0_L_inf(x, y, x_original, y_original, data, alpha=1/4, beta=1/4):
         """
         Calculates the distance used by Karimi et al.: Please see: http://proceedings.mlr.press/v108/karimi20a/karimi20a.pdf
         """
@@ -139,8 +139,8 @@ def distance_calculation(x, y, data, type='euclidean'):
         Equation from Sharma et al.: Please see: https://arxiv.org/pdf/1905.07857.pdf
         """
         distance = (n_con/n)*L1_distance + (n_cat/n)*L0_distance
-    elif type == 'L1_L0_Linf':
-        distance = L1_L0_Linf(x, y, x_original, y_original, data)
+    elif type == 'L1_L0_L_inf':
+        distance = L1_L0_L_inf(x, y, x_original, y_original, data)
     elif type == 'prob':
         distance = max_percentile_shift(x_original, y_original, data)
     return distance
