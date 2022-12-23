@@ -243,6 +243,10 @@ def verify_justification(cf, counterfactual):
         for perc in percentiles_range:
             value.append(norm.ppf(perc, loc=mean_val, scale=std_val))
         value = [val for val in value if val >= min_val and val <= max_val]
+        if min_val not in value:
+            value = [min_val] + value
+        if max_val not in value:
+            value = value + [max_val]
         return value
 
     def get_feat_possible_values(data, ioi, points):
