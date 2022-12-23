@@ -241,7 +241,7 @@ def verify_justification(cf, counterfactual):
         """
         Method that obtains the features possible values
         """
-        normal_x = ioi.normal_x[0]
+        normal_x = ioi.normal_x
         pot_justifier_feat_possible_values = {}
         for k in range(len(points)):
             potential_justifier_k = points[k]
