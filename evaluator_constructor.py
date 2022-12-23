@@ -219,7 +219,7 @@ def verify_justification(cf, counterfactual):
         potential_justifiers = train_np[train_target != ioi.label] #[(train_target != ioi.label) & (train_pred != ioi.label)]
         sort_potential_justifiers = []
         for i in range(potential_justifiers.shape[0]):
-            dist = distance_calculation(potential_justifiers[i], ioi.normal_x[0], counterfactual.data, type=counterfactual.type)
+            dist = distance_calculation(potential_justifiers[i], ioi.normal_x, counterfactual.data, type=counterfactual.type)
             sort_potential_justifiers.append((potential_justifiers[i], dist))    
         sort_potential_justifiers.sort(key=lambda x: x[1])
         sort_potential_justifiers = [i[0] for i in sort_potential_justifiers]
