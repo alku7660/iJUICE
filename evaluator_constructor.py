@@ -226,16 +226,23 @@ def verify_justification(cf, counterfactual):
         sort_potential_justifiers = sort_potential_justifiers
         return sort_potential_justifiers
 
-    def continuous_feat_values(i, min_val, max_val, data):
+    def continuous_feat_values(self, i, min_val, max_val, data):
         """
         Method that defines how to discretize the continuous features
         """
         # if split in ['2','5','10','20','50','100']:
         #     value = list(np.linspace(min_val, max_val, num = int(split) + 1, endpoint = True))
-        # elif split == 'train':
-        sorted_feat_i = list(np.sort(data.transformed_train_np[:,i][(data.transformed_train_np[:,i] >= min_val) & (data.transformed_train_np[:,i] <= max_val)]))
-        value = list(np.unique(sorted_feat_i))
-        return value
+        # elif split == 'train': # Most likely only using this, because the others require several divisions for each of the continuous features ranges
+        
+        # sorted_feat_i = list(np.sort(data.transformed_train_np[:,i][(data.transformed_train_np[:,i] >= min_val) & (data.transformed_train_np[:,i] <= max_val)]))
+        # value = list(np.unique(sorted_feat_i))
+        
+        mean_val, std_val = np.mean(data.transformed_train_np[:,i]), np.std(data.transformed_train_np[:,i])
+        percentiles_range = list(np.linspace(0, 1, 101))
+        value = []
+        for perc in percentiles_range:
+            value.append(norm.ppf(perc, loc=mean_val, scale=std_val))
+        value = [val for val in value if val >= min_val and val <= max_val]
 
     def get_feat_possible_values(data, ioi, points):
         """
