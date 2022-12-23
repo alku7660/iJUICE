@@ -63,16 +63,16 @@ Constructing initial formulas: model, counterfactual, distance, plausibility, di
 Solving (not searching) for closest counterfactual using various distance thresholds...
 	Iteration #001: testing norm threshold 0.500000 in range [0.000000, 1.000000]...	solution exists & found.
 	Iteration #002: testing norm threshold 0.250005 in range [0.000000, 0.500010]...	solution exists & found.
-	Iteration #003: testing norm threshold 0.125005 in range [0.000000, 0.250010]...	no solution exists.
-	Iteration #004: testing norm threshold 0.187507 in range [0.125005, 0.250010]...	no solution exists.
-	Iteration #005: testing norm threshold 0.218759 in range [0.187507, 0.250010]...	no solution exists.
-	Iteration #006: testing norm threshold 0.234384 in range [0.218759, 0.250010]...	no solution exists.
-	Iteration #007: testing norm threshold 0.242197 in range [0.234384, 0.250010]...	no solution exists.
-	Iteration #008: testing norm threshold 0.246104 in range [0.242197, 0.250010]...	no solution exists.
-	Iteration #009: testing norm threshold 0.248057 in range [0.246104, 0.250010]...	no solution exists.
-	Iteration #010: testing norm threshold 0.249033 in range [0.248057, 0.250010]...	no solution exists.
+	Iteration #003: testing norm threshold 0.125005 in range [0.000000, 0.250010]...	solution exists & found.
+	Iteration #004: testing norm threshold 0.062505 in range [0.000000, 0.125010]...	no solution exists.
+	Iteration #005: testing norm threshold 0.093758 in range [0.062505, 0.125010]...	no solution exists.
+	Iteration #006: testing norm threshold 0.109384 in range [0.093758, 0.125010]...	no solution exists.
+	Iteration #007: testing norm threshold 0.117197 in range [0.109384, 0.125010]...	no solution exists.
+	Iteration #008: testing norm threshold 0.121103 in range [0.117197, 0.125010]...	no solution exists.
+	Iteration #009: testing norm threshold 0.123057 in range [0.121103, 0.125010]...	no solution exists.
+	Iteration #010: testing norm threshold 0.124033 in range [0.123057, 0.125010]...	no solution exists.
 
 
-Factual sample: 		 {x0 : 1.0, x1 : 1.0, x2 : 0.0, x3 : 3.0, x4 : 2.0, x5 : 1.0, x6 : 37.0, x7 : 2118.0, x8 : 9.0, y: True}
-Nearest counterfactual sample:	 {x0 : 1, x1 : 1, x2 : 0, x3 : 6, x4 : 2, x5 : 1, x6 : 37.0, x7 : 17141.5, x8 : 9.0, y: False} (verified)
-Minimum counterfactual distance: 0.250000
+Factual sample: 		 {x0 : 1.0, x1 : 1.0, x2 : 0.0, x3 : 10.0, x4 : 2.0, x5 : 3.0, x6 : 42.0, x7 : 5493.0, x8 : 36.0, y: True}
+Nearest counterfactual sample:	 {x0 : 1, x1 : 1, x2 : 0, x3 : 10, x4 : 2, x5 : 3, x6 : 42.0, x7 : 5493.0, x8 : 13.5, y: False} (verified)
+Minimum counterfactual distance: 0.125000
