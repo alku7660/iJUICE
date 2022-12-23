@@ -1,0 +1,65 @@
+
+
+==============================================
+
+
+Model Symbols:
+{'counterfactual': {'x0': {'lower_bound': 0.0,
+                           'symbol': x0_counterfactual,
+                           'upper_bound': 1.0},
+                    'x1': {'lower_bound': -1.0,
+                           'symbol': x1_counterfactual,
+                           'upper_bound': 1.0},
+                    'x2': {'lower_bound': -1.0,
+                           'symbol': x2_counterfactual,
+                           'upper_bound': 1.0},
+                    'x3': {'lower_bound': -1.0,
+                           'symbol': x3_counterfactual,
+                           'upper_bound': 1.0},
+                    'x4': {'lower_bound': -1.0,
+                           'symbol': x4_counterfactual,
+                           'upper_bound': 1.0},
+                    'x5': {'lower_bound': -1.0,
+                           'symbol': x5_counterfactual,
+                           'upper_bound': 1.0},
+                    'x6': {'lower_bound': -1.0,
+                           'symbol': x6_counterfactual,
+                           'upper_bound': 1.0},
+                    'x7': {'lower_bound': -1.0,
+                           'symbol': x7_counterfactual,
+                           'upper_bound': 1.0}},
+ 'interventional': {'x0': {'lower_bound': 0.0,
+                           'symbol': x0_interventional,
+                           'upper_bound': 1.0},
+                    'x1': {'lower_bound': -1.0,
+                           'symbol': x1_interventional,
+                           'upper_bound': 1.0},
+                    'x2': {'lower_bound': -1.0,
+                           'symbol': x2_interventional,
+                           'upper_bound': 1.0},
+                    'x3': {'lower_bound': -1.0,
+                           'symbol': x3_interventional,
+                           'upper_bound': 1.0},
+                    'x4': {'lower_bound': -1.0,
+                           'symbol': x4_interventional,
+                           'upper_bound': 1.0},
+                    'x5': {'lower_bound': -1.0,
+                           'symbol': x5_interventional,
+                           'upper_bound': 1.0},
+                    'x6': {'lower_bound': -1.0,
+                           'symbol': x6_interventional,
+                           'upper_bound': 1.0},
+                    'x7': {'lower_bound': -1.0,
+                           'symbol': x7_interventional,
+                           'upper_bound': 1.0}},
+ 'output': {'y': {'symbol': y}}}
+Constructing initial formulas: model, counterfactual, distance, plausibility, diversity		done.
+Solving (not searching) for closest counterfactual using various distance thresholds...
+	Iteration #001: testing norm threshold 0.500000 in range [0.000000, 1.000000]...	solution exists & found.
+	Iteration #002: testing norm threshold 0.214786 in range [0.000000, 0.429571]...	no solution exists.
+	Iteration #003: testing norm threshold 0.322179 in range [0.214786, 0.429571]...	solution exists & found.
+
+
+Factual sample: 		 {x0 : 1.0, x1 : 0.03852, x2 : 0.00428, x3 : 0.0, x4 : 0.01997, x5 : -0.01997, x6 : 0.03994, x7 : -0.02568, y: False}
+Nearest counterfactual sample:	 {x0 : 1.0, x1 : 0.03852, x2 : 0.4477500021457672, x3 : 0.0, x4 : 0.8900949954986572, x5 : -0.01997, x6 : 0.03994, x7 : -0.02568, y: True} (verified)
+Minimum counterfactual distance: 0.285714
