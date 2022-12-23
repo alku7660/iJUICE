@@ -223,7 +223,8 @@ def verify_justification(cf, counterfactual):
             sort_potential_justifiers.append((potential_justifiers[i], dist))    
         sort_potential_justifiers.sort(key=lambda x: x[1])
         sort_potential_justifiers = [i[0] for i in sort_potential_justifiers]
-        sort_potential_justifiers = sort_potential_justifiers
+        if len(sort_potential_justifiers) > 1000:
+            sort_potential_justifiers = sort_potential_justifiers[:1000]
         return sort_potential_justifiers
 
     def continuous_feat_values(i, min_val, max_val, data):
