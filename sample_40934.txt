@@ -332,15 +332,12 @@ Model Symbols:
 Constructing initial formulas: model, counterfactual, distance, plausibility, diversity		done.
 Solving (not searching) for closest counterfactual using various distance thresholds...
 	Iteration #001: testing norm threshold 0.500000 in range [0.000000, 1.000000]...	solution exists & found.
-	Iteration #002: testing norm threshold 0.222227 in range [0.000000, 0.444454]...	solution exists & found.
-	Iteration #003: testing norm threshold 0.111116 in range [0.000000, 0.222232]...	solution exists & found.
-	Iteration #004: testing norm threshold 0.055561 in range [0.000000, 0.111121]...	no solution exists.
-	Iteration #005: testing norm threshold 0.083341 in range [0.055561, 0.111121]...	no solution exists.
-	Iteration #006: testing norm threshold 0.097231 in range [0.083341, 0.111121]...	no solution exists.
-	Iteration #007: testing norm threshold 0.104176 in range [0.097231, 0.111121]...	no solution exists.
-	Iteration #008: testing norm threshold 0.107649 in range [0.104176, 0.111121]...	no solution exists.
-	Iteration #009: testing norm threshold 0.109385 in range [0.107649, 0.111121]...	no solution exists.
-	Iteration #010: testing norm threshold 0.110253 in range [0.109385, 0.111121]...	no solution exists.
+	Iteration #002: testing norm threshold 0.222272 in range [0.000000, 0.444544]...	solution exists & found.
+	Iteration #003: testing norm threshold 0.111161 in range [0.000000, 0.222322]...	solution exists & found.
+	Iteration #004: testing norm threshold 0.055606 in range [0.000000, 0.111211]...	no solution exists.
+	Iteration #005: testing norm threshold 0.083408 in range [0.055606, 0.111211]...	no solution exists.
+	Iteration #006: testing norm threshold 0.097310 in range [0.083408, 0.111211]...	no solution exists.
+	Iteration #007: testing norm threshold 0.104260 in range [0.097310, 0.111211]...	no solution exists.
 
 
 Factual sample: 		 {x0 : 1.0, x1 : 1.0, x2_ord_0 : 1.0, x2_ord_1 : 0.0, x2_ord_2 : 0.0, x3 : 1.0, x4_cat_0 : 0.0, x4_cat_1 : 0.0, x4_cat_2 : 1.0, x4_cat_3 : 0.0, x4_cat_4 : 0.0, x4_cat_5 : 0.0, x4_cat_6 : 0.0, x5 : 9.0, x6_ord_0 : 1.0, x6_ord_1 : 1.0, x6_ord_2 : 1.0, x6_ord_3 : 0.0, x6_ord_4 : 0.0, x6_ord_5 : 0.0, x6_ord_6 : 0.0, x6_ord_7 : 0.0, x6_ord_8 : 0.0, x6_ord_9 : 0.0, x7_cat_0 : 0.0, x7_cat_1 : 0.0, x7_cat_2 : 0.0, x7_cat_3 : 0.0, x7_cat_4 : 1.0, x7_cat_5 : 0.0, x7_cat_6 : 0.0, x8_cat_0 : 0.0, x8_cat_1 : 0.0, x8_cat_2 : 0.0, x8_cat_3 : 0.0, x8_cat_4 : 0.0, x8_cat_5 : 0.0, x8_cat_6 : 0.0, x8_cat_7 : 0.0, x8_cat_8 : 0.0, x8_cat_9 : 0.0, x8_cat_10 : 0.0, x8_cat_11 : 1.0, x8_cat_12 : 0.0, x8_cat_13 : 0.0, x9_cat_0 : 0.0, x9_cat_1 : 0.0, x9_cat_2 : 0.0, x9_cat_3 : 1.0, x9_cat_4 : 0.0, x9_cat_5 : 0.0, x10 : 0.0, x11 : 0.0, x12 : 40.0, y: False}

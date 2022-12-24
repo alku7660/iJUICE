@@ -110,7 +110,7 @@ def runExperiments(dataset_values, model_class_values, norm_values, approaches_v
                 for approach_string in approaches_values:
                     print(f'\t\t\tExperimenting with approach_string = `{approach_string}`')
                     if model_class_string in {'tree', 'forest'}:
-                        one_hot = True
+                        one_hot = False
                     elif model_class_string in {'lr', 'mlp'}:
                         one_hot = True
                     else:
