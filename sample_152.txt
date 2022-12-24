@@ -57,13 +57,12 @@ Constructing initial formulas: model, counterfactual, distance, plausibility, di
 Solving (not searching) for closest counterfactual using various distance thresholds...
 	Iteration #001: testing norm threshold 0.500000 in range [0.000000, 1.000000]...	solution exists & found.
 	Iteration #002: testing norm threshold 0.214336 in range [0.000000, 0.428671]...	no solution exists.
-	Iteration #003: testing norm threshold 0.321504 in range [0.214336, 0.428671]...	no solution exists.
-	Iteration #004: testing norm threshold 0.375087 in range [0.321504, 0.428671]...	no solution exists.
-	Iteration #005: testing norm threshold 0.401879 in range [0.375087, 0.428671]...	no solution exists.
-	Iteration #006: testing norm threshold 0.415275 in range [0.401879, 0.428671]...	no solution exists.
-	Iteration #007: testing norm threshold 0.421973 in range [0.415275, 0.428671]...	no solution exists.
+	Iteration #003: testing norm threshold 0.321504 in range [0.214336, 0.428671]...	solution exists & found.
+	Iteration #004: testing norm threshold 0.250075 in range [0.214336, 0.285814]...	no solution exists.
+	Iteration #005: testing norm threshold 0.267945 in range [0.250075, 0.285814]...	no solution exists.
+	Iteration #006: testing norm threshold 0.276879 in range [0.267945, 0.285814]...	no solution exists.
 
 
-Factual sample: 		 {x0 : 1.0, x1 : -0.67935, x2 : -1.0, x3 : 1.0, x4 : 1.0, x5 : 0.63317, x6 : 1.0, x7 : -1.0, y: False}
-Nearest counterfactual sample:	 {x0 : 1.0, x1 : 0.9344449937343597, x2 : 0.9978750050067902, x3 : 0.7429500073194504, x4 : 1.0, x5 : 0.63317, x6 : 1.0, x7 : -1.0, y: True} (verified)
-Minimum counterfactual distance: 0.428571
+Factual sample: 		 {x0 : 1.0, x1 : 0.05866, x2 : 0.06704, x3 : 0.00838, x4 : 0.0, x5 : -0.01117, x6 : 0.10335, x7 : 0.04469, y: False}
+Nearest counterfactual sample:	 {x0 : 1.0, x1 : 0.9540875107049942, x2 : 0.06704, x3 : 0.00838, x4 : 0.9990025013685226, x5 : -0.01117, x6 : 0.10335, x7 : 0.04469, y: True} (verified)
+Minimum counterfactual distance: 0.285714

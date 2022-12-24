@@ -64,6 +64,6 @@ Solving (not searching) for closest counterfactual using various distance thresh
 	Iteration #007: testing norm threshold 0.421973 in range [0.415275, 0.428671]...	no solution exists.
 
 
-Factual sample: 		 {x0 : 1.0, x1 : -0.67935, x2 : -1.0, x3 : 1.0, x4 : 1.0, x5 : 0.63317, x6 : 1.0, x7 : -1.0, y: False}
-Nearest counterfactual sample:	 {x0 : 1.0, x1 : 0.9344449937343597, x2 : 0.9978750050067902, x3 : 0.7429500073194504, x4 : 1.0, x5 : 0.63317, x6 : 1.0, x7 : -1.0, y: True} (verified)
+Factual sample: 		 {x0 : 0.0, x1 : 1.0, x2 : 1.0, x3 : -1.0, x4 : 1.0, x5 : -1.0, x6 : 1.0, x7 : -1.0, y: False}
+Nearest counterfactual sample:	 {x0 : 0.0, x1 : 1.0, x2 : 1.0, x3 : -0.22305000573396683, x4 : 1.0, x5 : 0.34714000299572945, x6 : -0.4635449945926666, x7 : -1.0, y: True} (verified)
 Minimum counterfactual distance: 0.428571

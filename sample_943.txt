@@ -98,15 +98,12 @@ Model Symbols:
 Constructing initial formulas: model, counterfactual, distance, plausibility, diversity		done.
 Solving (not searching) for closest counterfactual using various distance thresholds...
 	Iteration #001: testing norm threshold 0.500000 in range [0.000000, 1.000000]...	solution exists & found.
-	Iteration #002: testing norm threshold 0.250005 in range [0.000000, 0.500010]...	solution exists & found.
-	Iteration #003: testing norm threshold 0.125005 in range [0.000000, 0.250010]...	no solution exists.
-	Iteration #004: testing norm threshold 0.187507 in range [0.125005, 0.250010]...	no solution exists.
-	Iteration #005: testing norm threshold 0.218759 in range [0.187507, 0.250010]...	no solution exists.
-	Iteration #006: testing norm threshold 0.234384 in range [0.218759, 0.250010]...	no solution exists.
-	Iteration #007: testing norm threshold 0.242197 in range [0.234384, 0.250010]...	no solution exists.
-	Iteration #008: testing norm threshold 0.246104 in range [0.242197, 0.250010]...	no solution exists.
-	Iteration #009: testing norm threshold 0.248057 in range [0.246104, 0.250010]...	no solution exists.
-	Iteration #010: testing norm threshold 0.249033 in range [0.248057, 0.250010]...	no solution exists.
+	Iteration #002: testing norm threshold 0.250050 in range [0.000000, 0.500100]...	solution exists & found.
+	Iteration #003: testing norm threshold 0.125050 in range [0.000000, 0.250100]...	no solution exists.
+	Iteration #004: testing norm threshold 0.187575 in range [0.125050, 0.250100]...	no solution exists.
+	Iteration #005: testing norm threshold 0.218837 in range [0.187575, 0.250100]...	no solution exists.
+	Iteration #006: testing norm threshold 0.234469 in range [0.218837, 0.250100]...	no solution exists.
+	Iteration #007: testing norm threshold 0.242284 in range [0.234469, 0.250100]...	no solution exists.
 
 
 Factual sample: 		 {x0 : 0.0, x1_cat_0 : 0.0, x1_cat_1 : 0.0, x1_cat_2 : 1.0, x1_cat_3 : 0.0, x2_cat_0 : 0.0, x2_cat_1 : 0.0, x2_cat_2 : 1.0, x2_cat_3 : 0.0, x3_cat_0 : 0.0, x3_cat_1 : 0.0, x3_cat_2 : 1.0, x3_cat_3 : 0.0, x4 : 49.0, x5 : 7.0, y: False}
