@@ -216,7 +216,7 @@ class IJUICE:
                         if np.isclose(np.abs(vector_ij[nonzero_index]), data.feat_step[feat_nonzero], atol=toler).any():
                             A.append((i,j))
                     elif any(item in data.continuous for item in feat_nonzero):
-                        max_val, min_val = max(self.normal_ioi[nonzero_index], max(justifiers_array[:,nonzero_index])), min(self.normal_ioi[nonzero_index], min(justifiers_array[:,nonzero_index]))
+                        max_val, min_val = float(max(self.normal_ioi[nonzero_index], max(justifiers_array[:,nonzero_index]))), float(min(self.normal_ioi[nonzero_index], min(justifiers_array[:,nonzero_index])))
                         values = self.continuous_feat_values(nonzero_index, min_val, max_val, data)
                         value_node_i_idx = int(np.where(np.isclose(values, node_i[nonzero_index]))[0])
                         if value_node_i_idx > 0:

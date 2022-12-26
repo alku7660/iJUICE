@@ -209,9 +209,9 @@ def verify_justification(cf, counterfactual):
     type = counterfactual.type
     lagrange = counterfactual.lagrange
 
-    def nn_list():
+    def potential_justifiers_list(cf):
         """
-        Method that gets the list of training observations labeled as cf-label with respect to the cf, ordered based on graph nodes size
+        Obtains all the training instances sorted by distance to the CF
         """
         train_np = counterfactual.data.transformed_train_np
         train_target = counterfactual.data.train_target
@@ -219,13 +219,29 @@ def verify_justification(cf, counterfactual):
         potential_justifiers = train_np[train_target != ioi.label] #[(train_target != ioi.label) & (train_pred != ioi.label)]
         sort_potential_justifiers = []
         for i in range(potential_justifiers.shape[0]):
-            dist = distance_calculation(potential_justifiers[i], ioi.normal_x, counterfactual.data, type=counterfactual.type)
-            sort_potential_justifiers.append((potential_justifiers[i], dist))    
+            dist = distance_calculation(potential_justifiers[i], cf, counterfactual.data, type=counterfactual.type)
+            sort_potential_justifiers.append((potential_justifiers[i], dist))
         sort_potential_justifiers.sort(key=lambda x: x[1])
         sort_potential_justifiers = [i[0] for i in sort_potential_justifiers]
-        if len(sort_potential_justifiers) > 200:
-            sort_potential_justifiers = sort_potential_justifiers[:200]
         return sort_potential_justifiers
+
+    def nn_list(potential_justifiers, cf):
+        """
+        Method that gets the list of training observations labeled as cf-label with respect to the cf, ordered based on graph nodes size
+        """
+        if len(potential_justifiers) > 1000:
+            potential_justifiers = potential_justifiers[:1000]
+        permutations_potential_justifiers = []
+        for i in range(len(potential_justifiers)):
+            possible_feat_values_justifier_i = get_feat_possible_values(data, cf, [potential_justifiers[i]])[0]
+            len_permutations = len(list(product(*possible_feat_values_justifier_i)))
+            permutations_potential_justifiers.append((potential_justifiers[i], len_permutations))
+            print(f'Justifier {i+1}: Length permutations: {len_permutations}')
+        permutations_potential_justifiers.sort(key=lambda x: x[1])
+        permutations_potential_justifiers = [i[0] for i in permutations_potential_justifiers]
+        if len(permutations_potential_justifiers) > 500:
+            permutations_potential_justifiers = permutations_potential_justifiers[:500]
+        return permutations_potential_justifiers
 
     def continuous_feat_values(i, min_val, max_val, data):
         """
@@ -256,11 +272,14 @@ def verify_justification(cf, counterfactual):
                 value = value + [max_val]
         return value
 
-    def get_feat_possible_values(data, ioi, points):
+    def get_feat_possible_values(data, obj, points):
         """
         Method that obtains the features possible values
         """
-        normal_x = ioi.normal_x
+        try:
+            normal_x = obj.normal_x
+        except:
+            normal_x = obj
         pot_justifier_feat_possible_values = {}
         for k in range(len(points)):
             potential_justifier_k = points[k]
@@ -318,28 +337,29 @@ def verify_justification(cf, counterfactual):
                 new_list.extend([j])
         return np.array(new_list)
 
-    def get_graph_nodes(model, nn_list, feat_possible_values):
+    def get_graph_nodes(model, filter_pot_justifiers, train_instances, feat_possible_values):
         """
         Generator that contains all the nodes located in the space between the potential justifiers and the normal_ioi (all possible, CF-labeled nodes)
         """
         graph_nodes = []
-        for k in range(len(nn_list)):
+        for k in range(len(filter_pot_justifiers)):
+            print(f'Neighbor {k+1}, Length: {len(graph_nodes)}')
             feat_possible_values_k = feat_possible_values[k]
             permutations = product(*feat_possible_values_k)
             for i in permutations:
                 perm_i = make_array(i)
                 if model.model.predict(perm_i.reshape(1, -1)) != ioi.label and \
                     not any(np.array_equal(perm_i, x) for x in graph_nodes) and \
-                    not any(np.array_equal(perm_i, x) for x in nn_list):
+                    not any(np.array_equal(perm_i, x) for x in filter_pot_justifiers):
                     graph_nodes.append(perm_i)
         return graph_nodes
 
-    def get_adjacency(data, all_nodes, train_list):
+    def get_adjacency(data, all_nodes):
         """
         Method that outputs the adjacency matrix required for optimization
         """
         toler = 0.00001
-        train_list = np.array(train_list)
+        all_nodes = np.array(all_nodes)
         A = tuplelist()
         for i in range(1, len(all_nodes) + 1):
             node_i = all_nodes[i - 1]
@@ -358,7 +378,7 @@ def verify_justification(cf, counterfactual):
                         if np.isclose(np.abs(vector_ij[nonzero_index]), data.feat_step[feat_nonzero], atol=toler).any():
                             A.append((i,j))
                     elif any(item in data.continuous for item in feat_nonzero):
-                        max_val_i, min_val_i = max(cf[nonzero_index], max(train_list[:,nonzero_index])), min(cf[nonzero_index], min(train_list[:,nonzero_index]))
+                        max_val_i, min_val_i = float(max(cf[nonzero_index], max(all_nodes[:,nonzero_index]))), float(min(cf[nonzero_index], min(all_nodes[:,nonzero_index])))
                         values = continuous_feat_values(nonzero_index, min_val_i, max_val_i, data)
                         values_idx = int(np.where(np.isclose(values, node_i[nonzero_index]))[0])
                         if values_idx > 0:
@@ -377,24 +397,26 @@ def verify_justification(cf, counterfactual):
                             A.append((i,j))
         return A
 
-    print(f'Preprocessing and ordering of training instances')
-    train_nn_list = nn_list()
-    print(f'Number of training instances considered: {len(train_nn_list)}')
-    train_nn_feat_possible_values = get_feat_possible_values(counterfactual.data, counterfactual.ioi, train_nn_list)
+    print(f'Sorting training instances w.r.t. CF')
+    pot_justifiers = potential_justifiers_list(cf)
+    print(f'Selecting closest to CF based on distance / permutations')
+    filter_pot_justifiers = nn_list(pot_justifiers, cf)
+    print(f'Number of training instances considered: {len(filter_pot_justifiers)}')
+    train_nn_feat_possible_values = get_feat_possible_values(counterfactual.data, cf, filter_pot_justifiers)
     print(f'Obtained all possible feature values from potential justifiers')
-    graph_nodes = get_graph_nodes(model, train_nn_list, train_nn_feat_possible_values)
-    all_nodes = train_nn_list + graph_nodes
+    graph_nodes = get_graph_nodes(model, filter_pot_justifiers, pot_justifiers, train_nn_feat_possible_values)
+    all_nodes = filter_pot_justifiers + graph_nodes
     try:
         cf_index = [i for i in range(1, len(all_nodes)+1) if np.array_equal(all_nodes[i-1], cf)][0]
     except:
         cf_index = -1
     justifiers = []
     if cf_index != -1:
-        if cf_index <= len(train_nn_list) + 1:
+        if cf_index <= len(pot_justifiers) + 1:
             justifiers.append(cf)
-        range_justifier_nodes = range(1, len(train_nn_list) + 1)
-        print(f'Obtained all possible nodes in the graph: {len(all_nodes)}')
-        adjacency = get_adjacency(data, all_nodes, train_nn_list)
+        range_justifier_nodes = range(1, len(filter_pot_justifiers) + 1)
+        print(f'Obtained closest graphs nodes to CF: {len(all_nodes)}')
+        adjacency = get_adjacency(data, all_nodes)
         G = nx.DiGraph()
         G.add_edges_from(adjacency)
         if G.has_node(cf_index):
@@ -403,9 +425,9 @@ def verify_justification(cf, counterfactual):
                     if nx.has_path(G, i, cf_index):
                         justifiers.append(all_nodes[i - 1])
         else:
-            print(f'The CF is not found in the graph of nodes for justification verification. The instance is not justifiable.')
+            print(f'The CF is not found in the graph of nodes for justification verification. May be justified by itself.')
     else:
         print(f'The CF is not found in the graph of nodes for justification verification. The instance is not justifiable.')
-    justifier_ratio = len(justifiers)/len(train_nn_list)
+    justifier_ratio = len(justifiers)/len(filter_pot_justifiers)
     print(f'Evaluated Justifier Ratio: {np.round(justifier_ratio*100, 3)}%')
     return justifiers, justifier_ratio
