@@ -11,10 +11,11 @@ from scipy.stats import norm
 class IJUICE:
 
     def __init__(self, counterfactual):
-        self.normal_ioi = counterfactual.ioi.normal_x[0]
+        self.normal_ioi = counterfactual.ioi.normal_x
         self.ioi_label = counterfactual.ioi.label
         self.lagrange = counterfactual.lagrange
         self.potential_justifiers = self.find_potential_justifiers(counterfactual)
+        self.potential_justifiers = self.nn_list(counterfactual)
         start_time = time.time()
         self.normal_x_cf, self.justifiers, self.justifier_ratio = self.Ijuice(counterfactual)
         end_time = time.time()
@@ -34,9 +35,27 @@ class IJUICE:
             sort_potential_justifiers.append((potential_justifiers[i], dist))    
         sort_potential_justifiers.sort(key=lambda x: x[1])
         sort_potential_justifiers = [i[0] for i in sort_potential_justifiers]
-        sort_potential_justifiers = sort_potential_justifiers[:30]
+        if len(sort_potential_justifiers) > 200:
+            sort_potential_justifiers = sort_potential_justifiers[:200]
+        # sort_potential_justifiers = sort_potential_justifiers[:30]
         return sort_potential_justifiers
-    
+
+    def nn_list(self, counterfactual):
+        """
+        Method that gets the list of training observations labeled as cf-label with respect to the cf, ordered based on graph nodes size
+        """
+        permutations_potential_justifiers = []
+        for i in range(len(self.potential_justifiers)):
+            possible_feat_values_justifier_i = self.get_feat_possible_values(counterfactual.data, obj=self.normal_ioi, points=[self.potential_justifiers[i]])[0]
+            len_permutations = len(list(product(*possible_feat_values_justifier_i)))
+            permutations_potential_justifiers.append((self.potential_justifiers[i], len_permutations))
+            # print(f'Justifier {i+1}: Length permutations: {len_permutations}')
+        permutations_potential_justifiers.sort(key=lambda x: x[1])
+        permutations_potential_justifiers = [i[0] for i in permutations_potential_justifiers]
+        if len(permutations_potential_justifiers) > 100:
+            permutations_potential_justifiers = permutations_potential_justifiers[:100]
+        return permutations_potential_justifiers
+
     def Ijuice(self, counterfactual):
         """
         Improved JUICE generation method
@@ -94,23 +113,31 @@ class IJUICE:
                 value = value + [max_val]
         return value
 
-    def get_feat_possible_values(self, data):
+    def get_feat_possible_values(self, data, obj=None, points=None):
         """
         Method that obtains the features possible values
         """
         pot_justifier_feat_possible_values = {}
-        for k in range(len(self.potential_justifiers)):
-            potential_justifier_k = self.potential_justifiers[k]
-            v = self.normal_ioi - potential_justifier_k
+        if obj is None:
+            normal_x = self.normal_ioi
+        else:
+            normal_x = obj
+        if points is None:
+            points = self.potential_justifiers
+        else:
+            points = points
+        for k in range(len(points)):
+            potential_justifier_k = points[k]
+            v = normal_x - potential_justifier_k
             nonzero_index = list(np.nonzero(v)[0])
             feat_checked = []
             feat_possible_values = []
-            for i in range(len(self.normal_ioi)):
+            for i in range(len(normal_x)):
                 if i not in feat_checked:
                     feat_i = data.processed_features[i]
                     if feat_i in data.bin_enc_cols:
                         if i in nonzero_index:
-                            value = [potential_justifier_k[i], self.normal_ioi[i]]
+                            value = [potential_justifier_k[i], normal_x[i]]
                         else:
                             value = [potential_justifier_k[i]]
                         feat_checked.extend([i])
@@ -118,7 +145,7 @@ class IJUICE:
                         idx_cat_i = data.idx_cat_cols_dict[data.processed_features[i][:-2]]
                         nn_cat_idx = list(potential_justifier_k[idx_cat_i])
                         if any(item in idx_cat_i for item in nonzero_index):
-                            ioi_cat_idx = list(self.normal_ioi[idx_cat_i])
+                            ioi_cat_idx = list(normal_x[idx_cat_i])
                             value = [nn_cat_idx, ioi_cat_idx]
                         else:
                             value = [nn_cat_idx]
@@ -126,14 +153,14 @@ class IJUICE:
                     elif feat_i in data.ordinal:
                         if i in nonzero_index:
                             values_i = list(data.processed_feat_dist[data.processed_features[i]].keys())
-                            max_val_i, min_val_i = max(self.normal_ioi[i], potential_justifier_k[i]), min(self.normal_ioi[i], potential_justifier_k[i])
+                            max_val_i, min_val_i = max(normal_x[i], potential_justifier_k[i]), min(normal_x[i], potential_justifier_k[i])
                             value = [j for j in values_i if j <= max_val_i and j >= min_val_i]
                         else:
                             value = [potential_justifier_k[i]]
                         feat_checked.extend([i])
                     elif feat_i in data.continuous:
                         if i in nonzero_index:
-                            max_val_i, min_val_i = max(self.normal_ioi[i], potential_justifier_k[i]), min(self.normal_ioi[i], potential_justifier_k[i])
+                            max_val_i, min_val_i = max(normal_x[i], potential_justifier_k[i]), min(normal_x[i], potential_justifier_k[i])
                             value = self.continuous_feat_values(i, min_val_i, max_val_i, data)
                         else:
                             value = [potential_justifier_k[i]]
@@ -161,6 +188,7 @@ class IJUICE:
         """
         graph_nodes = []
         for k in range(len(self.potential_justifiers)):
+            # print(f'Neighbor {k+1}, Length: {len(graph_nodes)}')
             feat_possible_values_k = self.pot_justifier_feat_possible_values[k]
             permutations = product(*feat_possible_values_k)
             for i in permutations:
@@ -246,7 +274,7 @@ class IJUICE:
             path.extend([node])
             if cf_node == node:
                 return path
-            new_node = [j for j in G.successors(node) if edge[node,j].x >= 1][0]
+            new_node = [j for j in G.successors(node) if edge[node,j].x >= 0.98][0]
             return output_path(new_node, cf_node, path)
 
         """
@@ -309,5 +337,5 @@ class IJUICE:
             print(f'Source {i} Path to CF: {output_path(i, cf_node_idx, path=path)}')
             time.sleep(0.25)
         justifier_ratio = len(justifiers)/len(self.potential_justifiers)
-        print(f'Justifier Ratio: {np.round(justifier_ratio, 2)}')
+        print(f'Justifier Ratio (%): {np.round(justifier_ratio*100, 2)}')
         return sol_x, justifiers, justifier_ratio

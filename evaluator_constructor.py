@@ -42,7 +42,10 @@ class Evaluator():
         L1_L0 = distance_calculation(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data, 'L1_L0')
         L1_L0_L_inf = distance_calculation(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data, 'L1_L0_L_inf')
         self.proximity_dict[counterfactual.ioi.idx] = {'euclidean':L2, 'L1':L1, 'L_inf':Linf, 'L1_L0':L1_L0, 'L1_L0_L_inf':L1_L0_L_inf}
-        self.justifiers_dict[counterfactual.ioi.idx], self.justifier_ratio[counterfactual.ioi.idx] = verify_justification(counterfactual.cf_method.normal_x_cf, counterfactual)
+        if self.method_name == 'ijuice':
+            self.justifiers_dict[counterfactual.ioi.idx], self.justifier_ratio[counterfactual.ioi.idx] = counterfactual.cf_method.justifiers, counterfactual.cf_method.justifier_ratio
+        else:
+            self.justifiers_dict[counterfactual.ioi.idx], self.justifier_ratio[counterfactual.ioi.idx] = verify_justification(counterfactual.cf_method.normal_x_cf, counterfactual)
         self.time_dict[counterfactual.ioi.idx] = counterfactual.cf_method.run_time
 
 def distance_calculation(x, y, data, type='euclidean'):
@@ -236,11 +239,11 @@ def verify_justification(cf, counterfactual):
             possible_feat_values_justifier_i = get_feat_possible_values(data, cf, [potential_justifiers[i]])[0]
             len_permutations = len(list(product(*possible_feat_values_justifier_i)))
             permutations_potential_justifiers.append((potential_justifiers[i], len_permutations))
-            print(f'Justifier {i+1}: Length permutations: {len_permutations}')
+            # print(f'Justifier {i+1}: Length permutations: {len_permutations}')
         permutations_potential_justifiers.sort(key=lambda x: x[1])
         permutations_potential_justifiers = [i[0] for i in permutations_potential_justifiers]
-        if len(permutations_potential_justifiers) > 500:
-            permutations_potential_justifiers = permutations_potential_justifiers[:500]
+        if len(permutations_potential_justifiers) > 100:
+            permutations_potential_justifiers = permutations_potential_justifiers[:100]
         return permutations_potential_justifiers
 
     def continuous_feat_values(i, min_val, max_val, data):
@@ -343,7 +346,7 @@ def verify_justification(cf, counterfactual):
         """
         graph_nodes = []
         for k in range(len(filter_pot_justifiers)):
-            print(f'Neighbor {k+1}, Length: {len(graph_nodes)}')
+            # print(f'Neighbor {k+1}, Length: {len(graph_nodes)}')
             feat_possible_values_k = feat_possible_values[k]
             permutations = product(*feat_possible_values_k)
             for i in permutations:
@@ -380,15 +383,24 @@ def verify_justification(cf, counterfactual):
                     elif any(item in data.continuous for item in feat_nonzero):
                         max_val_i, min_val_i = float(max(cf[nonzero_index], max(all_nodes[:,nonzero_index]))), float(min(cf[nonzero_index], min(all_nodes[:,nonzero_index])))
                         values = continuous_feat_values(nonzero_index, min_val_i, max_val_i, data)
-                        values_idx = int(np.where(np.isclose(values, node_i[nonzero_index]))[0])
-                        if values_idx > 0:
-                            values_idx_inf = values_idx - 1
-                        else:
-                            values_idx_inf = 0
-                        if values_idx < len(values) - 1:
-                            values_idx_sup = values_idx + 1
-                        else:
-                            values_idx_sup = values_idx
+                        try:
+                            values_idx = int(np.where(np.isclose(values, node_i[nonzero_index]))[0])
+                            if values_idx > 0:
+                                values_idx_inf = values_idx - 1
+                            else:
+                                values_idx_inf = 0
+                            if values_idx < len(values) - 1:
+                                values_idx_sup = values_idx + 1
+                            else:
+                                values_idx_sup = values_idx
+                        except:
+                            if node_i[nonzero_index] < values[0]:
+                                values_idx_inf, values_idx_sup = 0, 0
+                            elif node_i[nonzero_index] > values[-1]:
+                                values_idx_inf, values_idx_sup = len(values) - 1, len(values) - 1
+                            for k in range(len(values) - 1):
+                                if node_i[nonzero_index] < values[k+1] and node_i[nonzero_index] > values[k]:
+                                    values_idx_inf, values_idx_sup = k, k+1        
                         close_node_j_values = [values[values_idx_inf], values[values_idx_sup]]
                         if np.isclose(node_j[nonzero_index], close_node_j_values, atol=toler).any():
                             A.append((i,j))
