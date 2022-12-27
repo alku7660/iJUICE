@@ -232,8 +232,8 @@ def verify_justification(cf, counterfactual):
         """
         Method that gets the list of training observations labeled as cf-label with respect to the cf, ordered based on graph nodes size
         """
-        if len(potential_justifiers) > 1000:
-            potential_justifiers = potential_justifiers[:1000]
+        if len(potential_justifiers) > 100:
+            potential_justifiers = potential_justifiers[:100]
         permutations_potential_justifiers = []
         for i in range(len(potential_justifiers)):
             possible_feat_values_justifier_i = get_feat_possible_values(data, cf, [potential_justifiers[i]])[0]
@@ -242,8 +242,8 @@ def verify_justification(cf, counterfactual):
             # print(f'Justifier {i+1}: Length permutations: {len_permutations}')
         permutations_potential_justifiers.sort(key=lambda x: x[1])
         permutations_potential_justifiers = [i[0] for i in permutations_potential_justifiers]
-        if len(permutations_potential_justifiers) > 100:
-            permutations_potential_justifiers = permutations_potential_justifiers[:100]
+        if len(permutations_potential_justifiers) > 50:
+            permutations_potential_justifiers = permutations_potential_justifiers[:50]
         return permutations_potential_justifiers
 
     def continuous_feat_values(i, min_val, max_val, data):

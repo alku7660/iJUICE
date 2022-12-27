@@ -35,8 +35,8 @@ class IJUICE:
             sort_potential_justifiers.append((potential_justifiers[i], dist))    
         sort_potential_justifiers.sort(key=lambda x: x[1])
         sort_potential_justifiers = [i[0] for i in sort_potential_justifiers]
-        if len(sort_potential_justifiers) > 200:
-            sort_potential_justifiers = sort_potential_justifiers[:200]
+        if len(sort_potential_justifiers) > 100:
+            sort_potential_justifiers = sort_potential_justifiers[:100]
         # sort_potential_justifiers = sort_potential_justifiers[:30]
         return sort_potential_justifiers
 
@@ -52,8 +52,8 @@ class IJUICE:
             # print(f'Justifier {i+1}: Length permutations: {len_permutations}')
         permutations_potential_justifiers.sort(key=lambda x: x[1])
         permutations_potential_justifiers = [i[0] for i in permutations_potential_justifiers]
-        if len(permutations_potential_justifiers) > 100:
-            permutations_potential_justifiers = permutations_potential_justifiers[:100]
+        if len(permutations_potential_justifiers) > 50:
+            permutations_potential_justifiers = permutations_potential_justifiers[:50]
         return permutations_potential_justifiers
 
     def Ijuice(self, counterfactual):
