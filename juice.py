@@ -28,7 +28,7 @@ class JUICE:
         """
         justifier, _ = nn_for_juice(counterfactual)
         if justifier is not None:
-            if counterfactual.model.model.predict(justifier.reshape(1, -1)) != self.ioi.label:
+            if counterfactual.model.model.predict(justifier.reshape(1, -1)) != counterfactual.ioi.label:
                 normal_x_cf, justified = justified_search(counterfactual.ioi, justifier, counterfactual.model, counterfactual.data), 1
             else:
                 print(f'Justifier (NN CF instance) is not a prediction counterfactual. Returning ground truth NN counterfactual as CF')
