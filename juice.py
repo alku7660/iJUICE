@@ -29,7 +29,7 @@ class JUICE:
         justifier, _ = nn_for_juice(counterfactual)
         if justifier is not None:
             if counterfactual.model.model.predict(justifier.reshape(1, -1)) != counterfactual.ioi.label:
-                normal_x_cf, justified = justified_search(counterfactual.ioi, justifier, counterfactual.model, counterfactual.data), 1
+                normal_x_cf, justified = justified_search(counterfactual.ioi.normal_x, counterfactual.ioi.label, justifier, counterfactual.model, counterfactual.data), 1
             else:
                 print(f'Justifier (NN CF instance) is not a prediction counterfactual. Returning ground truth NN counterfactual as CF')
                 normal_x_cf = justifier
@@ -55,7 +55,7 @@ def verify_diff_label(label, model, v):
     return different
 
 
-def justified_search(x,x_label,nn_cf,model,data,priority):
+def justified_search(x,x_label,nn_cf,model,data):
     """
     Search for instances justified by t (train instance), closer to instance x
     Input x: Instance of interest
@@ -156,7 +156,7 @@ def justified_search(x,x_label,nn_cf,model,data,priority):
         permutation_remaining = [idx for idx in permutation if idx in idx_in_group and idx != j]
         return result_instance, permutation_remaining
 
-    def binary_search(x,closest_to_x,f_type_str,priority):
+    def binary_search(x,closest_to_x,f_type_str):
         """
         Method that searches for instances closer to x by modifying only binary features
         Input closest_to_x: Closest instance to x that is justified by t
@@ -187,25 +187,16 @@ def justified_search(x,x_label,nn_cf,model,data,priority):
                     v = perturbation_cf(v,j,np.sign(vector[j]),np.abs(vector[j]))
                 if np.array_equal(v,v_old):
                     break
-                if priority == 'proximity':
-                    if verify_diff_label(x_label,model,v) and distance_calculation(x, v) < closest_to_x_cost:
-                        closest_to_x = np.copy(v)
-                        closest_to_x_cost = distance_calculation(x, closest_to_x)
-                    else:
-                        break
-                elif priority == 'sparsity':
-                    if verify_diff_label(x_label,model,v):
-                        counter+=1
-                        if counter == len(perm_list):
-                            closest_to_x = np.copy(v)
-                            found = 1
-                    else:
-                        break
+                if verify_diff_label(x_label,model,v) and distance_calculation(x, v) < closest_to_x_cost:
+                    closest_to_x = np.copy(v)
+                    closest_to_x_cost = distance_calculation(x, closest_to_x)
+                else:
+                    break
             if found:
                 break
         return closest_to_x
 
-    def numerical_search(x,closest_to_x,f_type_str,priority):
+    def numerical_search(x,closest_to_x,f_type_str):
         """
         Search for instances closer to x by modifying only binary features
         Input closest_to_x: Closest instance to x that is justified by t
@@ -235,13 +226,9 @@ def justified_search(x,x_label,nn_cf,model,data,priority):
             perm_list = order_by_cost(perm_list,len_num_diff_index)
         original_closest_to_x = np.copy(closest_to_x)
         for i in perm_list:
-            counter_viable = 0
             counter_feat_tried = 0
             v = np.copy(original_closest_to_x)
             for j in i:
-                unviable = False
-                if priority == 'sparsity' and counter_viable < counter_feat_tried or unviable:
-                    break
                 direc_j, step_j = direction_step()
                 not_close = True
                 while not_close:
@@ -249,32 +236,16 @@ def justified_search(x,x_label,nn_cf,model,data,priority):
                     v = perturbation_cf(v,j,direc_j,step_j)
                     if np.array_equal(v,v_old):
                         break
-                    if priority == 'proximity':
-                        if verify_diff_label(x_label,model,v):
-                            if distance_calculation(x, v) < closest_to_x_cost:
-                                closest_to_x = np.copy(v)
-                                closest_to_x_cost = distance_calculation(x,closest_to_x,data.feat_cost)
-                        else:
-                            unviable = True
-                            break
-                        if np.isclose(np.abs(x[j] - v[j]),0,rtol=0.000001):
-                            v[j] = x[j]
-                            not_close = False
-                    elif priority == 'sparsity':
-                        if verify_diff_label(x_label,model,v):
-                            if np.isclose(np.abs(x[j] - v[j]),0,rtol=0.000001):
-                                v[j] = x[j]
-                                counter_viable+=1
-                        else:
-                            break
-                        if counter_viable == len(i):
+                    if verify_diff_label(x_label,model,v):
+                        if distance_calculation(x, v) < closest_to_x_cost:
                             closest_to_x = np.copy(v)
-                            not_close = False
-                        if np.isclose(np.abs(x[j] - v[j]),0,rtol=0.000001):
-                            not_close = False
+                            closest_to_x_cost = distance_calculation(x,closest_to_x,data.feat_cost)
+                    else:
+                        break
+                    if np.isclose(np.abs(x[j] - v[j]),0,rtol=0.000001):
+                        v[j] = x[j]
+                        not_close = False
                 counter_feat_tried += 1
-            if priority == 'sparsity' and counter_viable == len(i):
-                break
         return closest_to_x
 
     # Must be run in this order: (1) Binary search, (2) Ordinal search (3) Continuous search
