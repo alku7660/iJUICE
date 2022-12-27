@@ -49,7 +49,7 @@ def verify_diff_label(label, model, v):
     """
     different = False
     v = v.reshape(1, -1)
-    label_v = model.predict(v)
+    label_v = model.model.predict(v)
     if label_v != label:
         different = True
     return different
@@ -77,8 +77,8 @@ def justified_search(x,x_label,nn_cf,model,data):
         Ooutput diff_index: Different indices between x and closest_to_x
         """
         vector = x - closest_to_x
-        closest_to_x_cost = distance_calculation(x,closest_to_x)
-        directionality_condition = ((vector < 0) & (data.feat_dir == 'pos') | (vector > 0) & (data.feat_dir == 'neg') | (vector != 0) & (data.feat_dir == 'any'))
+        closest_to_x_cost = distance_calculation(x,closest_to_x,data)
+        directionality_condition = ((vector < 0) & (data.feat_directionality == 'pos') | (vector > 0) & (data.feat_directionality == 'neg') | (vector != 0) & (data.feat_directionality == 'any'))
         if f_type_str is not None:
             diff_index = np.where(directionality_condition & (data.feat_type == f_type_str) & (data.feat_mutable == 1))[0].tolist()
         else:
@@ -98,27 +98,11 @@ def justified_search(x,x_label,nn_cf,model,data):
         for i in range(len(perm_list)):
             bin_perm_feat_cost = 0
             for j in range(len(perm_list[i])):
-                bin_perm_feat_cost += data.feat_cost.iloc[perm_list[i][j]]*positions[j]
+                bin_perm_feat_cost += 1
             perm_feat_cost_list.append((perm_list[i],bin_perm_feat_cost))      
         perm_feat_cost_list.sort(key=lambda x: x[1])
         perm_list_sorted = [k[0] for k in perm_feat_cost_list]
         return perm_list_sorted
-
-    def sparse_optimize(close_to_x_list):
-        """
-        Method that selects the best sparse counterfactual and brings it closer to x
-        Input close_to_x_list: List of sparse counterfactuals
-        Output closest_to_x: Best of the sparse counterfactuals to x
-        """
-        tuple_close_to_x_cost = [(i[0],i[1],distance_calculation(x, i[0])) for i in close_to_x_list]
-        tuple_close_to_x_cost.sort(key=lambda x: x[2])
-        closest_to_x = tuple_close_to_x_cost[0][0]
-        closest_to_x_sparse_idx = tuple_close_to_x_cost[0][1]
-        prio = 'proximity'
-        closest_to_x = binary_search(x,closest_to_x,'bin',prio)
-        closest_to_x = numerical_search(x,closest_to_x,'num-ord',prio)
-        closest_to_x = numerical_search(x,closest_to_x,'num-con',prio)
-        return (closest_to_x,closest_to_x_sparse_idx)
 
     def perturbation_cf(instance,j,direction,step_size):
         """
@@ -187,9 +171,9 @@ def justified_search(x,x_label,nn_cf,model,data):
                     v = perturbation_cf(v,j,np.sign(vector[j]),np.abs(vector[j]))
                 if np.array_equal(v,v_old):
                     break
-                if verify_diff_label(x_label,model,v) and distance_calculation(x, v) < closest_to_x_cost:
+                if verify_diff_label(x_label,model,v) and distance_calculation(x, v, data) < closest_to_x_cost:
                     closest_to_x = np.copy(v)
-                    closest_to_x_cost = distance_calculation(x, closest_to_x)
+                    closest_to_x_cost = distance_calculation(x, closest_to_x, data)
                 else:
                     break
             if found:
@@ -237,9 +221,9 @@ def justified_search(x,x_label,nn_cf,model,data):
                     if np.array_equal(v,v_old):
                         break
                     if verify_diff_label(x_label,model,v):
-                        if distance_calculation(x, v) < closest_to_x_cost:
+                        if distance_calculation(x, v, data) < closest_to_x_cost:
                             closest_to_x = np.copy(v)
-                            closest_to_x_cost = distance_calculation(x,closest_to_x,data.feat_cost)
+                            closest_to_x_cost = distance_calculation(x,closest_to_x,data)
                     else:
                         break
                     if np.isclose(np.abs(x[j] - v[j]),0,rtol=0.000001):
