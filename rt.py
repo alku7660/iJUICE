@@ -77,7 +77,7 @@ def rf_tweak(counterfactual):
     data = counterfactual.data
     x = counterfactual.ioi.normal_x
     x_label = counterfactual.ioi.label
-    rf_model = counterfactual.rf_model
+    rf_model = counterfactual.model.rf_model
 
     start_time = time.time()
     x_pred = rf_model.predict(x.reshape(1,-1))
