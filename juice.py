@@ -20,7 +20,7 @@ class JUICE:
         start_time = time.time()
         self.normal_x_cf, self.justifier = self.Juice(counterfactual)
         end_time = time.time()
-        self.total_time = end_time - start_time
+        self.run_time = end_time - start_time
 
     def Juice(self, counterfactual):
         """

@@ -144,7 +144,7 @@ def feat_tweak(counterfactual):
     Function that calls the feature tweaking algorithm and returns the FT counterfactual with respect to instance of interest x
     """
     x = counterfactual.ioi.normal_x
-    rf_model = counterfactual.rf_model
+    rf_model = counterfactual.model.rf_model
     epsilon = 0.01 # Epsilon corresponding to the rate of change in feature tweaking algorithm
 
     start_time = time.time()

@@ -29,7 +29,7 @@ def min_obs(counterfactual):
     all_labels = np.hstack((data.train_target, model.model.predict(data.transformed_test_np)))
     data_distance_mo = []
     for i in range(all_data.shape[0]):
-        dist = distance_calculation(all_data[i], ioi.normal_x, type)
+        dist = distance_calculation(all_data[i], ioi.normal_x, data)
         data_distance_mo.append((all_data[i], dist, all_labels[i]))      
     data_distance_mo.sort(key=lambda x: x[1])
     for i in data_distance_mo:

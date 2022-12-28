@@ -52,8 +52,8 @@ class IJUICE:
             # print(f'Justifier {i+1}: Length permutations: {len_permutations}')
         permutations_potential_justifiers.sort(key=lambda x: x[1])
         permutations_potential_justifiers = [i[0] for i in permutations_potential_justifiers]
-        if len(permutations_potential_justifiers) > 50:
-            permutations_potential_justifiers = permutations_potential_justifiers[:50]
+        if len(permutations_potential_justifiers) > 10:
+            permutations_potential_justifiers = permutations_potential_justifiers[:10]
         return permutations_potential_justifiers
 
     def Ijuice(self, counterfactual):
@@ -246,15 +246,24 @@ class IJUICE:
                     elif any(item in data.continuous for item in feat_nonzero):
                         max_val, min_val = float(max(self.normal_ioi[nonzero_index], max(justifiers_array[:,nonzero_index]))), float(min(self.normal_ioi[nonzero_index], min(justifiers_array[:,nonzero_index])))
                         values = self.continuous_feat_values(nonzero_index, min_val, max_val, data)
-                        value_node_i_idx = int(np.where(np.isclose(values, node_i[nonzero_index]))[0])
-                        if value_node_i_idx > 0:
-                            value_node_i_idx_inf = value_node_i_idx - 1
-                        else:
-                            value_node_i_idx_inf = 0
-                        if value_node_i_idx < len(values) - 1:
-                            value_node_i_idx_sup = value_node_i_idx + 1
-                        else:
-                            value_node_i_idx_sup = value_node_i_idx
+                        try:
+                            value_node_i_idx = int(np.where(np.isclose(values, node_i[nonzero_index]))[0])
+                            if value_node_i_idx > 0:
+                                value_node_i_idx_inf = value_node_i_idx - 1
+                            else:
+                                value_node_i_idx_inf = 0
+                            if value_node_i_idx < len(values) - 1:
+                                value_node_i_idx_sup = value_node_i_idx + 1
+                            else:
+                                value_node_i_idx_sup = value_node_i_idx
+                        except:
+                            if node_i[nonzero_index] < values[0]:
+                                value_node_i_idx_inf, value_node_i_idx_sup = 0, 0
+                            elif node_i[nonzero_index] > values[-1]:
+                                value_node_i_idx_inf, value_node_i_idx_sup = len(values) - 1, len(values) - 1
+                            for k in range(len(values) - 1):
+                                if node_i[nonzero_index] < values[k+1] and node_i[nonzero_index] > values[k]:
+                                    value_node_i_idx_inf, value_node_i_idx_sup = k, k+1  
                         close_node_j_values = [values[value_node_i_idx_inf], values[value_node_i_idx_sup]]
                         if any(np.isclose(node_j[nonzero_index], close_node_j_values)):
                             A.append((i,j))

@@ -242,8 +242,8 @@ def verify_justification(cf, counterfactual):
             # print(f'Justifier {i+1}: Length permutations: {len_permutations}')
         permutations_potential_justifiers.sort(key=lambda x: x[1])
         permutations_potential_justifiers = [i[0] for i in permutations_potential_justifiers]
-        if len(permutations_potential_justifiers) > 50:
-            permutations_potential_justifiers = permutations_potential_justifiers[:50]
+        if len(permutations_potential_justifiers) > 10:
+            permutations_potential_justifiers = permutations_potential_justifiers[:10]
         return permutations_potential_justifiers
 
     def continuous_feat_values(i, min_val, max_val, data):
