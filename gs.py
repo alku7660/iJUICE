@@ -26,8 +26,7 @@ class GS:
     verbose: text
     """
     def __init__(self,
-                obs_to_interprete,
-                prediction_fn,
+                counterfactual,
                 target_class = None,
                 caps = None,
                 n_in_layer = 2000,
@@ -37,9 +36,9 @@ class GS:
                 sparse = True,
                 verbose = False):
 
-        self.obs_to_interprete = obs_to_interprete
-        self.prediction_fn = prediction_fn
-        self.y_obs = prediction_fn(obs_to_interprete.reshape(1, -1))      
+        self.obs_to_interprete = counterfactual.ioi.normal_x
+        self.prediction_fn = counterfactual.model.model.predict
+        self.y_obs = counterfactual.ioi.label      
         self.target_class = target_class
         self.caps = caps
         self.n_in_layer = n_in_layer
