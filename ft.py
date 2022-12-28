@@ -111,7 +111,7 @@ def esatisfactory_instance(x, epsilon, path_info):
             print('something wrong')
     return esatisfactory
  
-def feature_tweaking(ensemble_classifier, x, class_labels, aim_label, epsilon, cost_func):
+def feature_tweaking(ensemble_classifier, x, class_labels, aim_label, epsilon, cost_func, data):
     """
     This function return the active feature tweaking vector.
     x: feature vector
@@ -131,9 +131,9 @@ def feature_tweaking(ensemble_classifier, x, class_labels, aim_label, epsilon, c
                 es_instance = esatisfactory_instance(x, epsilon, path_info)
                 # if estimator.predict(es_instance.reshape(1, -1)) == aim_label:
                 if ensemble_classifier.predict(es_instance.reshape(1, -1)) == aim_label:
-                    if cost_func(x, es_instance) < delta_mini:
+                    if cost_func(x, es_instance, data) < delta_mini:
                         x_out = es_instance
-                        delta_mini = cost_func(x, es_instance)
+                        delta_mini = cost_func(x, es_instance, data)
             else:
                 continue
     return x_out
@@ -145,6 +145,7 @@ def feat_tweak(counterfactual):
     """
     x = counterfactual.ioi.normal_x
     rf_model = counterfactual.model.rf_model
+    data = counterfactual.data
     epsilon = 0.01 # Epsilon corresponding to the rate of change in feature tweaking algorithm
 
     start_time = time.time()
@@ -154,7 +155,7 @@ def feat_tweak(counterfactual):
         aim = 1
     else:
         aim = 0
-    ft_cf = feature_tweaking(rf_model , x, classes, aim, epsilon, distance_calculation)
+    ft_cf = feature_tweaking(rf_model , x, classes, aim, epsilon, distance_calculation, data)
     end_time = time.time()
     ft_time = end_time - start_time
     return ft_cf, ft_time
