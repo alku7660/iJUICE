@@ -23,7 +23,7 @@ def get_distances(x1, x2, metrics=None):
 def generate_ball(center, r, n):
     def norm(v):
         return np.linalg.norm(v, ord=2, axis=1)
-    d = center.shape[1]
+    d = center.shape[0]
     u = np.random.normal(0,1,(n, d+2))  # an array of (d+2) normally distributed random variables
     norm_ = norm(u)
     u = 1/norm_[:,None]* u
@@ -34,7 +34,7 @@ def generate_ball(center, r, n):
 def generate_ring(center, segment, n):
     def norm(v):
         return np.linalg.norm(v, ord=2, axis=1)
-    d = center.shape[1]
+    d = center.shape[0]
     z = np.random.normal(0, 1, (n, d))
     try:
         u = np.random.uniform(segment[0]**d, segment[1]**d, n)
@@ -48,7 +48,7 @@ def generate_ring(center, segment, n):
 def generate_sphere(center, r, n):    
     def norm(v):
             return np.linalg.norm(v, ord=2, axis=1)
-    d = center.shape[1]
+    d = center.shape[0]
     z = np.random.normal(0, 1, (n, d))
     z = z/(norm(z)[:, None]) * r + center
     return z
