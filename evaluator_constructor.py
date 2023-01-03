@@ -117,7 +117,8 @@ def distance_calculation(x, y, data, type='euclidean'):
                     perc_shift = np.abs(distribution[x_col_value] - distribution[y_col_value])
                 elif col in data.ordinal:
                     min_val, max_val = min(x_col_value, y_col_value), max(x_col_value, y_col_value)
-                    values_range = [i for i in distribution.keys() if i >= min_val and i <= max_val].sort()
+                    values_range = [i for i in distribution.keys() if i >= min_val and i <= max_val]
+                    values_range.sort()
                     prob_values = np.cumsum([distribution[val] for val in values_range])
                     perc_shift = np.abs(prob_values[-1] - prob_values[0])
                 elif col in data.continuous:
