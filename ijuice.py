@@ -73,7 +73,7 @@ class IJUICE:
         self.A = self.get_all_adjacency(counterfactual.data, counterfactual.model)
         print(f'Obtained adjacency matrix')
         if len(self.potential_justifiers) > 0:
-            normal_x_cf, justifiers, justifier_ratio = self.do_optimize_all()
+            normal_x_cf, justifiers, justifier_ratio = self.do_optimize_all(counterfactual)
         else:
             print(f'CF cannot be justified. Returning NN counterfactual')
             normal_x_cf, _ = nn_for_juice(counterfactual)
@@ -272,7 +272,7 @@ class IJUICE:
                             A.append((i,j))
         return A
 
-    def do_optimize_all(self):
+    def do_optimize_all(self, counterfactual):
         """
         Method that finds iJUICE CF using an optimization package
         """
@@ -286,65 +286,90 @@ class IJUICE:
             new_node = [j for j in G.successors(node) if edge[node,j].x >= 0.98][0]
             return output_path(new_node, cf_node, path)
 
-        """
-        MODEL
-        """
-        opt_model = gp.Model(name='iJUICE')
-        G = nx.DiGraph()
-        G.add_edges_from(self.A)
-        
-        """
-        SETS AND VARIABLES
-        """
-        set_I = list(self.C.keys())   
-        cf = opt_model.addVars(set_I, vtype=GRB.BINARY, name='Counterfactual')   # Node chosen as destination
-        source = opt_model.addVars(set_I, vtype=GRB.BINARY, name='Justifiers')       # Nodes chosen as sources (justifier points)
-        edge = gp.tupledict()
-        
-        """
-        CONSTRAINTS AND OBJECTIVE
-        """
-        len_justifiers = len(self.potential_justifiers)
-        for (i,j) in G.edges:
-            edge[i,j] = opt_model.addVar(vtype=GRB.INTEGER, name='Path')
-        for v in G.nodes:
-            if v <= len_justifiers:
-                opt_model.addConstr(gp.quicksum(edge[i,v] for i in G.predecessors(v)) - gp.quicksum(edge[v,j] for j in G.successors(v)) == -source[v]) # Source contraints
+        if len(self.A) == 0:
+            potential_CF = {}
+            for i in self.C.keys():
+                if self.F[i]:
+                    potential_CF[i] = self.C[i]
+            if len(potential_CF) == 0:
+                sol_x = self.find_potential_justifiers(counterfactual)[0]
             else:
-                opt_model.addConstr(gp.quicksum(edge[i,v] for i in G.predecessors(v)) - gp.quicksum(edge[v,j] for j in G.successors(v)) == cf[v]*source.sum()) # Sink constraints
-                opt_model.addConstr(cf[v] <= self.F[v])
-                opt_model.addConstr(source[v] == 0)
-        opt_model.addConstr(source.sum() >= 1)
-        opt_model.setObjective(cf.prod(self.C)*self.lagrange - source.sum()/len_justifiers*(1-self.lagrange), GRB.MINIMIZE)  # cf.prod(self.C) - source.sum()/len_justifiers
-        
-        """
-        OPTIMIZATION AND RESULTS
-        """
-        opt_model.optimize()
-        time.sleep(0.5)
-        for i in self.C.keys():
-            if cf[i].x > 0:
-                sol_x = self.all_nodes[i - 1]
-        print(f'Optimizer solution status: {opt_model.status}') # 1: 'LOADED', 2: 'OPTIMAL', 3: 'INFEASIBLE', 4: 'INF_OR_UNBD', 5: 'UNBOUNDED', 6: 'CUTOFF', 7: 'ITERATION_LIMIT', 8: 'NODE_LIMIT', 9: 'TIME_LIMIT', 10: 'SOLUTION_LIMIT', 11: 'INTERRUPTED', 12: 'NUMERIC', 13: 'SUBOPTIMAL', 14: 'INPROGRESS', 15: 'USER_OBJ_LIMIT'
-        print(f'Solution:')
-        justifiers = []
-        for i in self.C.keys():
-            if source[i].x > 0:
-                justifiers.append(i)
-        print(f'Number of justifiers: {len(justifiers)}')
-        time.sleep(0.5)
-        for i in self.C.keys():
-            if cf[i].x > 0:
-                print(f'cf({i}): {cf[i].x}')
-                print(f'Node {i}: {self.all_nodes[i - 1]}')
-                print(f'Original IOI: {self.normal_ioi}')
-                print(f'Euclidean Distance: {np.round(np.sqrt(np.sum((self.all_nodes[i - 1] - self.normal_ioi)**2)),3)}')
-                cf_node_idx = i
-        time.sleep(0.5)
-        for i in justifiers:
-            path = []
-            print(f'Source {i} Path to CF: {output_path(i, cf_node_idx, path=path)}')
-            time.sleep(0.25)
+                sol_x_idx = min(potential_CF, key=potential_CF.get)
+                sol_x = self.all_nodes[sol_x_idx - 1]
+            justifiers = [sol_x]
+        else:
+            """
+            MODEL
+            """
+            opt_model = gp.Model(name='iJUICE')
+            G = nx.DiGraph()
+            G.add_edges_from(self.A)
+            
+            """
+            SETS AND VARIABLES
+            """
+            set_I = list(self.C.keys())   
+            cf = opt_model.addVars(set_I, vtype=GRB.BINARY, name='Counterfactual')   # Node chosen as destination
+            source = opt_model.addVars(set_I, vtype=GRB.BINARY, name='Justifiers')       # Nodes chosen as sources (justifier points)
+            edge = gp.tupledict()
+            
+            """
+            CONSTRAINTS AND OBJECTIVE
+            """
+            len_justifiers = len(self.potential_justifiers)
+            for (i,j) in G.edges:
+                edge[i,j] = opt_model.addVar(vtype=GRB.INTEGER, name='Path')
+            for v in G.nodes:
+                if v <= len_justifiers:
+                    opt_model.addConstr(gp.quicksum(edge[i,v] for i in G.predecessors(v)) - gp.quicksum(edge[v,j] for j in G.successors(v)) == -source[v]) # Source contraints
+                else:
+                    opt_model.addConstr(gp.quicksum(edge[i,v] for i in G.predecessors(v)) - gp.quicksum(edge[v,j] for j in G.successors(v)) == cf[v]*source.sum()) # Sink constraints
+                    opt_model.addConstr(cf[v] <= self.F[v])
+                    opt_model.addConstr(source[v] == 0)
+            opt_model.addConstr(source.sum() >= 1)
+            opt_model.addConstr(cf.sum() == 1)
+            opt_model.setObjective(cf.prod(self.C)*self.lagrange - source.sum()/len_justifiers*(1-self.lagrange), GRB.MINIMIZE)  # cf.prod(self.C) - source.sum()/len_justifiers
+            
+            """
+            OPTIMIZATION AND RESULTS
+            """
+            opt_model.optimize()
+            time.sleep(0.5)
+            if opt_model.status == 3 or len(self.all_nodes) == len(self.potential_justifiers):
+                potential_CF = {}
+                for i in self.C.keys():
+                    if self.F[i]:
+                        potential_CF[i] = self.C[i]
+                if len(potential_CF) == 0:
+                    sol_x = self.find_potential_justifiers(counterfactual)[0]
+                else:
+                    sol_x_idx = min(potential_CF, key=potential_CF.get)
+                    sol_x = self.all_nodes[sol_x_idx - 1]
+                justifiers = [sol_x]
+            else:
+                for i in self.C.keys():
+                    if cf[i].x > 0:
+                        sol_x = self.all_nodes[i - 1]
+                print(f'Optimizer solution status: {opt_model.status}') # 1: 'LOADED', 2: 'OPTIMAL', 3: 'INFEASIBLE', 4: 'INF_OR_UNBD', 5: 'UNBOUNDED', 6: 'CUTOFF', 7: 'ITERATION_LIMIT', 8: 'NODE_LIMIT', 9: 'TIME_LIMIT', 10: 'SOLUTION_LIMIT', 11: 'INTERRUPTED', 12: 'NUMERIC', 13: 'SUBOPTIMAL', 14: 'INPROGRESS', 15: 'USER_OBJ_LIMIT'
+                print(f'Solution:')
+                justifiers = []
+                for i in self.C.keys():
+                    if source[i].x > 0:
+                        justifiers.append(i)
+                print(f'Number of justifiers: {len(justifiers)}')
+                time.sleep(0.5)
+                for i in self.C.keys():
+                    if cf[i].x > 0:
+                        print(f'cf({i}): {cf[i].x}')
+                        print(f'Node {i}: {self.all_nodes[i - 1]}')
+                        print(f'Original IOI: {self.normal_ioi}')
+                        print(f'Euclidean Distance: {np.round(np.sqrt(np.sum((self.all_nodes[i - 1] - self.normal_ioi)**2)),3)}')
+                        cf_node_idx = i
+                time.sleep(0.5)
+                for i in justifiers:
+                    path = []
+                    print(f'Source {i} Path to CF: {output_path(i, cf_node_idx, path=path)}')
+                    time.sleep(0.25)
         justifier_ratio = len(justifiers)/len(self.potential_justifiers)
         print(f'Justifier Ratio (%): {np.round(justifier_ratio*100, 2)}')
         return sol_x, justifiers, justifier_ratio

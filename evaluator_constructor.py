@@ -27,7 +27,7 @@ class Evaluator():
         Method to add specific data from an instance x
         """
         if self.method_name == 'mace':
-            x_cf_df = counterfactual.data.inverse(counterfactual.cf_method.normal_x_cf_df, mace=True)
+            x_cf_df = counterfactual.cf_method.normal_x_cf_df
             counterfactual.cf_method.normal_x_cf = counterfactual.data.transform_data(x_cf_df).to_numpy()[0]
             x_cf = x_cf_df.to_numpy()
         else:
@@ -232,8 +232,8 @@ def verify_justification(cf, counterfactual):
         """
         Method that gets the list of training observations labeled as cf-label with respect to the cf, ordered based on graph nodes size
         """
-        if len(potential_justifiers) > 100:
-            potential_justifiers = potential_justifiers[:100]
+        if len(potential_justifiers) > 10:
+            potential_justifiers = potential_justifiers[:10]
         permutations_potential_justifiers = []
         for i in range(len(potential_justifiers)):
             possible_feat_values_justifier_i = get_feat_possible_values(data, cf, [potential_justifiers[i]])[0]
@@ -242,8 +242,8 @@ def verify_justification(cf, counterfactual):
             # print(f'Justifier {i+1}: Length permutations: {len_permutations}')
         permutations_potential_justifiers.sort(key=lambda x: x[1])
         permutations_potential_justifiers = [i[0] for i in permutations_potential_justifiers]
-        if len(permutations_potential_justifiers) > 10:
-            permutations_potential_justifiers = permutations_potential_justifiers[:10]
+        if len(permutations_potential_justifiers) > 3:
+            permutations_potential_justifiers = permutations_potential_justifiers[:3]
         return permutations_potential_justifiers
 
     def continuous_feat_values(i, min_val, max_val, data):
@@ -264,7 +264,7 @@ def verify_justification(cf, counterfactual):
             return value
         else:
             mean_val, std_val = np.mean(data.transformed_train_np[:,i]), np.std(data.transformed_train_np[:,i])
-            percentiles_range = list(np.linspace(0, 1, 101))
+            percentiles_range = list(np.linspace(0, 1, 21))
             value = []
             for perc in percentiles_range:
                 value.append(norm.ppf(perc, loc=mean_val, scale=std_val))

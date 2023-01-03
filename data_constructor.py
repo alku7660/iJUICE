@@ -93,7 +93,7 @@ class Dataset:
         """
         Method that extracts the encoded columns from the encoders
         """
-        return self.bin_enc.get_feature_names_out(self.binary), self.cat_enc.get_feature_names_out(self.categorical), self.bin_cat_enc.get_feature_names_out(self.binary + self.categorical)
+        return list(self.bin_enc.get_feature_names_out(self.binary)), list(self.cat_enc.get_feature_names_out(self.categorical)), list(self.bin_cat_enc.get_feature_names_out(self.binary + self.categorical))
 
     def transform_data(self, data_df):
         """

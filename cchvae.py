@@ -269,7 +269,7 @@ class MyOwnModel(MLModel):
         self._mymodel = model.model
         self.undesired_class = data.undesired_class
         self.scaler = data.scaler
-        self.encoder = data.bin_cat_enc
+        self.encoder = data.encoder
         self.features = data.processed_features
 
     @property
@@ -435,18 +435,20 @@ class VariationalAutoencoder(nn.Module):
 class CCHVAE(RecourseMethod):
 
     _DEFAULT_HYPERPARAMS = {"data_name": None, "n_search_samples": 300, "p_norm": 1, "step": 0.1, "max_iter": 1000,
-                            "clamp": True, "binary_cat_features": True, "vae_params": {"layers": None, "train": True,
+                            "clamp": True, "binary_cat_features": True, "vae_params": {"layers": [10, 5, 10], "train": True,
                                                                                        "lambda_reg": 1e-6, "epochs": 5,
                                                                                        "lr": 1e-3, "batch_size": 32}}
 
     def __init__(self, counterfactual):
         data = counterfactual.data
         model = counterfactual.model
+        self.undesired_label = data.undesired_class
         factuals = counterfactual.ioi.normal_x_df
         cchvae_data = MyOwnDataSet(data)
         cchvae_model = MyOwnModel(cchvae_data, model)
         super().__init__(cchvae_model)
         self._params = self._DEFAULT_HYPERPARAMS
+        self._params['vae_params']['layers'] = [len(cchvae_data.processed_features), 10, 5, 10, len(cchvae_data.processed_features)]
         self._n_search_samples = self._params["n_search_samples"]
         self._p_norm = self._params["p_norm"]
         self._step = self._params["step"]
@@ -458,6 +460,8 @@ class CCHVAE(RecourseMethod):
         cfs = self.get_counterfactuals(factuals)
         end_time = time.time()
         run_time = end_time - start_time
+        cfs = cfs[data.processed_features]
+        cfs = cfs.values[0]
         self.normal_x_cf, self.run_time = cfs, run_time
 
     def _load_vae(self, data: pd.DataFrame, vae_params, mlmodel: MLModel, data_name: str) -> VariationalAutoencoder:
@@ -499,7 +503,7 @@ class CCHVAE(RecourseMethod):
         counter_step = 1
         torch_fact = torch.from_numpy(factual).to(device)
         # get predicted label of instance
-        instance_label = np.argmax(self._mlmodel.predict_proba(torch_fact.float()).cpu().detach().numpy(), axis=1)
+        instance_label = np.argmax(self._mlmodel.predict_proba(torch_fact.float()), axis=1)
 
         # vectorize z
         z = self._generative_model.encode(torch_fact.float())[0].cpu().detach().numpy()
@@ -530,7 +534,7 @@ class CCHVAE(RecourseMethod):
                 raise ValueError("Possible values for p_norm are 1 or 2")
 
             # counterfactual labels
-            y_candidate = np.argmax(self._mlmodel.predict_proba(torch.from_numpy(x_ce).float()).cpu().detach().numpy(), axis=1)
+            y_candidate = np.argmax(self._mlmodel.predict_proba(torch.from_numpy(x_ce).float()), axis=1)
             indeces = np.where(y_candidate != instance_label)
             candidate_counterfactuals = x_ce[indeces]
             candidate_dist = distances[indeces]
@@ -549,7 +553,7 @@ class CCHVAE(RecourseMethod):
         encoded_feature_names = self._mlmodel.data.encoder.get_feature_names(self._mlmodel.data.categorical)
         cat_features_indices = [factuals.columns.get_loc(feature) for feature in encoded_feature_names]
         df_cfs = factuals.apply(lambda x: self._counterfactual_search(self._step, x.reshape((1, -1)), cat_features_indices), raw=True, axis=1)
-        cf_pred = self._mlmodel.predict(df_cfs.reshape(1, -1))
+        cf_pred = self._mlmodel.predict(df_cfs)
         df_cfs = self._mlmodel.get_ordered_features(df_cfs)
         if cf_pred == self.undesired_label:
             print(f'CCHVAE error: Counterfactual has same label as the IOI')

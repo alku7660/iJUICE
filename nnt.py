@@ -36,8 +36,6 @@ def nn_for_juice(counterfactual):
             if i[2] != counterfactual.ioi.label and verify_feasibility(counterfactual.ioi.normal_x, i[0], counterfactual.data) and not np.array_equal(counterfactual.ioi.normal_x, i[0]):
                 nn_cf = i[0]
                 break
-    if nn_cf is None:
-        return nn_cf
     end_time = time.time()
     total_time = end_time - start_time + counterfactual.ioi.train_sorting_time
     return nn_cf, total_time
