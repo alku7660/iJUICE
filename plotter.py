@@ -14,7 +14,7 @@ import matplotlib.patches as mpatches
 import pickle
 # from autorank import autorank, plot_stats
 from address import results_plots, load_obj
-from tester import datasets, methods 
+from tester import datasets, methods, distance_type, lagranges 
 
 distances = ['euclidean','L1','L1_L0','L1_L0_inf','prob']
 mean_prop = dict(marker='D',markeredgecolor='firebrick',markerfacecolor='firebrick', markersize=2)
@@ -64,53 +64,81 @@ def method_name(method):
         method = 'iJUICE'
     return method
 
+def distance_name(distance):
+    """
+    Method that changes the names of the methods
+    """
+    if distance == 'euclidean':
+        distance = 'L2'
+    elif distance == 'L1':
+        distance = 'L1'
+    elif distance == 'L_inf':
+        distance = 'L_$\infty$'
+    elif distance == 'L1_L0':
+        distance = 'L1 & L0'
+    elif distance == 'L1_L0_L_inf':
+        distance = 'L1, L0 & L_$\infty$'
+    elif distance == 'prob':
+        distance = 'Max. Percentile Shift'
+    return distance
+
 def proximity_plots():
     """
     Obtains a 3x2 proximity plots for all datasets
     """
-    fig, ax = plt.subplots(nrows=3, ncols=2, sharex=True, figsize=(8,11))
-    ax = ax.flatten()
     for i in range(len(datasets)):
+        fig, ax = plt.subplots(nrows=3, ncols=2, sharex=False, figsize=(8,11))
         dataset = dataset_name(datasets[i])
+        ax = ax.flatten()
         for j in range(len(distances)):
-            distance = distances[j].capitalize()
+            distance = distance_name(distances[j])
             all_distance_measures = []
             for k in range(len(methods)):
                 method = method_name(methods[k])
-                eval = load_obj(f'{dataset}_{method}_{general_distance}_{general_lagrange}.pkl')
-                distance_measures = [eval.proximity_dict[idx][distance] for idx in eval.proximity_dict.keys()]
+                eval = load_obj(f'{datasets[i]}_{methods[k]}_{general_distance}_{general_lagrange}.pkl')
+                distance_measures = [eval.proximity_dict[idx][distances[j]] for idx in eval.proximity_dict.keys()]
                 all_distance_measures.append(distance_measures)
-            ax[i,j].boxplot(all_distance_measures, showmeans=True, meanprops=mean_prop)
-            ax[i,j].set_xticklabels([method_name(i) for i in methods])
-            ax[i,j].set_title(dataset)
-            ax[i,j].set_ylabel(distance)
-    fig.subplots_adjust(left=0.05, bottom=0.01, right=0.99, top=0.95, wspace=0.01, hspace=0.05)
-    fig.savefig(results_plots+'proximity_plots.pdf')
+            ax[j].boxplot(all_distance_measures, showmeans=True, meanprops=mean_prop)
+            ax[j].set_title(distance)
+            ax[j].set_xticklabels([method_name(n) for n in methods])
+        fig.suptitle(dataset)
+        fig.subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.9, wspace=0.2, hspace=0.2)
+        fig.savefig(f'{results_plots}{dataset}_proximity_plot.pdf')
 
 def feasibility_justification_time_plots(metric_name):
     """
     Obtains a 5x3 feasibility, justification, and time plots for all datasets
     """
-    fig, ax = plt.subplots(nrows=5, ncols=3, sharex=True, figsize=(8,11))
+    fig, ax = plt.subplots(nrows=5, ncols=3, sharex=False, sharey=True, figsize=(8,11))
     ax = ax.flatten()
     for i in range(len(datasets)):
         dataset = dataset_name(datasets[i])
         all_metric_measures = []
         for k in range(len(methods)):
             method = method_name(methods[k])
-            eval = load_obj(f'{dataset}_{method}_{general_distance}_{general_lagrange}.pkl')
+            eval = load_obj(f'{datasets[i]}_{methods[k]}_{general_distance}_{general_lagrange}.pkl')
             if metric_name == 'feasibility':
-                metric_measures = eval.feasibility_dict.values()
+                metric_measures = list(eval.feasibility_dict.values())
+                new_metric_measures = []
+                for n in metric_measures:
+                    if n:
+                        value = 1
+                    else:
+                        value = 0
+                    new_metric_measures.extend([value])
+                metric_measures = new_metric_measures
             elif metric_name == 'justification':
-                metric_measures = eval.justifier_ratio.values()
+                metric_measures = list(eval.justifier_ratio.values())
             elif metric_name == 'time':
-                metric_measures = eval.time_dict.values()
+                metric_measures = list(eval.time_dict.values())
             all_metric_measures.append(metric_measures)
         ax[i].boxplot(all_metric_measures, showmeans=True, meanprops=mean_prop)
         ax[i].set_xticklabels([method_name(i) for i in methods])
         ax[i].set_ylabel(dataset)
+        if metric_name == 'time':
+            ax[i].set_yscale('log')
     plt.suptitle(metric_name.capitalize())
-    fig.subplots_adjust(left=0.05, bottom=0.01, right=0.99, top=0.95, wspace=0.01, hspace=0.05)
+    fig.subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.9, wspace=0.35, hspace=0.2)
     fig.savefig(f'{results_plots}{metric_name}_plot.pdf')
     
 def ablation_lagrange_plot():
@@ -151,6 +179,7 @@ def ablation_lagrange_plot():
     fig.subplots_adjust(left=0.05, bottom=0.01, right=0.99, top=0.95, wspace=0.01, hspace=0.05)
     fig.savefig(f'{results_plots}_lagrange_ablation_plot.pdf')
 
-
+proximity_plots()
+feasibility_justification_time_plots('time')
 
 

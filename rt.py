@@ -88,9 +88,12 @@ def rf_tweak(counterfactual):
     rt_cf_freq, rt_cf_array, rt_cf_label_array = random_forest_tweaking(rf_model, x.reshape(1,-1), aim, data.transformed_train_np, data.train_target) 
     if len(rt_cf_array) > 0:
         rt_cf = rt_cf_array[0]
+    elif np.array_equal(rt_cf, x):
+        print(f'RT method output X as its CF. Returning NN CF')
+        rt_cf, nn_time = near_neigh(counterfactual)
     else:
         print(f'No Random Forest Tweaking solution found: Calculating NN Counterfactual')
-        rt_cf = nn(counterfactual)
+        rt_cf = near_neigh(counterfactual)
     end_time = time.time()
     rt_time = end_time - start_time
     return rt_cf, rt_time

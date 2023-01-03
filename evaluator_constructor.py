@@ -41,7 +41,8 @@ class Evaluator():
         Linf = distance_calculation(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data, 'L_inf')
         L1_L0 = distance_calculation(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data, 'L1_L0')
         L1_L0_L_inf = distance_calculation(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data, 'L1_L0_L_inf')
-        self.proximity_dict[counterfactual.ioi.idx] = {'euclidean':L2, 'L1':L1, 'L_inf':Linf, 'L1_L0':L1_L0, 'L1_L0_L_inf':L1_L0_L_inf}
+        prob = distance_calculation(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data, 'prob')
+        self.proximity_dict[counterfactual.ioi.idx] = {'euclidean':L2, 'L1':L1, 'L_inf':Linf, 'L1_L0':L1_L0, 'L1_L0_L_inf':L1_L0_L_inf, 'prob':prob}
         if self.method_name == 'ijuice':
             self.justifiers_dict[counterfactual.ioi.idx], self.justifier_ratio[counterfactual.ioi.idx] = counterfactual.cf_method.justifiers, counterfactual.cf_method.justifier_ratio
         else:
@@ -106,8 +107,8 @@ def distance_calculation(x, y, data, type='euclidean'):
         perc_shift_list = []
         x_original_df, y_original_df = pd.DataFrame(data=x_original, index=[0], columns=data.features), pd.DataFrame(data=y_original, index=[0], columns=data.features)
         for col in data.features:
-            x_col_value = x_original_df[col]
-            y_col_value = y_original_df[col]
+            x_col_value = float(x_original_df[col].values)
+            y_col_value = float(y_original_df[col].values)
             distribution = data.feat_dist[col]
             if x_col_value == y_col_value:
                 continue
@@ -232,8 +233,8 @@ def verify_justification(cf, counterfactual):
         """
         Method that gets the list of training observations labeled as cf-label with respect to the cf, ordered based on graph nodes size
         """
-        if len(potential_justifiers) > 10:
-            potential_justifiers = potential_justifiers[:10]
+        if len(potential_justifiers) > 100:
+            potential_justifiers = potential_justifiers[:100]
         permutations_potential_justifiers = []
         for i in range(len(potential_justifiers)):
             possible_feat_values_justifier_i = get_feat_possible_values(data, cf, [potential_justifiers[i]])[0]
@@ -242,8 +243,8 @@ def verify_justification(cf, counterfactual):
             # print(f'Justifier {i+1}: Length permutations: {len_permutations}')
         permutations_potential_justifiers.sort(key=lambda x: x[1])
         permutations_potential_justifiers = [i[0] for i in permutations_potential_justifiers]
-        if len(permutations_potential_justifiers) > 3:
-            permutations_potential_justifiers = permutations_potential_justifiers[:3]
+        if len(permutations_potential_justifiers) > 10:
+            permutations_potential_justifiers = permutations_potential_justifiers[:10]
         return permutations_potential_justifiers
 
     def continuous_feat_values(i, min_val, max_val, data):
@@ -256,7 +257,7 @@ def verify_justification(cf, counterfactual):
         
         sorted_feat_i = list(np.sort(data.transformed_train_np[:,i][(data.transformed_train_np[:,i] >= min_val) & (data.transformed_train_np[:,i] <= max_val)]))
         value = list(np.unique(sorted_feat_i))
-        if len(value) <= 100:
+        if len(value) <= 10:
             if min_val not in value:
                 value = [min_val] + value
             if max_val not in value:
@@ -264,7 +265,7 @@ def verify_justification(cf, counterfactual):
             return value
         else:
             mean_val, std_val = np.mean(data.transformed_train_np[:,i]), np.std(data.transformed_train_np[:,i])
-            percentiles_range = list(np.linspace(0, 1, 21))
+            percentiles_range = list(np.linspace(0, 1, 11))
             value = []
             for perc in percentiles_range:
                 value.append(norm.ppf(perc, loc=mean_val, scale=std_val))
@@ -441,5 +442,7 @@ def verify_justification(cf, counterfactual):
     else:
         print(f'The CF is not found in the graph of nodes for justification verification. The instance is not justifiable.')
     justifier_ratio = len(justifiers)/len(filter_pot_justifiers)
+    if justifier_ratio > 1:
+        justifier_ratio = 1
     print(f'Evaluated Justifier Ratio: {np.round(justifier_ratio*100, 3)}%')
     return justifiers, justifier_ratio

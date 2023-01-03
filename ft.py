@@ -9,6 +9,7 @@ import time
 import numpy as np
 import copy
 from evaluator_constructor import distance_calculation
+from nnt import near_neigh
 
 # Adapted from https://github.com/upura/featureTweakPy
 
@@ -155,7 +156,10 @@ def feat_tweak(counterfactual):
         aim = 1
     else:
         aim = 0
-    ft_cf = feature_tweaking(rf_model , x, classes, aim, epsilon, distance_calculation, data)
+    ft_cf = feature_tweaking(rf_model, x, classes, aim, epsilon, distance_calculation, data)
+    if np.array_equal(ft_cf, x):
+        print(f'FT method output X as its CF. Returning NN CF')
+        ft_cf, nn_time = near_neigh(counterfactual)
     end_time = time.time()
     ft_time = end_time - start_time
     return ft_cf, ft_time

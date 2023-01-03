@@ -221,7 +221,7 @@ class Dataset:
                     feat_type.loc[i] = 'bin'
                 elif 'TrainingTime' in i or 'Diet' in i or 'Sport' in i:
                     feat_type.loc[i] = 'cat'
-                elif i in ['Age','SleepHours']:
+                elif 'Age' in i or 'SleepHours' in i:
                     feat_type.loc[i] = 'cont'
         elif self.name == 'heart':
             for i in feat_list:
@@ -235,7 +235,7 @@ class Dataset:
             for i in feat_list:
                 if 'Sex' in i or 'Training' in i or 'Sport' in i or 'Diet' in i:
                     feat_type.loc[i] = 'bin'
-                elif i in ['Age','SleepHours']:
+                elif 'Age' in i or 'SleepHours' in i:
                     feat_type.loc[i] = 'cont'
         elif self.name == 'synthetic_disease':
             for i in feat_list:
@@ -243,7 +243,7 @@ class Dataset:
                     feat_type.loc[i] = 'bin'
                 elif 'Weight' in i:
                     feat_type.loc[i] = 'ord'
-                elif i in ['Age','ExerciseMinutes','SleepHours']:
+                elif 'Age' in i or 'ExerciseMinutes' in i or 'SleepHours' in i:
                     feat_type.loc[i] = 'cont'
         return feat_type
 
@@ -333,7 +333,7 @@ class Dataset:
                     feat_mutable[i] = 1
         elif self.name == 'synthetic_athlete':
             for i in feat_list:
-                if i in ['Age', 'Sex']:
+                if 'Age' in i or 'Sex' in i:
                     feat_mutable[i] = 0
                 elif 'TrainingTime' in i or 'Diet' in i or 'Sport' in i or 'SleepHours' in i:
                     feat_mutable[i] = 1
