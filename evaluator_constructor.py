@@ -426,7 +426,7 @@ def verify_justification(cf, counterfactual):
         cf_index = -1
     justifiers = []
     if cf_index != -1:
-        if cf_index <= len(pot_justifiers) + 1:
+        if cf_index <= len(filter_pot_justifiers) + 1:
             justifiers.append(cf)
         range_justifier_nodes = range(1, len(filter_pot_justifiers) + 1)
         print(f'Obtained closest graphs nodes to CF: {len(all_nodes)}')
@@ -437,7 +437,8 @@ def verify_justification(cf, counterfactual):
             for i in range_justifier_nodes:
                 if G.has_node(i):
                     if nx.has_path(G, i, cf_index):
-                        justifiers.append(all_nodes[i - 1])
+                        if not any(np.array_equal(all_nodes[i - 1], x) for x in justifiers):
+                            justifiers.append(all_nodes[i - 1])
         else:
             print(f'The CF is not found in the graph of nodes for justification verification. May be justified by itself.')
     else:
