@@ -637,6 +637,18 @@ class Dataset:
                     feat_cat.loc[i] = 'cat_2'
         return feat_cat
     
+    # def idx_cat_columns(self):
+    #     """
+    #     Method that obtains the indices of the columns of the categorical variables 
+    #     """
+    #     feat_index = range(len(self.processed_features))
+    #     dict_idx_cat = {}
+    #     for i in self.cat_enc_cols:
+    #         if i[:-2] not in list(dict_idx_cat.keys()): 
+    #             cat_cols_idx = [s for s in feat_index if i[:-2] in self.processed_features[s]]
+    #             dict_idx_cat[i[:-2]] = cat_cols_idx
+    #     return dict_idx_cat
+
     def idx_cat_columns(self):
         """
         Method that obtains the indices of the columns of the categorical variables 
@@ -644,9 +656,9 @@ class Dataset:
         feat_index = range(len(self.processed_features))
         dict_idx_cat = {}
         for i in self.cat_enc_cols:
-            if i[:-2] not in list(dict_idx_cat.keys()): 
-                cat_cols_idx = [s for s in feat_index if i[:-1] in self.processed_features[s]]
-                dict_idx_cat[i[:-2]] = cat_cols_idx
+            if i[:-4] not in list(dict_idx_cat.keys()): 
+                cat_cols_idx = [s for s in feat_index if i[:-4] in self.processed_features[s]]
+                dict_idx_cat[i[:-4]] = cat_cols_idx
         return dict_idx_cat
 
     def feature_distribution(self):

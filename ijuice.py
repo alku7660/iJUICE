@@ -142,7 +142,15 @@ class IJUICE:
                             value = [potential_justifier_k[i]]
                         feat_checked.extend([i])
                     elif feat_i in data.cat_enc_cols:
-                        idx_cat_i = data.idx_cat_cols_dict[data.processed_features[i][:-2]]
+                        # idx_cat_i = data.idx_cat_cols_dict[feat_i[:-2]]
+                        # nn_cat_idx = list(potential_justifier_k[idx_cat_i])
+                        # if any(item in idx_cat_i for item in nonzero_index):
+                        #     ioi_cat_idx = list(normal_x[idx_cat_i])
+                        #     value = [nn_cat_idx, ioi_cat_idx]
+                        # else:
+                        #     value = [nn_cat_idx]
+                        # feat_checked.extend(idx_cat_i)
+                        idx_cat_i = data.idx_cat_cols_dict[feat_i[:-4]]
                         nn_cat_idx = list(potential_justifier_k[idx_cat_i])
                         if any(item in idx_cat_i for item in nonzero_index):
                             ioi_cat_idx = list(normal_x[idx_cat_i])
@@ -152,7 +160,7 @@ class IJUICE:
                         feat_checked.extend(idx_cat_i)
                     elif feat_i in data.ordinal:
                         if i in nonzero_index:
-                            values_i = list(data.processed_feat_dist[data.processed_features[i]].keys())
+                            values_i = list(data.processed_feat_dist[feat_i].keys())
                             max_val_i, min_val_i = max(normal_x[i], potential_justifier_k[i]), min(normal_x[i], potential_justifier_k[i])
                             value = [j for j in values_i if j <= max_val_i and j >= min_val_i]
                         else:
