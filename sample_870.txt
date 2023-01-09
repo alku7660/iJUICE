@@ -1,0 +1,111 @@
+
+
+==============================================
+
+
+Model Symbols:
+{'counterfactual': {'x0': {'lower_bound': 25.0,
+                           'symbol': x0_counterfactual,
+                           'upper_bound': 104.0},
+                    'x1': {'lower_bound': 0,
+                           'symbol': x1_counterfactual,
+                           'upper_bound': 1},
+                    'x2': {'lower_bound': 0.0,
+                           'symbol': x2_counterfactual,
+                           'upper_bound': 29.0},
+                    'x3': {'lower_bound': 5.0,
+                           'symbol': x3_counterfactual,
+                           'upper_bound': 9.0},
+                    'x4_ord_0': {'lower_bound': 1,
+                                 'symbol': x4_ord_0_counterfactual,
+                                 'upper_bound': 1},
+                    'x4_ord_1': {'lower_bound': 0,
+                                 'symbol': x4_ord_1_counterfactual,
+                                 'upper_bound': 1},
+                    'x4_ord_2': {'lower_bound': 0,
+                                 'symbol': x4_ord_2_counterfactual,
+                                 'upper_bound': 1},
+                    'x4_ord_3': {'lower_bound': 0,
+                                 'symbol': x4_ord_3_counterfactual,
+                                 'upper_bound': 1},
+                    'x5_cat_0': {'lower_bound': 0,
+                                 'symbol': x5_cat_0_counterfactual,
+                                 'upper_bound': 1},
+                    'x5_cat_1': {'lower_bound': 0,
+                                 'symbol': x5_cat_1_counterfactual,
+                                 'upper_bound': 1},
+                    'x5_cat_2': {'lower_bound': 0,
+                                 'symbol': x5_cat_2_counterfactual,
+                                 'upper_bound': 1},
+                    'x5_cat_3': {'lower_bound': 0,
+                                 'symbol': x5_cat_3_counterfactual,
+                                 'upper_bound': 1},
+                    'x6_cat_0': {'lower_bound': 0,
+                                 'symbol': x6_cat_0_counterfactual,
+                                 'upper_bound': 1},
+                    'x6_cat_1': {'lower_bound': 0,
+                                 'symbol': x6_cat_1_counterfactual,
+                                 'upper_bound': 1},
+                    'x6_cat_2': {'lower_bound': 0,
+                                 'symbol': x6_cat_2_counterfactual,
+                                 'upper_bound': 1}},
+ 'interventional': {'x0': {'lower_bound': 25.0,
+                           'symbol': x0_interventional,
+                           'upper_bound': 104.0},
+                    'x1': {'lower_bound': 0,
+                           'symbol': x1_interventional,
+                           'upper_bound': 1},
+                    'x2': {'lower_bound': 0.0,
+                           'symbol': x2_interventional,
+                           'upper_bound': 29.0},
+                    'x3': {'lower_bound': 5.0,
+                           'symbol': x3_interventional,
+                           'upper_bound': 9.0},
+                    'x4_ord_0': {'lower_bound': 1,
+                                 'symbol': x4_ord_0_interventional,
+                                 'upper_bound': 1},
+                    'x4_ord_1': {'lower_bound': 0,
+                                 'symbol': x4_ord_1_interventional,
+                                 'upper_bound': 1},
+                    'x4_ord_2': {'lower_bound': 0,
+                                 'symbol': x4_ord_2_interventional,
+                                 'upper_bound': 1},
+                    'x4_ord_3': {'lower_bound': 0,
+                                 'symbol': x4_ord_3_interventional,
+                                 'upper_bound': 1},
+                    'x5_cat_0': {'lower_bound': 0,
+                                 'symbol': x5_cat_0_interventional,
+                                 'upper_bound': 1},
+                    'x5_cat_1': {'lower_bound': 0,
+                                 'symbol': x5_cat_1_interventional,
+                                 'upper_bound': 1},
+                    'x5_cat_2': {'lower_bound': 0,
+                                 'symbol': x5_cat_2_interventional,
+                                 'upper_bound': 1},
+                    'x5_cat_3': {'lower_bound': 0,
+                                 'symbol': x5_cat_3_interventional,
+                                 'upper_bound': 1},
+                    'x6_cat_0': {'lower_bound': 0,
+                                 'symbol': x6_cat_0_interventional,
+                                 'upper_bound': 1},
+                    'x6_cat_1': {'lower_bound': 0,
+                                 'symbol': x6_cat_1_interventional,
+                                 'upper_bound': 1},
+                    'x6_cat_2': {'lower_bound': 0,
+                                 'symbol': x6_cat_2_interventional,
+                                 'upper_bound': 1}},
+ 'output': {'y': {'symbol': y}}}
+Constructing initial formulas: model, counterfactual, distance, plausibility, diversity		done.
+Solving (not searching) for closest counterfactual using various distance thresholds...
+	Iteration #001: testing norm threshold 0.500000 in range [0.000000, 1.000000]...	solution exists & found.
+	Iteration #002: testing norm threshold 0.214336 in range [0.000000, 0.428671]...	no solution exists.
+	Iteration #003: testing norm threshold 0.321504 in range [0.214336, 0.428671]...	no solution exists.
+	Iteration #004: testing norm threshold 0.375087 in range [0.321504, 0.428671]...	no solution exists.
+	Iteration #005: testing norm threshold 0.401879 in range [0.375087, 0.428671]...	no solution exists.
+	Iteration #006: testing norm threshold 0.415275 in range [0.401879, 0.428671]...	no solution exists.
+	Iteration #007: testing norm threshold 0.421973 in range [0.415275, 0.428671]...	no solution exists.
+
+
+Factual sample: 		 {x0 : 100.0, x1 : 1.0, x2 : 11.0, x3 : 9.0, x4_ord_0 : 1.0, x4_ord_1 : 1.0, x4_ord_2 : 1.0, x4_ord_3 : 0.0, x5_cat_0 : 0.0, x5_cat_1 : 0.0, x5_cat_2 : 0.0, x5_cat_3 : 1.0, x6_cat_0 : 0.0, x6_cat_1 : 0.0, x6_cat_2 : 1.0, y: True}
+Nearest counterfactual sample:	 {x0 : 100.0, x1 : 1, x2 : 29.0, x3 : 9.0, x4_ord_0 : 1, x4_ord_1 : 1, x4_ord_2 : 1, x4_ord_3 : 0, x5_cat_0 : 0, x5_cat_1 : 1, x5_cat_2 : 0, x5_cat_3 : 0, x6_cat_0 : 1, x6_cat_1 : 0, x6_cat_2 : 0, y: False} (verified)
+Minimum counterfactual distance: 0.428571

@@ -64,5 +64,5 @@ Solving (not searching) for closest counterfactual using various distance thresh
 
 
 Factual sample: 		 {x0 : 1.0, x1 : 0.03852, x2 : 0.00428, x3 : 0.0, x4 : 0.01997, x5 : -0.01997, x6 : 0.03994, x7 : -0.02568, y: False}
-Nearest counterfactual sample:	 {x0 : 1.0, x1 : 0.03852, x2 : 0.5175650119781494, x3 : 0.0, x4 : 0.7877000272274017, x5 : -0.01997, x6 : 0.03994, x7 : -0.02568, y: True} (verified)
+Nearest counterfactual sample:	 {x0 : 1.0, x1 : 0.9873349964618683, x2 : 0.5169349908828735, x3 : 0.0, x4 : 0.01997, x5 : -0.01997, x6 : 0.03994, x7 : -0.02568, y: True} (verified)
 Minimum counterfactual distance: 0.285714

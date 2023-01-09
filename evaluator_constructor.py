@@ -120,14 +120,21 @@ def distance_calculation(x, y, data, type='euclidean'):
                     values_range = [i for i in distribution.keys() if i >= min_val and i <= max_val]
                     values_range.sort()
                     prob_values = np.cumsum([distribution[val] for val in values_range])
-                    perc_shift = np.abs(prob_values[-1] - prob_values[0])
+                    try:
+                        perc_shift = np.abs(prob_values[-1] - prob_values[0])
+                    except:
+                        perc_shift = 0
                 elif col in data.continuous:
                     mean_val, std_val = distribution['mean'], distribution['std']
                     normalized_x = (x_col_value - mean_val)/std_val
                     normalized_y = (y_col_value - mean_val)/std_val
                     perc_shift = np.abs(norm.cdf(normalized_x) - norm.cdf(normalized_y))
             perc_shift_list.append(perc_shift)
-        return max(perc_shift_list)
+        if len(perc_shift_list) == 0:
+            value_to_return = 0
+        else:
+            value_to_return = max(perc_shift_list)
+        return value_to_return
 
     x_original, y_original = data.inverse(x), data.inverse(y)
     if type == 'euclidean':
