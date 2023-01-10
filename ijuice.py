@@ -337,7 +337,10 @@ class IJUICE:
             opt_model.addConstr(source.sum() >= 1)
             opt_model.addConstr(cf.sum() == 1)
             opt_model.setObjective(cf.prod(self.C)*self.lagrange - source.sum()/len_justifiers*(1-self.lagrange), GRB.MINIMIZE)  # cf.prod(self.C) - source.sum()/len_justifiers
-            
+            list_excluded_nodes = list(np.setdiff1d(set_I, list(G.nodes)))
+            for v in list_excluded_nodes:
+                opt_model.addConstr(source[v] == 0)
+                opt_model.addConstr(cf[v] == 0)
             """
             OPTIMIZATION AND RESULTS
             """
