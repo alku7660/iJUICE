@@ -28,7 +28,11 @@ class Evaluator():
         """
         if self.method_name == 'mace':
             x_cf_df = counterfactual.cf_method.normal_x_cf_df
-            counterfactual.cf_method.normal_x_cf = counterfactual.data.transform_data(x_cf_df).to_numpy()[0]
+            try:
+                counterfactual.cf_method.normal_x_cf = counterfactual.data.transform_data(x_cf_df).to_numpy()[0]
+            except:
+                x_cf_df = counterfactual.data.inverse(x_cf_df, mace=True)
+                counterfactual.cf_method.normal_x_cf = counterfactual.data.transform_data(x_cf_df).to_numpy()[0]
             x_cf = x_cf_df.to_numpy()
         else:
             x_cf = counterfactual.data.inverse(counterfactual.cf_method.normal_x_cf) 
@@ -108,7 +112,11 @@ def distance_calculation(x, y, data, type='euclidean'):
         x_original_df, y_original_df = pd.DataFrame(data=x_original, index=[0], columns=data.features), pd.DataFrame(data=y_original, index=[0], columns=data.features)
         for col in data.features:
             x_col_value = float(x_original_df[col].values)
-            y_col_value = float(y_original_df[col].values)
+            try:
+                y_col_value = float(y_original_df[col].values)
+            except:
+                perc_shift_list.append(1)
+                continue
             distribution = data.feat_dist[col]
             if x_col_value == y_col_value:
                 continue

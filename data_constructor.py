@@ -604,8 +604,6 @@ class Dataset:
                     feat_cat.loc[i] = 'cat_0'
                 elif 'Tier' in i:
                     feat_cat.loc[i] = 'cat_1'
-                elif 'Race' in i:
-                    feat_cat.loc[i] = 'cat_2'
                 else:
                     feat_cat.loc[i] = 'non'
         elif self.name == 'ionosphere':
