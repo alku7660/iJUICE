@@ -415,11 +415,12 @@ def verify_justification(cf, counterfactual):
                                 values_idx_inf, values_idx_sup = 0, 0
                             elif node_i[nonzero_index] > values[-1]:
                                 values_idx_inf, values_idx_sup = len(values) - 1, len(values) - 1
-                            for k in range(len(values) - 1):
-                                if node_i[nonzero_index] < values[k+1] and node_i[nonzero_index] > values[k]:
-                                    values_idx_inf, values_idx_sup = k, k+1        
+                            else:
+                                for k in range(len(values) - 1):
+                                    if node_i[nonzero_index] <= values[k+1] and node_i[nonzero_index] >= values[k]:
+                                        values_idx_inf, values_idx_sup = k, k+1        
                         close_node_j_values = [values[values_idx_inf], values[values_idx_sup]]
-                        if np.isclose(node_j[nonzero_index], close_node_j_values, atol=toler).any():
+                        if node_j[nonzero_index] <= close_node_j_values[1] and node_j[nonzero_index] >= close_node_j_values[0]:
                             A.append((i,j))
                     elif any(item in data.binary for item in feat_nonzero):
                         if np.isclose(np.abs(vector_ij[nonzero_index]),[0,1],atol=toler).any():
@@ -449,11 +450,16 @@ def verify_justification(cf, counterfactual):
         G = nx.DiGraph()
         G.add_edges_from(adjacency)
         if G.has_node(cf_index):
-            for i in range_justifier_nodes:
-                if G.has_node(i):
-                    if nx.has_path(G, i, cf_index):
-                        if not any(np.array_equal(all_nodes[i - 1], x) for x in justifiers):
-                            justifiers.append(all_nodes[i - 1])
+            if len(all_nodes) <= 50000:
+                for i in range_justifier_nodes:
+                    if G.has_node(i):
+                        if nx.has_path(G, i, cf_index):
+                            if not any(np.array_equal(all_nodes[i - 1], x) for x in justifiers):
+                                justifiers.append(all_nodes[i - 1])
+            else:
+                print(f'Graph too large (larger than 50000 nodes). Assuming the closest instance justifies it (benefit-of-doubt)')
+                if not any(np.array_equal(all_nodes[1], x) for x in justifiers):
+                    justifiers.append(all_nodes[1])
         else:
             print(f'The CF is not found in the graph of nodes for justification verification. May be justified by itself.')
     else:

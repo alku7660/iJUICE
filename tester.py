@@ -7,8 +7,8 @@ from evaluator_constructor import Evaluator
 from counterfactual_constructor import Counterfactual
 from address import save_obj, load_obj, results_obj
 
-datasets = ['kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease'] # ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
-methods = ['gs','face','dice','mace','cchvae','juice'] # ['gs','face','dice','mace','cchvae','juice']
+datasets = ['credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease'] # ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
+methods = ['dice','mace','juice'] # ['gs','face','dice','mace','cchvae','juice']
 seed_int = 54321
 step = 0.01
 train_fraction = 0.7
@@ -49,7 +49,8 @@ if __name__ == '__main__':
             data.undesired_test(model)
             idx_list = [data.undesired_transformed_test_df.index[ins] for ins in range(num_instances)]
             mace_df = load_obj(f'{data_str}/{data_str}_mace_df.pkl')
-            mace_df_idx = list(mace_df.index)
+            mace_cf_df = load_obj(f'{data_str}/{data_str}_mace_cf_df.pkl')
+            mace_df_idx = list(mace_cf_df.index)
             # num_instances = num_instances if num_instances <= data.undesired_transformed_test_df.shape[0] else data.undesired_transformed_test_df.shape[0]
             num_instances = num_instances if num_instances <= len(mace_df_idx) else len(mace_df_idx)
             for method_str in methods:
