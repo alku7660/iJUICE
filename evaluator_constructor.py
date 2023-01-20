@@ -364,6 +364,8 @@ def verify_justification(cf, counterfactual):
         graph_nodes = []
         for k in range(len(filter_pot_justifiers)):
             # print(f'Neighbor {k+1}, Length: {len(graph_nodes)}')
+            if len(graph_nodes) > 50000:
+                break
             feat_possible_values_k = feat_possible_values[k]
             permutations = product(*feat_possible_values_k)
             for i in permutations:
@@ -372,6 +374,8 @@ def verify_justification(cf, counterfactual):
                     not any(np.array_equal(perm_i, x) for x in graph_nodes) and \
                     not any(np.array_equal(perm_i, x) for x in filter_pot_justifiers):
                     graph_nodes.append(perm_i)
+                if len(graph_nodes) > 50000:
+                    break
         return graph_nodes
 
     def get_adjacency(data, all_nodes):
@@ -436,34 +440,34 @@ def verify_justification(cf, counterfactual):
     print(f'Obtained all possible feature values from potential justifiers')
     graph_nodes = get_graph_nodes(model, filter_pot_justifiers, pot_justifiers, train_nn_feat_possible_values)
     all_nodes = filter_pot_justifiers + graph_nodes
-    try:
-        cf_index = [i for i in range(1, len(all_nodes)+1) if np.array_equal(all_nodes[i-1], cf)][0]
-    except:
-        cf_index = -1
     justifiers = []
-    if cf_index != -1:
-        if cf_index <= len(filter_pot_justifiers) + 1:
-            justifiers.append(cf)
-        range_justifier_nodes = range(1, len(filter_pot_justifiers) + 1)
-        print(f'Obtained closest graphs nodes to CF: {len(all_nodes)}')
-        adjacency = get_adjacency(data, all_nodes)
-        G = nx.DiGraph()
-        G.add_edges_from(adjacency)
-        if G.has_node(cf_index):
-            if len(all_nodes) <= 50000:
+    if len(all_nodes) <= 50000:
+        try:
+            cf_index = [i for i in range(1, len(all_nodes)+1) if np.array_equal(all_nodes[i-1], cf)][0]
+        except:
+            cf_index = -1
+        if cf_index != -1:
+            if cf_index <= len(filter_pot_justifiers) + 1:
+                justifiers.append(cf)
+            range_justifier_nodes = range(1, len(filter_pot_justifiers) + 1)
+            print(f'Obtained closest graphs nodes to CF: {len(all_nodes)}')
+            adjacency = get_adjacency(data, all_nodes)
+            G = nx.DiGraph()
+            G.add_edges_from(adjacency)
+            if G.has_node(cf_index):
                 for i in range_justifier_nodes:
                     if G.has_node(i):
                         if nx.has_path(G, i, cf_index):
                             if not any(np.array_equal(all_nodes[i - 1], x) for x in justifiers):
                                 justifiers.append(all_nodes[i - 1])
             else:
-                print(f'Graph too large (larger than 50000 nodes). Assuming the closest instance justifies it (benefit-of-doubt)')
-                if not any(np.array_equal(all_nodes[1], x) for x in justifiers):
-                    justifiers.append(all_nodes[1])
+                print(f'The CF is not found in the graph of nodes for justification verification. May be justified by itself.')
         else:
-            print(f'The CF is not found in the graph of nodes for justification verification. May be justified by itself.')
+            print(f'The CF is not found in the graph of nodes for justification verification. The instance is not justifiable.')
     else:
-        print(f'The CF is not found in the graph of nodes for justification verification. The instance is not justifiable.')
+        print(f'Graph too large (larger than 50000 nodes). Assuming the closest instance justifies it (benefit-of-doubt)')
+        if not any(np.array_equal(all_nodes[1], x) for x in justifiers):
+            justifiers.append(all_nodes[1])
     justifier_ratio = len(justifiers)/len(filter_pot_justifiers)
     if justifier_ratio > 1:
         justifier_ratio = 1
