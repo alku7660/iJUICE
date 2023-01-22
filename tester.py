@@ -7,14 +7,14 @@ from evaluator_constructor import Evaluator
 from counterfactual_constructor import Counterfactual
 from address import save_obj, load_obj, results_obj
 
-datasets = ['student','oulad','law','heart','synthetic_athlete','synthetic_disease'] # ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
+datasets = ['diabetes'] # ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
 methods = ['gs','face','dice','mace','juice'] # ['gs','face','dice','mace','cchvae','juice']
 seed_int = 54321
 step = 0.01
 train_fraction = 0.7
 distance_type = ['euclidean'] # ['euclidean','L1','L_inf','L1_L0','L1_L0_L_inf','prob']
 lagranges = [1]    # np.linspace(start=0, stop=1, num=11)
-num_instances = 20 # data.test_df.shape[0]
+num_instances = 60 # data.test_df.shape[0]
 prepare_for_mace = False
 
 """

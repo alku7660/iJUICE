@@ -50,6 +50,8 @@ def face_method(counterfactual):
         # this ensures that paths only take same sex / same race / ... etc. routes
         for i in range(len(keys_immutable)):
             immutable_constraint_matrix1, immutable_constraint_matrix2 = build_constraints(data, i, keys_immutable)
+        if len(keys_immutable) == 0:
+            immutable_constraint_matrix1, immutable_constraint_matrix2 = np.ones((data.shape[0], data.shape[0])), np.ones((data.shape[0], data.shape[0]))
 
         # POSITIVE PREDICTIONS
         y_predicted = model.predict_proba(data.values)

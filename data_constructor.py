@@ -1563,7 +1563,8 @@ def load_dataset(data_str, train_fraction, seed, step):
         input_cols = binary + categorical + ordinal + continuous
         label = ['BarExam']
         df = pd.read_csv(dataset_dir+'/law/preprocessed_law.csv', index_col=0)
-
+        for col in df.columns:
+            df[col] = df[col].astype(float)
         """
         MACE variables / attributes
         """
