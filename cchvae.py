@@ -237,6 +237,8 @@ class MyOwnDataSet(Data):
             label = 'Grade'
         elif self._name == 'law':
             label = 'BarExam'
+        elif self._name == 'synthetic_athlete' or self._name == 'synthetic_disease':
+            label = 'Label'
         return label
     
     @property
@@ -436,7 +438,7 @@ class CCHVAE(RecourseMethod):
 
     _DEFAULT_HYPERPARAMS = {"data_name": None, "n_search_samples": 300, "p_norm": 1, "step": 0.1, "max_iter": 1000,
                             "clamp": True, "binary_cat_features": True, "vae_params": {"layers": [10, 5, 10], "train": True,
-                                                                                       "lambda_reg": 1e-6, "epochs": 5,
+                                                                                       "lambda_reg": 1e-6, "epochs": 10,
                                                                                        "lr": 1e-3, "batch_size": 32}}
 
     def __init__(self, counterfactual):
@@ -549,7 +551,7 @@ class CCHVAE(RecourseMethod):
                 return candidate_counterfactuals[min_index]
 
     def get_counterfactuals(self, factuals: pd.DataFrame) -> pd.DataFrame:
-        factuals = self._mlmodel.get_ordered_features(factuals)
+        # factuals = self._mlmodel.get_ordered_features(factuals)
         encoded_feature_names = self._mlmodel.data.encoder.get_feature_names(self._mlmodel.data.categorical)
         cat_features_indices = [factuals.columns.get_loc(feature) for feature in encoded_feature_names]
         df_cfs = factuals.apply(lambda x: self._counterfactual_search(self._step, x.reshape((1, -1)), cat_features_indices), raw=True, axis=1)
