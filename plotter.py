@@ -9,7 +9,7 @@ import matplotlib
 matplotlib.rcParams['mathtext.fontset'] = 'stix'
 matplotlib.rcParams['font.family'] = 'STIXGeneral'
 import matplotlib.pyplot as plt
-plt.rcParams.update({'font.size': 12})
+plt.rcParams.update({'font.size': 10})
 import matplotlib.patches as mpatches
 import pickle
 # from autorank import autorank, plot_stats
@@ -123,6 +123,7 @@ def proximity_plots():
             ax[j].boxplot(all_distance_measures, showmeans=True, meanprops=mean_prop)
             ax[j].set_title(distance)
             ax[j].set_xticklabels([method_name(n) for n in methods])
+            ax[j].xticks(rotation=45)
         fig.suptitle(dataset)
         fig.subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.9, wspace=0.2, hspace=0.2)
         fig.savefig(f'{results_plots}{dataset}_proximity_plot.pdf')
