@@ -16,7 +16,7 @@ import pickle
 from address import results_plots, load_obj
 # from tester import datasets, methods, distance_type, lagranges 
 
-datasets = ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
+datasets = ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','heart','synthetic_athlete','synthetic_disease']
 methods = ['nn','mo','ft','rt','gs','face','dice','mace','juice','ijuice']
 distances = ['euclidean','L1','L_inf','L1_L0','L1_L0_L_inf','prob']
 mean_prop = dict(marker='D',markeredgecolor='firebrick',markerfacecolor='firebrick', markersize=2)
@@ -123,7 +123,7 @@ def proximity_plots():
             ax[j].boxplot(all_distance_measures, showmeans=True, meanprops=mean_prop)
             ax[j].set_title(distance)
             ax[j].set_xticklabels([method_name(n) for n in methods])
-            ax[j].xticks(rotation=45)
+            plt.xticks(rotation=45)
         fig.suptitle(dataset)
         fig.subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.9, wspace=0.2, hspace=0.2)
         fig.savefig(f'{results_plots}{dataset}_proximity_plot.pdf')
@@ -203,6 +203,9 @@ def ablation_lagrange_plot():
     fig.savefig(f'{results_plots}_lagrange_ablation_plot.pdf')
 
 proximity_plots()
+feasibility_justification_time_plots('feasibility')
+feasibility_justification_time_plots('justification')
 feasibility_justification_time_plots('time')
+
 
 
