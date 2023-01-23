@@ -14,8 +14,10 @@ import matplotlib.patches as mpatches
 import pickle
 # from autorank import autorank, plot_stats
 from address import results_plots, load_obj
-from tester import datasets, methods, distance_type, lagranges 
+# from tester import datasets, methods, distance_type, lagranges 
 
+datasets = ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
+methods = ['nn','mo','ft','rt','gs','face','dice','mace','juice','ijuice']
 distances = ['euclidean','L1','L1_L0','L1_L0_inf','prob']
 mean_prop = dict(marker='D',markeredgecolor='firebrick',markerfacecolor='firebrick', markersize=2)
 lagranges = np.linspace(start=0, stop=1, num=11)
