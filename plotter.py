@@ -18,7 +18,7 @@ from address import results_plots, load_obj
 
 datasets = ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
 methods = ['nn','mo','ft','rt','gs','face','dice','mace','juice','ijuice']
-distances = ['euclidean','L1','L1_L0','L1_L0_inf','prob']
+distances = ['euclidean','L1','L_inf','L1_L0','L1_L0_L_inf','prob']
 mean_prop = dict(marker='D',markeredgecolor='firebrick',markerfacecolor='firebrick', markersize=2)
 lagranges = np.linspace(start=0, stop=1, num=11)
 general_distance = 'euclidean'
@@ -28,14 +28,34 @@ def dataset_name(name):
     """
     Method to output dataset names to be printed
     """
-    if name == 'synthetic_simple':
-        name = 'Simple'
-    elif name == 'synthetic_severe_disease':
-        name = 'Disease'
+    if name == 'adult':
+        name = 'Adult'
+    elif name == 'kdd_census':
+        name = 'Census'
+    elif name == 'german':
+        name = 'German'
+    elif name == 'dutch':
+        name = 'Dutch'
+    elif name == 'bank':
+        name = 'Bank'
+    elif name == 'credit':
+        name = 'Credit'
+    elif name == 'compass':
+        name = 'Compas'
+    elif name == 'diabetes':
+        name = 'Diabetes'
+    elif name == 'student':
+        name = 'Student'
+    elif name == 'oulad':
+        name = 'Oulad'
+    elif name == 'law':
+        name = 'Law'
+    elif name == 'heart':
+        name = 'Heart'
     elif name == 'synthetic_athlete':
         name = 'Athlete'
-    else:
-        name = name.capitalize()
+    elif name == 'synthetic_disease':
+        name = 'Disease'
     return name
 
 def method_name(method):
@@ -75,11 +95,11 @@ def distance_name(distance):
     elif distance == 'L1':
         distance = 'L1'
     elif distance == 'L_inf':
-        distance = 'L_$\infty$'
+        distance = 'L$\infty$'
     elif distance == 'L1_L0':
         distance = 'L1 & L0'
     elif distance == 'L1_L0_L_inf':
-        distance = 'L1, L0 & L_$\infty$'
+        distance = 'L1, L0 & L$\infty$'
     elif distance == 'prob':
         distance = 'Max. Percentile Shift'
     return distance
