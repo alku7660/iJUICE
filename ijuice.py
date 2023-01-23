@@ -328,11 +328,11 @@ class IJUICE:
             for (i,j) in G.edges:
                 edge[i,j] = opt_model.addVar(vtype=GRB.INTEGER, name='Path')
             for v in G.nodes:
+                opt_model.addConstr(cf[v] <= self.F[v])
                 if v <= len_justifiers:
                     opt_model.addConstr(gp.quicksum(edge[i,v] for i in G.predecessors(v)) - gp.quicksum(edge[v,j] for j in G.successors(v)) == -source[v]) # Source contraints
                 else:
                     opt_model.addConstr(gp.quicksum(edge[i,v] for i in G.predecessors(v)) - gp.quicksum(edge[v,j] for j in G.successors(v)) == cf[v]*source.sum()) # Sink constraints
-                    opt_model.addConstr(cf[v] <= self.F[v])
                     opt_model.addConstr(source[v] == 0)
             opt_model.addConstr(source.sum() >= 1)
             opt_model.addConstr(cf.sum() == 1)
