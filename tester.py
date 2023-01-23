@@ -7,7 +7,7 @@ from evaluator_constructor import Evaluator
 from counterfactual_constructor import Counterfactual
 from address import save_obj, load_obj, results_obj
 
-datasets = ['dutch','bank','credit','compass','student','oulad','law','heart','synthetic_athlete','synthetic_disease'] # ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
+datasets = ['credit','student','oulad','law','heart','synthetic_athlete','synthetic_disease'] # ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
 methods = ['cchvae'] # ['nn','mo','ft','rt','gs','face','dice','mace','cchvae','juice']
 seed_int = 54321
 step = 0.01
