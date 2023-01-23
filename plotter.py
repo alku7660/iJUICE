@@ -11,6 +11,7 @@ matplotlib.rcParams['font.family'] = 'STIXGeneral'
 import matplotlib.pyplot as plt
 plt.rcParams.update({'font.size': 10})
 import matplotlib.patches as mpatches
+from matplotlib.ticker import FormatStrFormatter
 import pickle
 # from autorank import autorank, plot_stats
 from address import results_plots, load_obj
@@ -120,11 +121,12 @@ def proximity_plots():
                 eval = load_obj(f'{datasets[i]}_{methods[k]}_{general_distance}_{general_lagrange}.pkl')
                 distance_measures = [eval.proximity_dict[idx][distances[j]] for idx in eval.proximity_dict.keys()]
                 all_distance_measures.append(distance_measures)
-            ax[j].boxplot(all_distance_measures, showmeans=True, meanprops=mean_prop)
+            ax[j].boxplot(all_distance_measures, showmeans=True, meanprops=mean_prop, showfliers=False)
             ax[j].set_title(distance)
             ax[j].set_xticklabels([method_name(n) for n in methods], rotation=45)
+            ax[j].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
         fig.suptitle(dataset)
-        fig.subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.9, wspace=0.2, hspace=0.2)
+        fig.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.95, wspace=0.2, hspace=0.3)
         fig.savefig(f'{results_plots}{dataset}_proximity_plot.pdf')
 
 def feasibility_justification_time_plots(metric_name):
@@ -153,14 +155,16 @@ def feasibility_justification_time_plots(metric_name):
                 metric_measures = list(eval.justifier_ratio.values())
             elif metric_name == 'time':
                 metric_measures = list(eval.time_dict.values())
+                if isinstance(metric_measures[0], np.ndarray):
+                    metric_measures = [list(i)[0] for i in metric_measures]
             all_metric_measures.append(metric_measures)
-        ax[i].boxplot(all_metric_measures, showmeans=True, meanprops=mean_prop)
-        ax[i].set_xticklabels([method_name(i) for i in methods])
+        ax[i].boxplot(all_metric_measures, showmeans=True, meanprops=mean_prop, showfliers=False)
+        ax[i].set_xticklabels([method_name(i) for i in methods], rotation=45)
         ax[i].set_ylabel(dataset)
         if metric_name == 'time':
             ax[i].set_yscale('log')
     plt.suptitle(metric_name.capitalize())
-    fig.subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.9, wspace=0.35, hspace=0.2)
+    fig.subplots_adjust(left=0.1, bottom=0.05, right=0.9, top=0.95, wspace=0.35, hspace=0.3)
     fig.savefig(f'{results_plots}{metric_name}_plot.pdf')
     
 def ablation_lagrange_plot():
