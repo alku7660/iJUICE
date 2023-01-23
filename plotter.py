@@ -22,7 +22,7 @@ distances = ['euclidean','L1','L_inf','L1_L0','L1_L0_L_inf','prob']
 mean_prop = dict(marker='D',markeredgecolor='firebrick',markerfacecolor='firebrick', markersize=2)
 lagranges = np.linspace(start=0, stop=1, num=11)
 general_distance = 'euclidean'
-general_lagrange = 0.5
+general_lagrange = 1
 
 def dataset_name(name):
     """
