@@ -231,12 +231,6 @@ class Dataset:
                     feat_type.loc[i] = 'ord'
                 elif 'Age' in i or 'RestBloodPressure' in i or 'Chol' in i:
                     feat_type.loc[i] = 'cont'
-        elif self.name == 'synthetic_athlete':
-            for i in feat_list:
-                if 'Sex' in i or 'Training' in i or 'Sport' in i or 'Diet' in i:
-                    feat_type.loc[i] = 'bin'
-                elif 'Age' in i or 'SleepHours' in i:
-                    feat_type.loc[i] = 'cont'
         elif self.name == 'synthetic_disease':
             for i in feat_list:
                 if 'Smokes' in i or 'Diet' in i or 'Stress' in i:
@@ -333,9 +327,9 @@ class Dataset:
                     feat_mutable[i] = 1
         elif self.name == 'synthetic_athlete':
             for i in feat_list:
-                if 'Age' in i or 'Sex' in i:
+                if 'Sex' in i:
                     feat_mutable[i] = 0
-                elif 'TrainingTime' in i or 'Diet' in i or 'Sport' in i or 'SleepHours' in i:
+                else:
                     feat_mutable[i] = 1
         elif self.name == 'synthetic_disease':
             for i in feat_list:
@@ -374,8 +368,10 @@ class Dataset:
                     feat_directionality[i] = 'any'
         elif self.name == 'german':
             for i in feat_list:
-                if 'Age' in i or 'Sex' in i:
+                if 'Sex' in i:
                     feat_directionality[i] = 0
+                elif 'Age' in i:
+                    feat_directionality[i] = 'pos'
                 else:
                     feat_directionality[i] = 'any'
         elif self.name == 'dutch':
@@ -449,10 +445,12 @@ class Dataset:
                     feat_directionality[i] = 'pos'
         elif self.name == 'synthetic_athlete':
             for i in feat_list:
-                if 'Age' in i or 'Sex' in i:
+                if 'Sex' in i:
                     feat_directionality[i] = 0
                 elif 'TrainingTime' in i or 'Diet' in i or 'Sport' in i or 'SleepHours' in i:
                     feat_directionality[i] = 'any'
+                elif 'Age' in i:
+                    feat_directionality[i] = 'pos'
         elif self.name == 'synthetic_disease':
             for i in feat_list:
                 if 'Age' in i:
