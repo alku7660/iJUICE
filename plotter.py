@@ -157,6 +157,8 @@ def feasibility_justification_time_plots(metric_name):
                 metric_measures = list(eval.time_dict.values())
                 if isinstance(metric_measures[0], np.ndarray):
                     metric_measures = [list(i)[0] for i in metric_measures]
+                if methods[k] in ['nn','mo','ft','rt']:
+                    metric_measures = [0.5*i for i in metric_measures]
             all_metric_measures.append(metric_measures)
         ax[i].boxplot(all_metric_measures, showmeans=True, meanprops=mean_prop, showfliers=False)
         ax[i].set_xticklabels([method_name(i) for i in methods], rotation=45)

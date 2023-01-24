@@ -21,18 +21,26 @@ class IJUICE:
         end_time = time.time()
         self.run_time = end_time - start_time
 
-    def find_potential_justifiers(self, counterfactual):
+    def find_potential_justifiers(self, counterfactual, ijuice_search=False):
         """
         Finds the set of training observations belonging to, and predicted as, the counterfactual class
         """
         train_np = counterfactual.data.transformed_train_np
         train_target = counterfactual.data.train_target
         train_pred = counterfactual.model.model.predict(train_np)
-        potential_justifiers = train_np[(train_target != self.ioi_label) & (train_pred != self.ioi_label)]
+        if not ijuice_search:
+            potential_justifiers = train_np[(train_target != self.ioi_label) & (train_pred != self.ioi_label)]
+        else:
+            potential_justifiers = train_np[train_target != self.ioi_label]
         sort_potential_justifiers = []
         for i in range(potential_justifiers.shape[0]):
-            dist = distance_calculation(potential_justifiers[i], self.normal_ioi, counterfactual.data, type=counterfactual.type)
-            sort_potential_justifiers.append((potential_justifiers[i], dist))    
+            if ijuice_search: 
+                if verify_feasibility(self.normal_ioi, potential_justifiers[i], counterfactual.data):
+                    dist = distance_calculation(potential_justifiers[i], self.normal_ioi, counterfactual.data, type=counterfactual.type)
+                    sort_potential_justifiers.append((potential_justifiers[i], dist))
+            else:
+                dist = distance_calculation(potential_justifiers[i], self.normal_ioi, counterfactual.data, type=counterfactual.type)
+                sort_potential_justifiers.append((potential_justifiers[i], dist))
         sort_potential_justifiers.sort(key=lambda x: x[1])
         sort_potential_justifiers = [i[0] for i in sort_potential_justifiers]
         if len(sort_potential_justifiers) > 100:
@@ -300,7 +308,7 @@ class IJUICE:
                 if self.F[i]:
                     potential_CF[i] = self.C[i]
             if len(potential_CF) == 0:
-                sol_x = self.find_potential_justifiers(counterfactual)[0]
+                sol_x = self.find_potential_justifiers(counterfactual, ijuice_search=True)[0]
             else:
                 sol_x_idx = min(potential_CF, key=potential_CF.get)
                 sol_x = self.all_nodes[sol_x_idx - 1]
@@ -352,7 +360,7 @@ class IJUICE:
                     if self.F[i]:
                         potential_CF[i] = self.C[i]
                 if len(potential_CF) == 0:
-                    sol_x = self.find_potential_justifiers(counterfactual)[0]
+                    sol_x = self.find_potential_justifiers(counterfactual, ijuice_search=True)[0]
                 else:
                     sol_x_idx = min(potential_CF, key=potential_CF.get)
                     sol_x = self.all_nodes[sol_x_idx - 1]

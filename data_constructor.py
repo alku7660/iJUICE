@@ -303,7 +303,7 @@ class Dataset:
                     feat_mutable[i] = 1
         elif self.name == 'student':
             for i in feat_list:
-                if 'Sex' in i or 'AgeGroup':
+                if 'Sex' in i or 'AgeGroup' in i:
                     feat_mutable[i] = 0
                 else:
                     feat_mutable[i] = 1
