@@ -7,16 +7,22 @@ class NN:
     def __init__(self, counterfactual) -> None:
         self.normal_x_cf, self.run_time = near_neigh(counterfactual)
 
-def near_neigh(counterfactual):
+def near_neigh(counterfactual, juice_search=False):
     """
     Original nn counterfactual method
     """
     start_time = time.time()
     nn_cf = None
     for i in counterfactual.ioi.train_sorted:
-        if i[2] != counterfactual.ioi.label and not np.array_equal(counterfactual.ioi.normal_x, i[0]):
-            nn_cf = i[0]
-            break
+        if juice_search:
+            if i[2] != counterfactual.ioi.label and not np.array_equal(counterfactual.ioi.normal_x, i[0]):
+                if verify_feasibility(counterfactual.ioi.normal_x, i[0], counterfactual.data):
+                    nn_cf = i[0]
+                    break
+        else:
+            if i[2] != counterfactual.ioi.label and not np.array_equal(counterfactual.ioi.normal_x, i[0]):
+                nn_cf = i[0]
+                break
     end_time = time.time()
     total_time = end_time - start_time + counterfactual.ioi.train_sorting_time
     return nn_cf, total_time
