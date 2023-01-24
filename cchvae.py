@@ -239,6 +239,8 @@ class MyOwnDataSet(Data):
             label = 'BarExam'
         elif self._name == 'synthetic_athlete' or self._name == 'synthetic_disease':
             label = 'Label'
+        elif self._name == 'heart':
+            label = 'class'
         return label
     
     @property
@@ -379,7 +381,7 @@ class VariationalAutoencoder(nn.Module):
         KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
         return MSE + KLD
 
-    def fit(self, xtrain: np.ndarray, lambda_reg=1e-6, epochs=5, lr=1e-3, batch_size=32):
+    def fit(self, xtrain: np.ndarray, lambda_reg=1e-6, epochs=5, lr=1e-3, batch_size=32): #batch_size=32
         train_set = VAEDataset(xtrain, with_target=True)
         train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True)
         optimizer = torch.optim.Adam(self.parameters(), lr=lr, weight_decay=lambda_reg)
@@ -439,7 +441,7 @@ class CCHVAE(RecourseMethod):
     _DEFAULT_HYPERPARAMS = {"data_name": None, "n_search_samples": 300, "p_norm": 1, "step": 0.1, "max_iter": 1000,
                             "clamp": True, "binary_cat_features": True, "vae_params": {"layers": [10, 5, 10], "train": True,
                                                                                        "lambda_reg": 1e-6, "epochs": 20,
-                                                                                       "lr": 1e-3, "batch_size": 32}}
+                                                                                       "lr": 1e-3, "batch_size": 128}} #"batch_size": 32
 
     def __init__(self, counterfactual):
         data = counterfactual.data
@@ -578,7 +580,7 @@ def get_home(models_home=None):
         os.makedirs(models_home)
     return models_home
 
-def train_variational_autoencoder(vae, data, input_order, lambda_reg=1e-6, epochs=5, lr=1e-3, batch_size=32):
+def train_variational_autoencoder(vae, data, input_order, lambda_reg=1e-6, epochs=5, lr=1e-3, batch_size=32): #batch_size=32
     df_dataset = data.df[input_order + [data.target]]
     vae.fit(df_dataset.values, lambda_reg, epochs, lr, batch_size)
     vae.eval()
