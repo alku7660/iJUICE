@@ -321,7 +321,7 @@ class Dataset:
                     feat_mutable[i] = 1
         elif self.name == 'heart':
             for i in feat_list:
-                if 'Sex' in i or 'ChestPain' in i or 'ECG' in i:
+                if 'Sex' in i:
                     feat_mutable[i] = 0
                 else:
                     feat_mutable[i] = 1
@@ -437,9 +437,9 @@ class Dataset:
                 feat_directionality[i] = 'any'
         elif self.name == 'heart':
             for i in feat_list:
-                if 'BloodSugar' in i or 'RestBloodPressure' in i or 'Chol' in i:
+                if 'BloodSugar' in i or 'RestBloodPressure' in i or 'Chol' in i or 'ChestPain' in i or 'ECG' in i:
                     feat_directionality[i] = 'any'
-                elif 'Sex' in i or 'ChestPain' in i or 'ECG' in i:
+                elif 'Sex' in i:
                     feat_directionality[i] = 0
                 elif 'Age' in i:
                     feat_directionality[i] = 'pos'
