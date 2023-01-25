@@ -7,8 +7,8 @@ from evaluator_constructor import Evaluator
 from counterfactual_constructor import Counterfactual
 from address import save_obj, load_obj, results_obj
 
-datasets = ['law'] # ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
-methods = ['ijuice'] # ['nn','mo','ft','rt','gs','face','dice','mace','cchvae','juice']
+datasets = ['german'] # ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
+methods = ['gs','face','dice','mace','cchvae','juice','ijuice'] # ['nn','mo','ft','rt','gs','face','dice','mace','cchvae','juice']
 seed_int = 54321
 step = 0.01
 train_fraction = 0.7

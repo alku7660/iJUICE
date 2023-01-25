@@ -62,14 +62,13 @@ Model Symbols:
 Constructing initial formulas: model, counterfactual, distance, plausibility, diversity		done.
 Solving (not searching) for closest counterfactual using various distance thresholds...
 	Iteration #001: testing norm threshold 0.500000 in range [0.000000, 1.000000]...	solution exists & found.
-	Iteration #002: testing norm threshold 0.250050 in range [0.000000, 0.500100]...	solution exists & found.
-	Iteration #003: testing norm threshold 0.125050 in range [0.000000, 0.250100]...	solution exists & found.
-	Iteration #004: testing norm threshold 0.062550 in range [0.000000, 0.125100]...	no solution exists.
-	Iteration #005: testing norm threshold 0.093825 in range [0.062550, 0.125100]...	no solution exists.
-	Iteration #006: testing norm threshold 0.109462 in range [0.093825, 0.125100]...	no solution exists.
-	Iteration #007: testing norm threshold 0.117281 in range [0.109462, 0.125100]...	no solution exists.
+	Iteration #002: testing norm threshold 0.187550 in range [0.000000, 0.375100]...	solution exists & found.
+	Iteration #003: testing norm threshold 0.062550 in range [0.000000, 0.125100]...	no solution exists.
+	Iteration #004: testing norm threshold 0.093825 in range [0.062550, 0.125100]...	no solution exists.
+	Iteration #005: testing norm threshold 0.109462 in range [0.093825, 0.125100]...	no solution exists.
+	Iteration #006: testing norm threshold 0.117281 in range [0.109462, 0.125100]...	no solution exists.
 
 
-Factual sample: 		 {x0 : 1.0, x1 : 1.0, x2 : 0.0, x3 : 6.0, x4 : 2.0, x5 : 1.0, x6 : 42.0, x7 : 1455.0, x8 : 4.0, y: True}
-Nearest counterfactual sample:	 {x0 : 1, x1 : 1, x2 : 0, x3 : 6, x4 : 2, x5 : 1, x6 : 42.0, x7 : 1455.0, x8 : 46.0, y: False} (verified)
+Factual sample: 		 {x0 : 1.0, x1 : 0.0, x2 : 0.0, x3 : 3.0, x4 : 1.0, x5 : 1.0, x6 : 34.0, x7 : 6999.0, x8 : 48.0, y: True}
+Nearest counterfactual sample:	 {x0 : 1, x1 : 0, x2 : 0, x3 : 3, x4 : 1, x5 : 3, x6 : 34.0, x7 : 6999.0, x8 : 48.0, y: False} (verified)
 Minimum counterfactual distance: 0.125000
