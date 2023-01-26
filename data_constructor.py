@@ -1554,8 +1554,8 @@ def load_dataset(data_str, train_fraction, seed, step):
                 upper_bound = df[col_name].max())
 
     elif data_str == 'law':
-        binary = ['WorkFullTime','Sex']
-        categorical = ['FamilyIncome','Tier','Race']
+        binary = ['WorkFullTime','Sex','Race']
+        categorical = ['FamilyIncome','Tier']
         ordinal = []
         continuous = ['Decile1stYear','Decile3rdYear','LSAT','UndergradGPA','FirstYearGPA','CumulativeGPA']
         input_cols = binary + categorical + ordinal + continuous

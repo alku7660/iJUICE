@@ -182,8 +182,8 @@ def scatter_proximity_var(var):
     """
     Scatter plot between distance and feasibility (evidences trade-off between feasibility and distance)
     """
+    fig, ax = plt.subplots(nrows=2, ncols=3, figsize=(1.1,1.6))
     for i in range(len(datasets)):
-        fig, ax = plt.subplots(figsize=(1.1,1.6))
         dataset = dataset_name(datasets[i])
         legend_elements = create_legend_distance()
         method_mean_var = []

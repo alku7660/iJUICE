@@ -438,10 +438,10 @@ class VariationalAutoencoder(nn.Module):
 
 class CCHVAE(RecourseMethod):
 
-    _DEFAULT_HYPERPARAMS = {"data_name": None, "n_search_samples": 300, "p_norm": 1, "step": 0.1, "max_iter": 1000,
+    _DEFAULT_HYPERPARAMS = {"data_name": None, "n_search_samples": 500, "p_norm": 1, "step": 0.1, "max_iter": 2000,
                             "clamp": True, "binary_cat_features": True, "vae_params": {"layers": [10, 5, 10], "train": True,
-                                                                                       "lambda_reg": 1e-6, "epochs": 40,
-                                                                                       "lr": 1e-3, "batch_size": 128}} #"batch_size": 32
+                                                                                       "lambda_reg": 1e-6, "epochs": 10,
+                                                                                       "lr": 1e-3, "batch_size": 32}} #"batch_size": 32
 
     def __init__(self, counterfactual):
         data = counterfactual.data
@@ -452,7 +452,7 @@ class CCHVAE(RecourseMethod):
         cchvae_model = MyOwnModel(cchvae_data, model)
         super().__init__(cchvae_model)
         self._params = self._DEFAULT_HYPERPARAMS
-        self._params['vae_params']['layers'] = [len(cchvae_data.processed_features), 10, 5, 10, len(cchvae_data.processed_features)]
+        self._params['vae_params']['layers'] = [len(cchvae_data.processed_features), 15, 10, 15, len(cchvae_data.processed_features)]
         self._n_search_samples = self._params["n_search_samples"]
         self._p_norm = self._params["p_norm"]
         self._step = self._params["step"]
