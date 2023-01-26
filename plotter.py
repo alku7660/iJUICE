@@ -9,7 +9,7 @@ import matplotlib
 matplotlib.rcParams['mathtext.fontset'] = 'stix'
 matplotlib.rcParams['font.family'] = 'STIXGeneral'
 import matplotlib.pyplot as plt
-plt.rcParams.update({'font.size': 10})
+plt.rcParams.update({'font.size': 12})
 import matplotlib.patches as mpatches
 from matplotlib.ticker import FormatStrFormatter
 import pickle
