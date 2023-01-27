@@ -17,8 +17,8 @@ import pickle
 from address import results_plots, load_obj
 # from tester import datasets, methods, distance_type, lagranges 
 
-datasets = ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','heart','synthetic_athlete','synthetic_disease']
-methods = ['nn','mo','ft','rt','gs','face','dice','mace','juice','ijuice']
+datasets = ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
+methods = ['nn','mo','ft','rt','gs','face','dice','mace','cchvae','juice','ijuice']
 distances = ['euclidean','L1','L_inf','L1_L0','L1_L0_L_inf','prob']
 colors_list = ['red', 'blue', 'green', 'purple', 'lightgreen', 'tab:brown', 'orange']
 mean_prop = dict(marker='D',markeredgecolor='firebrick',markerfacecolor='firebrick', markersize=2)
