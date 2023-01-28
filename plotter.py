@@ -17,14 +17,16 @@ import pickle
 from address import results_plots, load_obj
 # from tester import datasets, methods, distance_type, lagranges 
 
-datasets = ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
-methods = ['nn','mo','ft','rt','gs','face','dice','mace','cchvae','juice','ijuice']
-distances = ['euclidean','L1','L_inf','L1_L0','L1_L0_L_inf','prob']
+# datasets = ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
+# methods = ['nn','mo','ft','rt','gs','face','dice','mace','cchvae','juice','ijuice']
+# distances = ['euclidean','L1','L_inf','L1_L0','L1_L0_L_inf','prob']
+general_distance = 'euclidean'
+# general_lagrange = 1
+datasets = ['german','oulad','synthetic_disease','kdd_census','adult'] # ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
+methods = ['ijuice']
+lagranges = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
 colors_list = ['red', 'blue', 'green', 'purple', 'lightgreen', 'tab:brown', 'orange']
 mean_prop = dict(marker='D',markeredgecolor='firebrick',markerfacecolor='firebrick', markersize=2)
-lagranges = np.linspace(start=0, stop=1, num=11)
-general_distance = 'euclidean'
-general_lagrange = 1
 
 def dataset_name(name):
     """
@@ -219,9 +221,9 @@ def ablation_lagrange_plot():
     """
     Obtains an ablation plot where both the distances and the justifier ratio are plotted for iJUICE
     """
-    fig, ax = plt.subplots(nrows=5, ncols=3, sharex=True, figsize=(8,11))
+    fig, ax = plt.subplots(nrows=3, ncols=2, sharex=True, figsize=(8,11))
     ax = ax.flatten()
-    dist = 'L1_L0'
+    dist = 'euclidean'
     for i in range(len(datasets)):
         dataset = dataset_name(datasets[i])
         justifier_ratio_mean_list = []
@@ -231,8 +233,8 @@ def ablation_lagrange_plot():
         distance_low_list = []
         distance_high_list = []
         for lagrange in lagranges:
-            eval = load_obj(f'{dataset}_ijuice_{dist}_{lagrange}.pkl')
-            justifier_ratio_mean, justifier_ratio_std = np.mean(eval.justifier_ratio.values()), np.std(eval.justifier_ratio.values())
+            eval = load_obj(f'{datasets[i]}_ijuice_{dist}_{lagrange}.pkl')
+            justifier_ratio_mean, justifier_ratio_std = np.mean(list(eval.justifier_ratio.values())), np.std(list(eval.justifier_ratio.values()))
             distance_measures = [eval.proximity_dict[idx][dist] for idx in eval.proximity_dict.keys()]
             distance_mean, distance_std = np.mean(distance_measures), np.std(distance_measures)
             justifier_ratio_mean_list.append(justifier_ratio_mean)
@@ -241,24 +243,25 @@ def ablation_lagrange_plot():
             distance_mean_list.append(distance_mean)
             distance_low_list.append(distance_mean - distance_std)
             distance_high_list.append(distance_mean + distance_std)
-        ax[i].plot(lagranges, justifier_ratio_mean_list, color='blue')
+        ax[i].plot(lagranges, justifier_ratio_mean_list, color='blue', label='Justification')
         ax[i].fill_between(lagranges, justifier_ratio_low_list, justifier_ratio_high_list, color='blue', alpha=0.2)
-        ax[i].set_xticklabels([method_name(i) for i in methods])
+        ax[i].set_xticklabels(lagranges)
         ax[i].set_ylabel('Justification Ratio')
         ax[i].set_title(dataset)
-        secax = ax[i].secondary_yaxis()
-        secax.plot(lagranges, distance_mean_list, color='red')
+        secax = ax[i].twinx()
+        secax.plot(lagranges, distance_mean_list, color='red', label='Distance')
         secax.fill_between(lagranges, distance_low_list, distance_high_list, color='red', alpha=0.2)
         secax.set_ylabel(dist.capitalize())
-    fig.subplots_adjust(left=0.05, bottom=0.01, right=0.99, top=0.95, wspace=0.01, hspace=0.05)
+    fig.legend()
+    fig.subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.9, wspace=0.2, hspace=0.2)
     fig.savefig(f'{results_plots}_lagrange_ablation_plot.pdf')
 
-proximity_plots()
-feasibility_justification_time_plots('feasibility')
-feasibility_justification_time_plots('justification')
-feasibility_justification_time_plots('time')
-scatter_proximity_var('feasibility')
-scatter_proximity_var('justification')
-
+# proximity_plots()
+# feasibility_justification_time_plots('feasibility')
+# feasibility_justification_time_plots('justification')
+# feasibility_justification_time_plots('time')
+# scatter_proximity_var('feasibility')
+# scatter_proximity_var('justification')
+ablation_lagrange_plot()
 
 

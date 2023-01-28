@@ -7,13 +7,13 @@ from evaluator_constructor import Evaluator
 from counterfactual_constructor import Counterfactual
 from address import save_obj, load_obj, results_obj
 
-datasets = ['oulad','synthetic_disease','kdd_census','compass'] # ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
+datasets = ['german','oulad','synthetic_disease','kdd_census','adult'] # ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
 methods = ['ijuice'] # ['nn','mo','ft','rt','gs','face','dice','mace','cchvae','juice']
 seed_int = 54321
 step = 0.01
 train_fraction = 0.7
 distance_type = ['euclidean'] # ['euclidean','L1','L_inf','L1_L0','L1_L0_L_inf','prob']
-lagranges = [0.9, 0.8, 0.7, 0.6, 0.5, 0.4]    # np.linspace(start=0, stop=1, num=11)
+lagranges = [0.3, 0.2, 0.1, 0]    # np.linspace(start=0, stop=1, num=11)
 num_instances = 20 # data.test_df.shape[0]
 prepare_for_mace = False
 
