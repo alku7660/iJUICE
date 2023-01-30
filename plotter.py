@@ -224,6 +224,8 @@ def ablation_lagrange_plot():
     fig, ax = plt.subplots(nrows=3, ncols=2, sharex=True, figsize=(8,11))
     ax = ax.flatten()
     dist = 'euclidean'
+    start = 0
+    end = 1.1
     for i in range(len(datasets)):
         dataset = dataset_name(datasets[i])
         justifier_ratio_mean_list = []
@@ -245,16 +247,21 @@ def ablation_lagrange_plot():
             distance_high_list.append(distance_mean + distance_std)
         ax[i].plot(lagranges, justifier_ratio_mean_list, color='blue', label='Justification')
         ax[i].fill_between(lagranges, justifier_ratio_low_list, justifier_ratio_high_list, color='blue', alpha=0.2)
-        ax[i].set_xticklabels(lagranges)
+        # ax[i].set_xticklabels(lagranges)
         ax[i].set_ylabel('Justification Ratio')
         ax[i].set_title(dataset)
+        ax[i].grid(axis='both', linestyle='--', alpha=0.4)
+        ax[i].yaxis.set_ticks(np.arange(start, end, 0.1))
+        ax[i].xaxis.set_ticks(np.arange(start, end, 0.1))
+        ax[i].yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
         secax = ax[i].twinx()
         secax.plot(lagranges, distance_mean_list, color='red', label='Distance')
         secax.fill_between(lagranges, distance_low_list, distance_high_list, color='red', alpha=0.2)
         secax.set_ylabel(dist.capitalize())
+        secax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
     fig.legend()
-    fig.subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.9, wspace=0.2, hspace=0.2)
-    fig.savefig(f'{results_plots}_lagrange_ablation_plot.pdf')
+    fig.subplots_adjust(left=0.075, bottom=0.05, right=0.925, top=0.95, wspace=0.4, hspace=0.15)
+    fig.savefig(f'{results_plots}lagrange_ablation_plot.pdf')
 
 # proximity_plots()
 # feasibility_justification_time_plots('feasibility')
