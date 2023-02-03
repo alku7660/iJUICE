@@ -102,7 +102,7 @@ class IJUICE:
         
         sorted_feat_i = list(np.sort(data.transformed_train_np[:,i][(data.transformed_train_np[:,i] >= min_val) & (data.transformed_train_np[:,i] <= max_val)]))
         value = list(np.unique(sorted_feat_i))
-        if len(value) <= 10:
+        if len(value) <= 100:
             if min_val not in value:
                 value = [min_val] + value
             if max_val not in value:
@@ -110,7 +110,7 @@ class IJUICE:
             return value
         else:
             mean_val, std_val = np.mean(data.transformed_train_np[:,i]), np.std(data.transformed_train_np[:,i])
-            percentiles_range = list(np.linspace(0, 1, 11))
+            percentiles_range = list(np.linspace(0, 1, 101))
             value = []
             for perc in percentiles_range:
                 value.append(norm.ppf(perc, loc=mean_val, scale=std_val))
@@ -299,7 +299,7 @@ class IJUICE:
             path.extend([node])
             if cf_node == node:
                 return path
-            new_node = [j for j in G.successors(node) if edge[node,j].x >= 0.98][0]
+            new_node = [j for j in G.successors(node) if edge[node,j].x >= 0.9][0]
             return output_path(new_node, cf_node, path)
 
         if len(self.A) == 0:
@@ -378,7 +378,7 @@ class IJUICE:
                 print(f'Number of justifiers: {len(justifiers)}')
                 time.sleep(0.5)
                 for i in self.C.keys():
-                    if cf[i].x > 0:
+                    if cf[i].x > 0.1:
                         print(f'cf({i}): {cf[i].x}')
                         print(f'Node {i}: {self.all_nodes[i - 1]}')
                         print(f'Original IOI: {self.normal_ioi}')
