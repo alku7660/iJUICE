@@ -373,7 +373,7 @@ class IJUICE:
                 print(f'Solution:')
                 justifiers = []
                 for i in self.C.keys():
-                    if source[i].x > 0:
+                    if source[i].x > 0.1:
                         justifiers.append(i)
                 print(f'Number of justifiers: {len(justifiers)}')
                 time.sleep(0.5)
