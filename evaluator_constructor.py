@@ -468,6 +468,12 @@ def verify_justification(cf, counterfactual):
         print(f'Graph too large (larger than 50000 nodes). Assuming the closest instance justifies it (benefit-of-doubt)')
         if not any(np.array_equal(all_nodes[1], x) for x in justifiers):
             justifiers.append(all_nodes[1])
+    if counterfactual.method == 'juice':
+        justifier_juice = counterfactual.cf_method.justifier
+    else:
+        justifier_juice = None
+    if justifier_juice is not None:
+        justifiers.append(justifier_juice)
     justifier_ratio = len(justifiers)/len(filter_pot_justifiers)
     if justifier_ratio > 1:
         justifier_ratio = 1

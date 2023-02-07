@@ -9,7 +9,7 @@ import matplotlib
 matplotlib.rcParams['mathtext.fontset'] = 'stix'
 matplotlib.rcParams['font.family'] = 'STIXGeneral'
 import matplotlib.pyplot as plt
-plt.rcParams.update({'font.size': 12})
+plt.rcParams.update({'font.size': 8})
 import matplotlib.patches as mpatches
 from matplotlib.ticker import FormatStrFormatter
 import pickle
@@ -17,13 +17,13 @@ import pickle
 from address import results_plots, load_obj
 # from tester import datasets, methods, distance_type, lagranges 
 
-# datasets = ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
-# methods = ['nn','mo','ft','rt','gs','face','dice','mace','cchvae','juice','ijuice']
-general_distance = 'euclidean'
+datasets = ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
+methods = ['nn','mo','ft','rt','gs','face','dice','mace','cchvae','juice','ijuice']
+general_distance = 'L1_L0'
 # general_lagrange = 1
-datasets = ['german','synthetic_disease','kdd_census','adult'] # ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
+# datasets = ['german','synthetic_disease','kdd_census','adult'] # ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
 distances = ['euclidean','L1','L_inf','L1_L0','L1_L0_L_inf','prob']
-methods = ['ijuice']
+# methods = ['ijuice']
 lagranges = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
 colors_list = ['red', 'blue', 'green', 'purple', 'lightgreen', 'tab:brown', 'orange']
 mean_prop = dict(marker='D',markeredgecolor='firebrick',markerfacecolor='firebrick', markersize=2)
@@ -136,14 +136,18 @@ def feasibility_justification_time_plots(metric_name):
     """
     Obtains a 5x3 feasibility, justification, and time plots for all datasets
     """
-    fig, ax = plt.subplots(nrows=5, ncols=3, sharex=False, sharey=True, figsize=(8,11))
+    fig, ax = plt.subplots(nrows=7, ncols=2, sharex=False, sharey=True, figsize=(7,10))
     ax = ax.flatten()
     for i in range(len(datasets)):
         dataset = dataset_name(datasets[i])
         all_metric_measures = []
         for k in range(len(methods)):
             method = method_name(methods[k])
-            eval = load_obj(f'{datasets[i]}_{methods[k]}_{general_distance}_{general_lagrange}.pkl')
+            if methods[k] == 'ijuice':
+                dist = 'L1_L0'
+            else:
+                dist = 'euclidean'
+            eval = load_obj(f'{datasets[i]}_{methods[k]}_{dist}_1.pkl')
             if metric_name == 'feasibility':
                 metric_measures = list(eval.feasibility_dict.values())
                 new_metric_measures = []
@@ -156,14 +160,14 @@ def feasibility_justification_time_plots(metric_name):
                 metric_measures = new_metric_measures
             elif metric_name == 'justification':
                 metric_measures = list(eval.justifier_ratio.values())
-                new_metric_measures = []
-                for n in metric_measures:
-                    if n > 0:
-                        val = 1
-                    else:
-                        val = 0
-                    new_metric_measures.append(val)
-                metric_measures = new_metric_measures
+                # new_metric_measures = []
+                # for n in metric_measures:
+                #     if n > 0.01:
+                #         val = 1
+                #     else:
+                #         val = 0
+                #     new_metric_measures.append(val)
+                # metric_measures = new_metric_measures
             elif metric_name == 'time':
                 metric_measures = list(eval.time_dict.values())
                 if isinstance(metric_measures[0], np.ndarray):
@@ -172,12 +176,13 @@ def feasibility_justification_time_plots(metric_name):
                     metric_measures = [0.5*i for i in metric_measures]
             all_metric_measures.append(metric_measures)
         ax[i].boxplot(all_metric_measures, showmeans=True, meanprops=mean_prop, showfliers=False)
-        ax[i].set_xticklabels([method_name(i) for i in methods], rotation=45)
+        ax[i].set_xticklabels([method_name(i) for i in methods], rotation=25)
         ax[i].set_ylabel(dataset)
+        ax[i].grid(axis='y', linestyle='--', alpha=0.4)
         if metric_name == 'time':
             ax[i].set_yscale('log')
-    plt.suptitle(metric_name.capitalize())
-    fig.subplots_adjust(left=0.1, bottom=0.05, right=0.9, top=0.95, wspace=0.35, hspace=0.3)
+    plt.suptitle(f'{metric_name.capitalize()} (s)' if metric_name == 'time' else metric_name.capitalize())
+    fig.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.96, wspace=0.15, hspace=0.4)
     fig.savefig(f'{results_plots}{metric_name}_plot.pdf')
 
 def scatter_proximity_var(var):
@@ -265,11 +270,11 @@ def ablation_lagrange_plot():
     fig.savefig(f'{results_plots}lagrange_ablation_plot.pdf')
 
 # proximity_plots()
-# feasibility_justification_time_plots('feasibility')
-# feasibility_justification_time_plots('justification')
+feasibility_justification_time_plots('feasibility')
+feasibility_justification_time_plots('justification')
 # feasibility_justification_time_plots('time')
 # scatter_proximity_var('feasibility')
 # scatter_proximity_var('justification')
-ablation_lagrange_plot()
+# ablation_lagrange_plot()
 
 
