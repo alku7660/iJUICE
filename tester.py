@@ -12,8 +12,8 @@ methods = ['ijuice'] # ['nn','mo','ft','rt','gs','face','dice','mace','cchvae','
 seed_int = 54321
 step = 0.01
 train_fraction = 0.7
-distance_type = ['L1'] # ['euclidean','L1','L_inf','L1_L0','L1_L0_L_inf','prob']
-lagranges = [0.8, 0.9]    # np.linspace(start=0, stop=1, num=11)
+distance_type = ['L_inf'] # ['euclidean','L1','L_inf','L1_L0','L1_L0_L_inf','prob']
+lagranges = [0]    # np.linspace(start=0, stop=1, num=11)
 num_instances = 20 # data.test_df.shape[0]
 prepare_for_mace = False
 

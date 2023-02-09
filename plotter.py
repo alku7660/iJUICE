@@ -9,7 +9,7 @@ import matplotlib
 matplotlib.rcParams['mathtext.fontset'] = 'stix'
 matplotlib.rcParams['font.family'] = 'STIXGeneral'
 import matplotlib.pyplot as plt
-plt.rcParams.update({'font.size': 8})
+plt.rcParams.update({'font.size': 12})
 import matplotlib.patches as mpatches
 from matplotlib.ticker import FormatStrFormatter
 import pickle
@@ -17,16 +17,16 @@ import pickle
 from address import results_plots, load_obj
 # from tester import datasets, methods, distance_type, lagranges 
 
-datasets = ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
-methods = ['nn','mo','ft','rt','gs','face','dice','mace','cchvae','juice','ijuice']
-general_distance = 'L1_L0'
+# datasets = ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
+# methods = ['nn','mo','ft','rt','gs','face','dice','mace','cchvae','juice','ijuice']
+# general_distance = 'L1_L0'
 # general_lagrange = 1
-# datasets = ['german','synthetic_disease','kdd_census','adult'] # ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
+datasets = ['adult','kdd_census','credit','synthetic_disease']
 distances = ['euclidean','L1','L_inf','L1_L0','L1_L0_L_inf','prob']
-# methods = ['ijuice']
+methods = ['ijuice']
 lagranges = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
 colors_list = ['red', 'blue', 'green', 'purple', 'lightgreen', 'tab:brown', 'orange']
-mean_prop = dict(marker='D',markeredgecolor='firebrick',markerfacecolor='firebrick', markersize=2)
+mean_prop = dict(marker='D', markeredgecolor='firebrick', markerfacecolor='firebrick', markersize=2)
 
 def dataset_name(name):
     """
@@ -270,11 +270,11 @@ def ablation_lagrange_plot():
     fig.savefig(f'{results_plots}lagrange_ablation_plot.pdf')
 
 # proximity_plots()
-feasibility_justification_time_plots('feasibility')
-feasibility_justification_time_plots('justification')
+# feasibility_justification_time_plots('feasibility')
+# feasibility_justification_time_plots('justification')
 # feasibility_justification_time_plots('time')
 # scatter_proximity_var('feasibility')
 # scatter_proximity_var('justification')
-# ablation_lagrange_plot()
+ablation_lagrange_plot()
 
 
