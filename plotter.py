@@ -234,25 +234,15 @@ def ablation_lagrange_plot():
         for j in range(len(datasets)):
             dataset = dataset_name(datasets[j])
             justifier_ratio_mean_list = []
-            # justifier_ratio_low_list = []
-            # justifier_ratio_high_list = []
             distance_mean_list = []
-            # distance_low_list = []
-            # distance_high_list = []
             for lagrange in lagranges:
                 eval = load_obj(f'{datasets[j]}_ijuice_{distances[i]}_{lagrange}.pkl')
                 justifier_ratio_mean, justifier_ratio_std = np.mean(list(eval.justifier_ratio.values())), np.std(list(eval.justifier_ratio.values()))
                 distance_measures = [eval.proximity_dict[idx][distances[i]] for idx in eval.proximity_dict.keys()]
                 distance_mean = np.mean(distance_measures)
                 justifier_ratio_mean_list.append(justifier_ratio_mean)
-                # justifier_ratio_low_list.append(justifier_ratio_mean - justifier_ratio_std)
-                # justifier_ratio_high_list.append(justifier_ratio_mean + justifier_ratio_std)
                 distance_mean_list.append(distance_mean)
-                # distance_low_list.append(distance_mean - distance_std)
-                # distance_high_list.append(distance_mean + distance_std)
             ax[i,j].plot(lagranges, justifier_ratio_mean_list, color='blue', label='Justification')
-            # ax[i,j].fill_between(lagranges, justifier_ratio_low_list, justifier_ratio_high_list, color='blue', alpha=0.2)
-            # ax[i,j].set_xticklabels(lagranges)
             ax[i,j].grid(axis='both', linestyle='--', alpha=0.4)
             ax[i,j].yaxis.set_ticks(np.arange(start, end, 0.2))
             ax[i,j].yaxis.set_tick_params(labelcolor='blue')
@@ -261,8 +251,6 @@ def ablation_lagrange_plot():
             secax.plot(lagranges, distance_mean_list, color='red', label='Distance')
             secax.yaxis.set_tick_params(labelcolor='red')
             secax.yaxis.set_ticks(np.arange(min(distance_mean_list),max(distance_mean_list),(max(distance_mean_list)-min(distance_mean_list))*0.2))
-            # secax.fill_between(lagranges, distance_low_list, distance_high_list, color='red', alpha=0.2)
-            # secax.set_ylabel(dist.capitalize())
             ax[i,j].yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
             secax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
     for j in range(len(datasets)):
@@ -270,7 +258,6 @@ def ablation_lagrange_plot():
         ax[0,j].set_title(dataset)
     for i in range(len(distances)):
         ax[i,0].set_ylabel(distance_name(distances[i]))
-    # fig.legend()
     fig.supxlabel('$\lambda$ Weight Parameter')
     fig.supylabel('Justification Ratio', color='blue')
     fig.suptitle(f'Distance and Justification Ratio vs. $\lambda$')
