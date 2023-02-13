@@ -21,7 +21,7 @@ from address import results_plots, load_obj
 # methods = ['nn','mo','ft','rt','gs','face','dice','mace','cchvae','juice','ijuice']
 # general_distance = 'L1_L0'
 # general_lagrange = 1
-datasets = ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
+datasets = ['adult','kdd_census','credit','synthetic_disease']
 distances = ['L1_L0','L1_L0_L_inf','prob']
 methods = ['ijuice']
 lagranges = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
@@ -271,13 +271,14 @@ def count_instances():
     fig, ax = plt.subplots(nrows=3, ncols=4, sharex=True, sharey=True, figsize=(7,4.5))
     start = 0
     end = 1.1
-    for j in range(len(datasets)):
-        dataset = dataset_name(datasets[j])
-        justifier_ratio_mean_list = []
-        distance_mean_list = []
-        eval = load_obj(f'{datasets[j]}_ijuice_euclidean_1.pkl')
-        justifier_ratio_mean, justifier_ratio_std = np.mean(list(eval.justifier_ratio.values())), np.std(list(eval.justifier_ratio.values()))
-        print(f'Dataset: {dataset.upper()}, # of instances: {len(list(eval.justifier_ratio.values()))}')
+    for i in range(len(distances)):
+        for j in range(len(datasets)):
+            dataset = dataset_name(datasets[j])
+            justifier_ratio_mean_list = []
+            distance_mean_list = []
+            eval = load_obj(f'{datasets[j]}_ijuice_{distances[i]}_1.pkl')
+            justifier_ratio_mean, justifier_ratio_std = np.mean(list(eval.justifier_ratio.values())), np.std(list(eval.justifier_ratio.values()))
+            print(f'Dataset: {dataset.upper()}, Distance: {distances[i]}, # of instances: {len(list(eval.justifier_ratio.values()))}')
 
 # proximity_plots()
 # feasibility_justification_time_plots('feasibility')
@@ -285,7 +286,7 @@ def count_instances():
 # feasibility_justification_time_plots('time')
 # scatter_proximity_var('feasibility')
 # scatter_proximity_var('justification')
-# ablation_lagrange_plot()
-count_instances()
+ablation_lagrange_plot()
+# count_instances()
 
 
