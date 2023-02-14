@@ -97,8 +97,8 @@ def runIndices(dataset_values, model_class_values, norm_values, approaches_value
                         iterate_over_data_df = all_pred_data_df.loc[idx_test] # choose only a subset to compare
                     else:
                         raise Exception(f'{gen_cf_for} not recognized as a valid `gen_cf_for`.')
-
-                    pickle.dump(iterate_over_data_df, open(f'{results_obj_dir}/{dataset_string}/{dataset_string}_mace_df.pkl', 'wb'))
+                    print(f'Dataset {dataset_string} test size: {iterate_over_data_df.shape[0]}')
+                    pickle.dump(iterate_over_data_df, open(f'{results_obj_dir}/{dataset_string}/{dataset_string}_mace_df_extra.pkl', 'wb'))
 
 def runExperiments(dataset_values, model_class_values, norm_values, approaches_values, batch_number, gen_cf_for):
     for dataset_string in dataset_values:
@@ -206,20 +206,35 @@ if __name__ == '__main__':
     dataset_undesired_class = {'adult': 'neg_only', 'kdd_census': 'neg_only', 'german':'pos_only', 'dutch':'neg_only',
                     'bank':'neg_only', 'credit':'pos_only', 'compass':'pos_only', 'diabetes':'pos_only', 'ionosphere':'neg_only',
                     'student':'neg_only', 'oulad':'neg_only', 'law':'neg_only', 'synthetic_athlete':'neg_only', 'synthetic_disease':'pos_only', 'heart':'pos_only'}    
-    dataset_try =  ['german']
+    dataset_try =  ['credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete'] #'adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease'
     method_try = ['nn']
     norm_type_try = ['zero_norm']
     approach_try = ['MACE_eps_1e-2']
     process_id_try = '0'
     only_indices = False
+    extra = True # This is to get only extra indices for additional testing.
     for i in range(len(dataset_try)):
         model_class_try = [dataset_model_dict[dataset_try[i]]] 
         gen_cf_for_try = dataset_undesired_class[dataset_try[i]]
-        if only_indices:
-            batch_number_try = load_obj(f'{dataset_try[i]}/', f'{dataset_try[i]}_idx_list.pkl')            
-            runIndices([dataset_try[i]], model_class_try, norm_type_try, approach_try, batch_number_try, gen_cf_for_try)
+        if not extra:
+            if only_indices:
+                batch_number_try = load_obj(f'{dataset_try[i]}/', f'{dataset_try[i]}_idx_list.pkl')            
+                runIndices([dataset_try[i]], model_class_try, norm_type_try, approach_try, batch_number_try, gen_cf_for_try)
+            else:
+                batch_number_try = list(load_obj(f'{dataset_try[i]}/', f'{dataset_try[i]}_mace_df.pkl').index)           
+                cf_df, sample_df, time_df = runExperiments([dataset_try[i]], model_class_try, norm_type_try, approach_try, batch_number_try, gen_cf_for_try)
+                pickle.dump(cf_df, open(f'{results_obj_dir}/{dataset_try[i]}/{dataset_try[i]}_mace_cf_df.pkl', 'wb'))
+                pickle.dump(time_df, open(f'{results_obj_dir}/{dataset_try[i]}/{dataset_try[i]}_mace_time_df.pkl', 'wb'))
         else:
-            batch_number_try = list(load_obj(f'{dataset_try[i]}/', f'{dataset_try[i]}_mace_df.pkl').index)           
-            cf_df, sample_df, time_df = runExperiments([dataset_try[i]], model_class_try, norm_type_try, approach_try, batch_number_try, gen_cf_for_try)
-            pickle.dump(cf_df, open(f'{results_obj_dir}/{dataset_try[i]}/{dataset_try[i]}_mace_cf_df.pkl', 'wb'))
-            pickle.dump(time_df, open(f'{results_obj_dir}/{dataset_try[i]}/{dataset_try[i]}_mace_time_df.pkl', 'wb'))
+            if only_indices:
+                batch_number_try = load_obj(f'{dataset_try[i]}/', f'{dataset_try[i]}_idx_list_extra.pkl')            
+                runIndices([dataset_try[i]], model_class_try, norm_type_try, approach_try, batch_number_try, gen_cf_for_try)
+            else:
+                batch_number_try_prev = list(load_obj(f'{dataset_try[i]}/', f'{dataset_try[i]}_mace_df.pkl').index)           
+                batch_number_try_extra = list(load_obj(f'{dataset_try[i]}/', f'{dataset_try[i]}_mace_df_extra.pkl').index)
+                batch_number_try_diff = [idx for idx in batch_number_try_extra if idx not in batch_number_try_prev]
+                print(f'Dataset: {dataset_try[i]}, previous indices: {len(batch_number_try_prev)}, extra indices: {len(batch_number_try_extra)}, diff: {len(batch_number_try_diff)}')
+                cf_df, sample_df, time_df = runExperiments([dataset_try[i]], model_class_try, norm_type_try, approach_try, batch_number_try_diff, gen_cf_for_try)
+                pickle.dump(cf_df, open(f'{results_obj_dir}/{dataset_try[i]}/{dataset_try[i]}_mace_cf_df_extra.pkl', 'wb'))
+                pickle.dump(time_df, open(f'{results_obj_dir}/{dataset_try[i]}/{dataset_try[i]}_mace_time_df_extra.pkl', 'wb'))
+        

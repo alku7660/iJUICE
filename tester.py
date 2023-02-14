@@ -35,6 +35,7 @@ if __name__ == '__main__':
 
     if prepare_for_mace:
         for data_str in datasets:
+            num_instances = 20 # data.test_df.shape[0]
             data = load_dataset(data_str, train_fraction, seed_int, step)
             model = Model(data)
             data.undesired_test(model)
@@ -44,7 +45,7 @@ if __name__ == '__main__':
 
     else:
         for data_str in datasets:
-            num_instances = 20
+            num_instances = 20 # data.test_df.shape[0]
             data = load_dataset(data_str, train_fraction, seed_int, step)
             model = Model(data)
             data.undesired_test(model)
@@ -54,15 +55,15 @@ if __name__ == '__main__':
             mace_df_idx = list(mace_cf_df.index)
             # num_instances = num_instances if num_instances <= data.undesired_transformed_test_df.shape[0] else data.undesired_transformed_test_df.shape[0]
             num_instances = num_instances if num_instances <= len(mace_df_idx) else len(mace_df_idx)
-            print(f'Dataset: {data_str.upper()}, # of instances: {num_instances}')
-            # for method_str in methods:
-            #     for typ in distance_type:
-            #         for lagrange in lagranges:
-            #             eval = Evaluator(data, method_str, typ, lagrange)
-            #             for ins in range(num_instances):
-            #                 idx = mace_df_idx[ins]
-            #                 ioi = IOI(idx, data, model, typ)
-            #                 cf_gen = Counterfactual(data, model, method_str, ioi, typ, lagrange)
-            #                 eval.add_specific_x_data(cf_gen)
-            #                 print(f'Data {data_str.capitalize()} | Method {method_str.capitalize()} | Type {typ.capitalize()} | lagrange {str(lagrange)} | Instance {ins+1}')
-            #             save_obj(eval, results_obj, f'{data_str}_{method_str}_{typ}_{str(lagrange)}.pkl')
+            # print(f'Dataset {data_str} test size: {data.test_df.shape[0]}')
+            for method_str in methods:
+                for typ in distance_type:
+                    for lagrange in lagranges:
+                        eval = Evaluator(data, method_str, typ, lagrange)
+                        for ins in range(num_instances):
+                            idx = mace_df_idx[ins]
+                            ioi = IOI(idx, data, model, typ)
+                            cf_gen = Counterfactual(data, model, method_str, ioi, typ, lagrange)
+                            eval.add_specific_x_data(cf_gen)
+                            print(f'Data {data_str.capitalize()} | Method {method_str.capitalize()} | Type {typ.capitalize()} | lagrange {str(lagrange)} | Instance {ins+1}')
+                        save_obj(eval, results_obj, f'{data_str}_{method_str}_{typ}_{str(lagrange)}.pkl')

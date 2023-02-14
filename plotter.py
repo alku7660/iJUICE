@@ -237,7 +237,8 @@ def ablation_lagrange_plot():
             distance_mean_list = []
             for lagrange in lagranges:
                 eval = load_obj(f'{datasets[j]}_ijuice_{distances[i]}_{lagrange}.pkl')
-                justifier_ratio_mean, justifier_ratio_std = np.mean(list(eval.justifier_ratio.values())), np.std(list(eval.justifier_ratio.values()))
+                eval_extra = load_obj(f'{datasets[j]}_ijuice_{distances[i]}_{lagrange}_extra.pkl')
+                justifier_ratio_mean = np.mean(list(eval.justifier_ratio.values())+list(eval_extra.justifier_ratio.values()))
                 print(f'Dataset: {dataset.upper()}, # of instances: {len(list(eval.justifier_ratio.values()))}')
                 distance_measures = [eval.proximity_dict[idx][distances[i]] for idx in eval.proximity_dict.keys()]
                 distance_mean = np.mean(distance_measures)

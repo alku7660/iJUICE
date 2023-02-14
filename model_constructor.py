@@ -42,7 +42,7 @@ class Model:
             best_model.fit(train_data,train_target)
         elif model_str == 'rf':
             best_model = rf_model
-        print(f'Model test F1 score: {f1_score(test_target, best_model.predict(test_data))}')
+        # print(f'Model test F1 score: {f1_score(test_target, best_model.predict(test_data))}')
         return best_model, rf_model
 
     def train_model(self, data):
