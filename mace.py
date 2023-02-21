@@ -27,8 +27,10 @@ def mace_method(counterfactual):
     """
     data_name = counterfactual.data.name
     ioi_idx = counterfactual.ioi.idx
-    mace_cf_df = load_obj(f'{data_name}/{data_name}_mace_cf_df.pkl')
-    mace_time_df = load_obj(f'{data_name}/{data_name}_mace_time_df.pkl')
+    # mace_cf_df = load_obj(f'{data_name}/{data_name}_mace_cf_df.pkl')
+    # mace_time_df = load_obj(f'{data_name}/{data_name}_mace_time_df.pkl')
+    mace_cf_df = load_obj(f'{data_name}/{data_name}_mace_cf_df_extra.pkl')
+    mace_time_df = load_obj(f'{data_name}/{data_name}_mace_time_df_extra.pkl')
     cf, run_time = mace_cf_df.loc[ioi_idx].to_frame().T, mace_time_df.loc[ioi_idx].values
     return cf, run_time
 
