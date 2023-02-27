@@ -206,7 +206,7 @@ if __name__ == '__main__':
     dataset_undesired_class = {'adult': 'neg_only', 'kdd_census': 'neg_only', 'german':'pos_only', 'dutch':'neg_only',
                     'bank':'neg_only', 'credit':'pos_only', 'compass':'pos_only', 'diabetes':'pos_only', 'ionosphere':'neg_only',
                     'student':'neg_only', 'oulad':'neg_only', 'law':'neg_only', 'synthetic_athlete':'neg_only', 'synthetic_disease':'pos_only', 'heart':'pos_only'}    
-    dataset_try =  ['heart'] #'adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease'
+    dataset_try =  ['diabetes'] #'adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease'
     method_try = ['nn']
     norm_type_try = ['zero_norm']
     approach_try = ['MACE_eps_1e-2']
