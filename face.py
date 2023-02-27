@@ -13,6 +13,7 @@ import copy
 # import Dijkstra's shortest path algorithm
 from scipy.sparse import csgraph, csr_matrix
 # import graph building methods
+from nnt import near_neigh
 from sklearn.neighbors import kneighbors_graph, radius_neighbors_graph
 
 class FACE:
@@ -236,6 +237,8 @@ def face_method(counterfactual):
                       frac=fraction, undesired_class=counterfactual.data.undesired_class)
     end_time = time.time()
     run_time = end_time - start_time
+    if np.isnan(cf).any():
+        cf, run_time = near_neigh(counterfactual)
     cf_pred = counterfactual.model.model.predict(cf.reshape(1, -1))
     if cf_pred == counterfactual.ioi.label:
         print(f'FACE error: Counterfactual has same label as the IOI')
