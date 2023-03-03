@@ -10,12 +10,9 @@ Model Symbols:
                     'x1': {'lower_bound': 1.0,
                            'symbol': x1_counterfactual,
                            'upper_bound': 10.0},
-                    'x10_cat_0': {'lower_bound': 0,
-                                  'symbol': x10_cat_0_counterfactual,
-                                  'upper_bound': 1},
-                    'x10_cat_1': {'lower_bound': 0,
-                                  'symbol': x10_cat_1_counterfactual,
-                                  'upper_bound': 1},
+                    'x10': {'lower_bound': 1,
+                            'symbol': x10_counterfactual,
+                            'upper_bound': 2},
                     'x2': {'lower_bound': 11.0,
                            'symbol': x2_counterfactual,
                            'upper_bound': 48.0},
@@ -73,12 +70,9 @@ Model Symbols:
                     'x1': {'lower_bound': 1.0,
                            'symbol': x1_interventional,
                            'upper_bound': 10.0},
-                    'x10_cat_0': {'lower_bound': 0,
-                                  'symbol': x10_cat_0_interventional,
-                                  'upper_bound': 1},
-                    'x10_cat_1': {'lower_bound': 0,
-                                  'symbol': x10_cat_1_interventional,
-                                  'upper_bound': 1},
+                    'x10': {'lower_bound': 1,
+                            'symbol': x10_interventional,
+                            'upper_bound': 2},
                     'x2': {'lower_bound': 11.0,
                            'symbol': x2_interventional,
                            'upper_bound': 48.0},
@@ -142,6 +136,6 @@ Solving (not searching) for closest counterfactual using various distance thresh
 	Iteration #007: testing norm threshold 0.104260 in range [0.097310, 0.111211]...	no solution exists.
 
 
-Factual sample: 		 {x0 : 1.0, x1 : 1.0, x2 : 30.0, x3 : 3.0, x4 : -2.45, x5 : -2.46, x6 : 1.0, x7_cat_0 : 0.0, x7_cat_1 : 0.0, x7_cat_2 : 0.0, x7_cat_3 : 1.0, x7_cat_4 : 0.0, x8 : 1.0, x9_cat_0 : 0.0, x9_cat_1 : 0.0, x9_cat_2 : 0.0, x9_cat_3 : 1.0, x9_cat_4 : 0.0, x9_cat_5 : 0.0, x10_cat_0 : 0.0, x10_cat_1 : 1.0, y: False}
-Nearest counterfactual sample:	 {x0 : 1.0, x1 : 1.0, x2 : 30.0, x3 : 3.0, x4 : -2.45, x5 : 1.2999563751047867, x6 : 1, x7_cat_0 : 0, x7_cat_1 : 0, x7_cat_2 : 0, x7_cat_3 : 1, x7_cat_4 : 0, x8 : 1, x9_cat_0 : 0, x9_cat_1 : 0, x9_cat_2 : 0, x9_cat_3 : 1, x9_cat_4 : 0, x9_cat_5 : 0, x10_cat_0 : 0, x10_cat_1 : 1, y: True} (verified)
+Factual sample: 		 {x0 : 1.0, x1 : 1.0, x2 : 30.0, x3 : 3.0, x4 : -2.45, x5 : -2.46, x6 : 1.0, x7_cat_0 : 0.0, x7_cat_1 : 0.0, x7_cat_2 : 0.0, x7_cat_3 : 1.0, x7_cat_4 : 0.0, x8 : 1.0, x9_cat_0 : 0.0, x9_cat_1 : 0.0, x9_cat_2 : 0.0, x9_cat_3 : 1.0, x9_cat_4 : 0.0, x9_cat_5 : 0.0, x10 : 2.0, y: False}
+Nearest counterfactual sample:	 {x0 : 1.0, x1 : 1.0, x2 : 30.0, x3 : 3.0, x4 : -2.45, x5 : 3.45, x6 : 1, x7_cat_0 : 0, x7_cat_1 : 0, x7_cat_2 : 0, x7_cat_3 : 1, x7_cat_4 : 0, x8 : 1, x9_cat_0 : 0, x9_cat_1 : 0, x9_cat_2 : 0, x9_cat_3 : 1, x9_cat_4 : 0, x9_cat_5 : 0, x10 : 2, y: True} (verified)
 Minimum counterfactual distance: 0.111111

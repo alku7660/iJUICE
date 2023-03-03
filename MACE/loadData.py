@@ -1328,8 +1328,8 @@ def loadDataset(dataset_name, return_one_hot, load_from_cache = False, debug_fla
                 upper_bound = data_frame_non_hot[col_name].max())
 
     elif dataset_name == 'law':
-        binary = ['WorkFullTime','Sex']
-        categorical = ['FamilyIncome','Tier','Race']
+        binary = ['WorkFullTime','Sex','Race']
+        categorical = ['FamilyIncome','Tier']
         ordinal = []
         continuous = ['Decile1stYear','Decile3rdYear','LSAT','UndergradGPA','FirstYearGPA','CumulativeGPA']
         input_cols = binary + categorical + ordinal + continuous
@@ -1375,7 +1375,7 @@ def loadDataset(dataset_name, return_one_hot, load_from_cache = False, debug_fla
                 actionability = 'any'
                 mutability = True
             elif col_name == 'Race':
-                attr_type = 'categorical'
+                attr_type = 'binary'
                 actionability = 'none'
                 mutability = False
             elif col_name == 'Decile1stYear':

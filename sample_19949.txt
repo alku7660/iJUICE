@@ -10,12 +10,9 @@ Model Symbols:
                     'x1': {'lower_bound': 1.0,
                            'symbol': x1_counterfactual,
                            'upper_bound': 10.0},
-                    'x10_cat_0': {'lower_bound': 0,
-                                  'symbol': x10_cat_0_counterfactual,
-                                  'upper_bound': 1},
-                    'x10_cat_1': {'lower_bound': 0,
-                                  'symbol': x10_cat_1_counterfactual,
-                                  'upper_bound': 1},
+                    'x10': {'lower_bound': 1,
+                            'symbol': x10_counterfactual,
+                            'upper_bound': 2},
                     'x2': {'lower_bound': 11.0,
                            'symbol': x2_counterfactual,
                            'upper_bound': 48.0},
@@ -73,12 +70,9 @@ Model Symbols:
                     'x1': {'lower_bound': 1.0,
                            'symbol': x1_interventional,
                            'upper_bound': 10.0},
-                    'x10_cat_0': {'lower_bound': 0,
-                                  'symbol': x10_cat_0_interventional,
-                                  'upper_bound': 1},
-                    'x10_cat_1': {'lower_bound': 0,
-                                  'symbol': x10_cat_1_interventional,
-                                  'upper_bound': 1},
+                    'x10': {'lower_bound': 1,
+                            'symbol': x10_interventional,
+                            'upper_bound': 2},
                     'x2': {'lower_bound': 11.0,
                            'symbol': x2_interventional,
                            'upper_bound': 48.0},
@@ -134,13 +128,14 @@ Model Symbols:
 Constructing initial formulas: model, counterfactual, distance, plausibility, diversity		done.
 Solving (not searching) for closest counterfactual using various distance thresholds...
 	Iteration #001: testing norm threshold 0.500000 in range [0.000000, 1.000000]...	solution exists & found.
-	Iteration #002: testing norm threshold 0.166717 in range [0.000000, 0.333433]...	solution exists & found.
-	Iteration #003: testing norm threshold 0.055606 in range [0.000000, 0.111211]...	no solution exists.
-	Iteration #004: testing norm threshold 0.083408 in range [0.055606, 0.111211]...	no solution exists.
-	Iteration #005: testing norm threshold 0.097310 in range [0.083408, 0.111211]...	no solution exists.
-	Iteration #006: testing norm threshold 0.104260 in range [0.097310, 0.111211]...	no solution exists.
+	Iteration #002: testing norm threshold 0.222272 in range [0.000000, 0.444544]...	solution exists & found.
+	Iteration #003: testing norm threshold 0.111161 in range [0.000000, 0.222322]...	solution exists & found.
+	Iteration #004: testing norm threshold 0.055606 in range [0.000000, 0.111211]...	no solution exists.
+	Iteration #005: testing norm threshold 0.083408 in range [0.055606, 0.111211]...	no solution exists.
+	Iteration #006: testing norm threshold 0.097310 in range [0.083408, 0.111211]...	no solution exists.
+	Iteration #007: testing norm threshold 0.104260 in range [0.097310, 0.111211]...	no solution exists.
 
 
-Factual sample: 		 {x0 : 1.0, x1 : 1.0, x2 : 33.0, x3 : 2.5, x4 : -1.26, x5 : -1.36, x6 : 1.0, x7_cat_0 : 0.0, x7_cat_1 : 0.0, x7_cat_2 : 0.0, x7_cat_3 : 1.0, x7_cat_4 : 0.0, x8 : 2.0, x9_cat_0 : 0.0, x9_cat_1 : 1.0, x9_cat_2 : 0.0, x9_cat_3 : 0.0, x9_cat_4 : 0.0, x9_cat_5 : 0.0, x10_cat_0 : 1.0, x10_cat_1 : 0.0, y: False}
-Nearest counterfactual sample:	 {x0 : 1.0, x1 : 1.0, x2 : 33.0, x3 : 2.5, x4 : -1.26, x5 : 0.9554402855169767, x6 : 1, x7_cat_0 : 0, x7_cat_1 : 0, x7_cat_2 : 0, x7_cat_3 : 1, x7_cat_4 : 0, x8 : 2, x9_cat_0 : 0, x9_cat_1 : 1, x9_cat_2 : 0, x9_cat_3 : 0, x9_cat_4 : 0, x9_cat_5 : 0, x10_cat_0 : 1, x10_cat_1 : 0, y: True} (verified)
+Factual sample: 		 {x0 : 1.0, x1 : 1.0, x2 : 33.0, x3 : 2.5, x4 : -1.26, x5 : -1.36, x6 : 1.0, x7_cat_0 : 0.0, x7_cat_1 : 0.0, x7_cat_2 : 0.0, x7_cat_3 : 1.0, x7_cat_4 : 0.0, x8 : 2.0, x9_cat_0 : 0.0, x9_cat_1 : 1.0, x9_cat_2 : 0.0, x9_cat_3 : 0.0, x9_cat_4 : 0.0, x9_cat_5 : 0.0, x10 : 1.0, y: False}
+Nearest counterfactual sample:	 {x0 : 1.0, x1 : 1.0, x2 : 33.0, x3 : 2.5, x4 : -1.26, x5 : 1.5363630236841241, x6 : 1, x7_cat_0 : 0, x7_cat_1 : 0, x7_cat_2 : 0, x7_cat_3 : 1, x7_cat_4 : 0, x8 : 2, x9_cat_0 : 0, x9_cat_1 : 1, x9_cat_2 : 0, x9_cat_3 : 0, x9_cat_4 : 0, x9_cat_5 : 0, x10 : 1, y: True} (verified)
 Minimum counterfactual distance: 0.111111
