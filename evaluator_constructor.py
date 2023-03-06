@@ -364,7 +364,7 @@ def verify_justification(cf, counterfactual):
         graph_nodes = []
         for k in range(len(filter_pot_justifiers)):
             # print(f'Neighbor {k+1}, Length: {len(graph_nodes)}')
-            if len(graph_nodes) > 50000:
+            if len(graph_nodes) > 15000:
                 break
             feat_possible_values_k = feat_possible_values[k]
             permutations = product(*feat_possible_values_k)
@@ -374,7 +374,7 @@ def verify_justification(cf, counterfactual):
                     not any(np.array_equal(perm_i, x) for x in graph_nodes) and \
                     not any(np.array_equal(perm_i, x) for x in filter_pot_justifiers):
                     graph_nodes.append(perm_i)
-                if len(graph_nodes) > 50000:
+                if len(graph_nodes) > 15000:
                     break
         return graph_nodes
 
@@ -441,7 +441,7 @@ def verify_justification(cf, counterfactual):
     graph_nodes = get_graph_nodes(model, filter_pot_justifiers, pot_justifiers, train_nn_feat_possible_values)
     all_nodes = filter_pot_justifiers + graph_nodes
     justifiers = []
-    if len(all_nodes) <= 50000:
+    if len(all_nodes) <= 15000:
         try:
             cf_index = [i for i in range(1, len(all_nodes)+1) if np.array_equal(all_nodes[i-1], cf)][0]
         except:

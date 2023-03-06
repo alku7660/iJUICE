@@ -7,7 +7,7 @@ from evaluator_constructor import Evaluator
 from counterfactual_constructor import Counterfactual
 from address import save_obj, load_obj, results_obj
 
-datasets = ['heart','synthetic_athlete','synthetic_disease'] # ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease'] ,'german','dutch','bank','credit','compass','student','oulad','law','heart','synthetic_athlete','synthetic_disease'
+datasets = ['student'] # ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease'] ,'german','dutch','bank','credit','compass','student','oulad','law','heart','synthetic_athlete','synthetic_disease'
 methods = ['cchvae'] # ['nn','mo','ft','rt','gs','face','dice','mace','cchvae','juice']
 seed_int = 54321
 step = 0.01
@@ -44,7 +44,7 @@ if __name__ == '__main__':
 
     else:
         for data_str in datasets:
-            num_instances = 45 # 60 for diabetes, 35 for student, 45 for heart, 35 for compass
+            num_instances = 30 # 60 for diabetes, 35 for student, 45 for heart, 35 for compass
             data = load_dataset(data_str, train_fraction, seed_int, step)
             model = Model(data)
             data.undesired_test(model)

@@ -7,12 +7,12 @@ from evaluator_constructor import Evaluator
 from counterfactual_constructor import Counterfactual
 from address import save_obj, load_obj, results_obj
 
-datasets = ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease'] # ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
-methods = ['ijuice'] # ['nn','mo','ft','rt','gs','face','dice','mace','cchvae','juice']
+datasets = ['student','oulad','law','heart','synthetic_athlete','synthetic_disease'] # ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
+methods = [] # ['nn','mo','ft','rt','gs','face','dice','mace','cchvae','juice']
 seed_int = 54321
 step = 0.01
 train_fraction = 0.7
-distance_type = ['L1_L0'] # ['euclidean','L1','L_inf','L1_L0','L1_L0_L_inf','prob']
+distance_type = [] # ['euclidean','L1','L_inf','L1_L0','L1_L0_L_inf','prob']
 lagranges = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]    # np.linspace(start=0, stop=1, num=11)
 num_instances = 20 # data.test_df.shape[0]
 prepare_for_mace = False
@@ -45,7 +45,7 @@ if __name__ == '__main__':
 
     else:
         for data_str in datasets:
-            num_instances = 20 # data.test_df.shape[0]
+            num_instances = 30 # data.test_df.shape[0]
             data = load_dataset(data_str, train_fraction, seed_int, step)
             model = Model(data)
             data.undesired_test(model)
@@ -56,6 +56,7 @@ if __name__ == '__main__':
             # num_instances = num_instances if num_instances <= data.undesired_transformed_test_df.shape[0] else data.undesired_transformed_test_df.shape[0]
             num_instances = num_instances if num_instances <= len(mace_df_idx) else len(mace_df_idx)
             # print(f'Dataset {data_str} test size: {data.test_df.shape[0]}')
+            print(f'Dataset {data_str} num instances: {num_instances}')
             for method_str in methods:
                 for typ in distance_type:
                     for lagrange in lagranges:

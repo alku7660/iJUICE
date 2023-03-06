@@ -13,20 +13,28 @@ plt.rcParams.update({'font.size': 10})
 import matplotlib.patches as mpatches
 from matplotlib.ticker import FormatStrFormatter
 import pickle
+from data_constructor import load_dataset
 # from autorank import autorank, plot_stats
 from address import results_plots, load_obj
+from model_constructor import Model
+from evaluator_constructor import distance_calculation, verify_feasibility
+from itertools import product
+from scipy.stats import norm
 # from tester import datasets, methods, distance_type, lagranges 
 
 # datasets = ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
 # methods = ['nn','mo','ft','rt','gs','face','dice','mace','cchvae','juice','ijuice']
 # general_distance = 'L1_L0'
 # general_lagrange = 1
-datasets = ['adult','kdd_census','credit','synthetic_disease']
+datasets = ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
 distances = ['L1_L0','L1_L0_L_inf','prob']
-methods = ['ijuice']
+methods = ['nn','mo','ft','rt','gs','face','dice','mace','cchvae','juice','ijuice']
 lagranges = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
 colors_list = ['red', 'blue', 'green', 'purple', 'lightgreen', 'tab:brown', 'orange']
 mean_prop = dict(marker='D', markeredgecolor='firebrick', markerfacecolor='firebrick', markersize=2)
+step = 0.01
+train_fraction = 0.7
+seed_int = 54321
 
 def dataset_name(name):
     """
@@ -148,8 +156,9 @@ def feasibility_justification_time_plots(metric_name):
             else:
                 dist = 'euclidean'
             eval = load_obj(f'{datasets[i]}_{methods[k]}_{dist}_1.pkl')
+            eval_extra = load_obj(f'{datasets[i]}_{methods[k]}_{dist}_1_extra.pkl')
             if metric_name == 'feasibility':
-                metric_measures = list(eval.feasibility_dict.values())
+                metric_measures = list(eval.feasibility_dict.values()) + list(eval_extra.feasibility_dict.values())
                 new_metric_measures = []
                 for n in metric_measures:
                     if n:
@@ -159,7 +168,7 @@ def feasibility_justification_time_plots(metric_name):
                     new_metric_measures.extend([value])
                 metric_measures = new_metric_measures
             elif metric_name == 'justification':
-                metric_measures = list(eval.justifier_ratio.values())
+                metric_measures = list(eval.justifier_ratio.values()) + list(eval_extra.justifier_ratio.values())
                 # new_metric_measures = []
                 # for n in metric_measures:
                 #     if n > 0.01:
@@ -268,18 +277,144 @@ def ablation_lagrange_plot():
     fig.subplots_adjust(left=0.09, bottom=0.1, right=0.875, top=0.9, wspace=0.475, hspace=0.2)
     fig.savefig(f'{results_plots}lagrange_ablation_plot.pdf')
 
-def count_instances():
-    fig, ax = plt.subplots(nrows=3, ncols=4, sharex=True, sharey=True, figsize=(7,4.5))
-    start = 0
-    end = 1.1
-    for i in range(len(distances)):
-        for j in range(len(datasets)):
-            dataset = dataset_name(datasets[j])
-            justifier_ratio_mean_list = []
-            distance_mean_list = []
-            eval = load_obj(f'{datasets[j]}_ijuice_{distances[i]}_1.pkl')
-            justifier_ratio_mean, justifier_ratio_std = np.mean(list(eval.justifier_ratio.values())), np.std(list(eval.justifier_ratio.values()))
-            print(f'Dataset: {dataset.upper()}, Distance: {distances[i]}, # of instances: {len(list(eval.justifier_ratio.values()))}')
+def print_instances(dataset, distance):
+
+    def find_potential_justifiers(data, ioi, ioi_label):
+        """
+        Finds the set of training observations belonging to, and predicted as, the counterfactual class
+        """
+        train_np = data.transformed_train_np
+        train_target = data.train_target
+
+        potential_justifiers = train_np[train_target != ioi_label]
+        sort_potential_justifiers = []
+        for i in range(potential_justifiers.shape[0]):
+            dist = distance_calculation(potential_justifiers[i], ioi, data, type=distance)
+            sort_potential_justifiers.append((potential_justifiers[i], dist))
+        sort_potential_justifiers.sort(key=lambda x: x[1])
+        sort_potential_justifiers = [i[0] for i in sort_potential_justifiers]
+        if len(sort_potential_justifiers) > 100:
+            sort_potential_justifiers = sort_potential_justifiers[:100]
+        return sort_potential_justifiers
+
+    def nn_list(data, ioi, potential_justifiers):
+        """
+        Method that gets the list of training observations labeled as cf-label with respect to the cf, ordered based on graph nodes size
+        """
+        permutations_potential_justifiers = []
+        for i in range(len(potential_justifiers)):
+            possible_feat_values_justifier_i = get_feat_possible_values(data, ioi, points=[potential_justifiers[i]])[0]
+            len_permutations = len(list(product(*possible_feat_values_justifier_i)))
+            permutations_potential_justifiers.append((potential_justifiers[i], len_permutations))
+        permutations_potential_justifiers.sort(key=lambda x: x[1])
+        permutations_potential_justifiers = [i[0] for i in permutations_potential_justifiers]
+        if len(permutations_potential_justifiers) > 10:
+            permutations_potential_justifiers = permutations_potential_justifiers[:10]
+        return permutations_potential_justifiers
+    
+    def get_feat_possible_values(data, ioi, points):
+        """
+        Method that obtains the features possible values
+        """
+        pot_justifier_feat_possible_values = {}
+        normal_x = ioi
+        for k in range(len(points)):
+            potential_justifier_k = points[k]
+            v = normal_x - potential_justifier_k
+            nonzero_index = list(np.nonzero(v)[0])
+            feat_checked = []
+            feat_possible_values = []
+            for i in range(len(normal_x)):
+                if i not in feat_checked:
+                    feat_i = data.processed_features[i]
+                    if feat_i in data.bin_enc_cols:
+                        if i in nonzero_index:
+                            value = [potential_justifier_k[i], normal_x[i]]
+                        else:
+                            value = [potential_justifier_k[i]]
+                        feat_checked.extend([i])
+                    elif feat_i in data.cat_enc_cols:
+                        # idx_cat_i = data.idx_cat_cols_dict[feat_i[:-2]]
+                        # nn_cat_idx = list(potential_justifier_k[idx_cat_i])
+                        # if any(item in idx_cat_i for item in nonzero_index):
+                        #     ioi_cat_idx = list(normal_x[idx_cat_i])
+                        #     value = [nn_cat_idx, ioi_cat_idx]
+                        # else:
+                        #     value = [nn_cat_idx]
+                        # feat_checked.extend(idx_cat_i)
+                        idx_cat_i = data.idx_cat_cols_dict[feat_i[:-4]]
+                        nn_cat_idx = list(potential_justifier_k[idx_cat_i])
+                        if any(item in idx_cat_i for item in nonzero_index):
+                            ioi_cat_idx = list(normal_x[idx_cat_i])
+                            value = [nn_cat_idx, ioi_cat_idx]
+                        else:
+                            value = [nn_cat_idx]
+                        feat_checked.extend(idx_cat_i)
+                    elif feat_i in data.ordinal:
+                        if i in nonzero_index:
+                            values_i = list(data.processed_feat_dist[feat_i].keys())
+                            max_val_i, min_val_i = max(normal_x[i], potential_justifier_k[i]), min(normal_x[i], potential_justifier_k[i])
+                            value = [j for j in values_i if j <= max_val_i and j >= min_val_i]
+                        else:
+                            value = [potential_justifier_k[i]]
+                        feat_checked.extend([i])
+                    elif feat_i in data.continuous:
+                        if i in nonzero_index:
+                            max_val_i, min_val_i = max(normal_x[i], potential_justifier_k[i]), min(normal_x[i], potential_justifier_k[i])
+                            value = continuous_feat_values(i, min_val_i, max_val_i, data)
+                        else:
+                            value = [potential_justifier_k[i]]
+                        feat_checked.extend([i])
+                    feat_possible_values.append(value)
+            pot_justifier_feat_possible_values[k] = feat_possible_values
+        return pot_justifier_feat_possible_values
+
+    def continuous_feat_values(i, min_val, max_val, data):
+        """
+        Method that defines how to discretize the continuous features
+        """
+        sorted_feat_i = list(np.sort(data.transformed_train_np[:,i][(data.transformed_train_np[:,i] >= min_val) & (data.transformed_train_np[:,i] <= max_val)]))
+        value = list(np.unique(sorted_feat_i))
+        if len(value) <= 100:
+            if min_val not in value:
+                value = [min_val] + value
+            if max_val not in value:
+                value = value + [max_val]
+            return value
+        else:
+            mean_val, std_val = np.mean(data.transformed_train_np[:,i]), np.std(data.transformed_train_np[:,i])
+            percentiles_range = list(np.linspace(0, 1, 101))
+            value = []
+            for perc in percentiles_range:
+                value.append(norm.ppf(perc, loc=mean_val, scale=std_val))
+            value = [val for val in value if val >= min_val and val <= max_val]
+            if min_val not in value:
+                value = [min_val] + value
+            if max_val not in value:
+                value = value + [max_val]
+        return value
+
+    data = load_dataset(dataset, train_fraction, seed_int, step)
+    eval = load_obj(f'{dataset}_ijuice_{distance}_1.pkl')
+    model = Model(data)
+    max_justification_idx = max(eval.justifier_ratio, key=eval.justifier_ratio.get)
+    ioi = eval.normal_x_dict[max_justification_idx]
+    ioi_original = eval.x_dict[max_justification_idx]
+    cf = eval.x_cf_dict[max_justification_idx]
+    justifiers = eval.justifiers_dict[max_justification_idx]
+    potential_justifiers = find_potential_justifiers(data, ioi, ioi_label=0)
+    nn_potential_justifiers = nn_list(data, ioi, potential_justifiers)
+    justifiers_original = []
+    for i in justifiers:
+        justifier_original = data.inverse(nn_potential_justifiers[i-1])
+        justifiers_original.extend(justifier_original)
+    justifiers_original = pd.DataFrame(data=justifiers_original, columns=data.features)
+    print('IOI:')
+    print(ioi_original)
+    print('CF:')
+    print(cf)
+    print('Justifiers:')
+    print(justifiers_original)
 
 # proximity_plots()
 # feasibility_justification_time_plots('feasibility')
@@ -287,7 +422,8 @@ def count_instances():
 # feasibility_justification_time_plots('time')
 # scatter_proximity_var('feasibility')
 # scatter_proximity_var('justification')
-ablation_lagrange_plot()
+# ablation_lagrange_plot()
 # count_instances()
+print_instances('adult','prob')
 
 
