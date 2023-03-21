@@ -10,14 +10,14 @@ from address import save_obj, load_obj, results_obj
 """
 Instructions to run tests with iJUICE:
     If you want to test iJUICE (or any of the competitors available), do the following: 
-    1. Set the variable "num_instances" (line 31) equal to 50 or a number of instances desired to study [num_instances = 50].
+    1. Set the variable "num_instances" (line 31) equal to 20 or a number of instances desired to study [num_instances = 20].
     2. Set the variable "datasets" equal to the list of datasets desired for running the tests. 
     3. Set the variable "methods" to be a list containing "ijuice" and the name of the methods you want to test together with the iJUICE method.
     4. Run main.py
     5. Run plotter.py to print the obtained counterfactuals from iJUICE.
 """
 
-datasets = ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease'] # ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
+datasets = ['german'] # ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
 methods = ['ijuice'] # ['nn','mo','ft','rt','gs','face','dice','mace','cchvae','juice','ijuice']
 seed_int = 54321
 step = 0.01
@@ -30,7 +30,7 @@ k = 10    # Number of training observations that are close used to build the gra
 if __name__ == '__main__':
 
     for data_str in datasets:
-        num_instances = 50 # data.test_df.shape[0]
+        num_instances = 20 # data.test_df.shape[0]
         data = load_dataset(data_str, train_fraction, seed_int, step)
         model = Model(data)
         data.undesired_test(model)
