@@ -10,7 +10,7 @@ from address import save_obj, load_obj, results_obj
 """
 Instructions to run tests with iJUICE:
     If you want to test iJUICE (or any of the competitors available), do the following: 
-    1. Set the variable "num_instances" (line 31) equal to 20 or a number of instances desired to study [num_instances = 20].
+    1. Set the variable "num_instances" (line 33) equal to 20 or a number of instances desired to study [num_instances = 20].
     2. Set the variable "datasets" equal to the list of datasets desired for running the tests. 
     3. Set the variable "methods" to be a list containing "ijuice" and the name of the methods you want to test together with the iJUICE method.
     4. Run main.py
