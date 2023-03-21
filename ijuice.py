@@ -45,7 +45,6 @@ class IJUICE:
         sort_potential_justifiers = [i[0] for i in sort_potential_justifiers]
         if len(sort_potential_justifiers) > 100:
             sort_potential_justifiers = sort_potential_justifiers[:100]
-        # sort_potential_justifiers = sort_potential_justifiers[:30]
         return sort_potential_justifiers
 
     def nn_list(self, counterfactual):
@@ -93,13 +92,6 @@ class IJUICE:
         """
         Method that defines how to discretize the continuous features
         """
-        # if split in ['2','5','10','20','50','100']:
-        #     value = list(np.linspace(min_val, max_val, num = int(split) + 1, endpoint = True))
-        # elif split == 'train': # Most likely only using this, because the others require several divisions for each of the continuous features ranges
-        
-        # sorted_feat_i = list(np.sort(data.transformed_train_np[:,i][(data.transformed_train_np[:,i] >= min_val) & (data.transformed_train_np[:,i] <= max_val)]))
-        # value = list(np.unique(sorted_feat_i))
-        
         sorted_feat_i = list(np.sort(data.transformed_train_np[:,i][(data.transformed_train_np[:,i] >= min_val) & (data.transformed_train_np[:,i] <= max_val)]))
         value = list(np.unique(sorted_feat_i))
         if len(value) <= 100:
