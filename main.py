@@ -44,7 +44,7 @@ if __name__ == '__main__':
                     for ins in range(num_instances):
                         idx = idx_list[ins]
                         ioi = IOI(idx, data, model, typ)
-                        cf_gen = Counterfactual(data, model, method_str, ioi, typ, lagrange)
+                        cf_gen = Counterfactual(data, model, method_str, ioi, typ, lagrange, t=t, k=k)
                         eval.add_specific_x_data(cf_gen)
                         print(f'Data {data_str.capitalize()} | Method {method_str.capitalize()} | Type {typ.capitalize()} | lagrange {str(lagrange)} | Instance {ins+1}')
                     save_obj(eval, results_obj, f'{data_str}_{method_str}_{typ}_{str(lagrange)}.pkl')

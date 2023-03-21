@@ -10,14 +10,14 @@ from scipy.stats import norm
 
 class IJUICE:
 
-    def __init__(self, counterfactual, t=100, k=10):
+    def __init__(self, counterfactual):
         self.normal_ioi = counterfactual.ioi.normal_x
         self.ioi_label = counterfactual.ioi.label
         self.lagrange = counterfactual.lagrange
         self.potential_justifiers = self.find_potential_justifiers(counterfactual)
         self.potential_justifiers = self.nn_list(counterfactual)
-        self.t = t
-        self.k = k
+        self.t = counterfactual.t
+        self.k = counterfactual.k
         start_time = time.time()
         self.normal_x_cf, self.justifiers, self.justifier_ratio = self.Ijuice(counterfactual)
         end_time = time.time()
