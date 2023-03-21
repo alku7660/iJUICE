@@ -18,7 +18,7 @@ Instructions to run tests with the MACE method:
     6. In maceTest.py set the variable "only_indices" equal to True [only_indices = True].
     7. Run maceTest.py: this stores the matching undesired class indices of both MACE and iJUICE (the total amount of indices may be lower than num_instances).
     8. Run maceTest.py with variable "only_indices" equal to False [only_indices = False]: this runs the algorithm and prints the times and CF for all matching undesired instances.
-    9. Run tester.py with mace among the methods.
+    9. Run tester.py with mace among the "methods" list.
 """
 
 datasets = ['adult','kdd_census','german'] # ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']

@@ -10,12 +10,14 @@ from scipy.stats import norm
 
 class IJUICE:
 
-    def __init__(self, counterfactual):
+    def __init__(self, counterfactual, t=100, k=10):
         self.normal_ioi = counterfactual.ioi.normal_x
         self.ioi_label = counterfactual.ioi.label
         self.lagrange = counterfactual.lagrange
         self.potential_justifiers = self.find_potential_justifiers(counterfactual)
         self.potential_justifiers = self.nn_list(counterfactual)
+        self.t = t
+        self.k = k
         start_time = time.time()
         self.normal_x_cf, self.justifiers, self.justifier_ratio = self.Ijuice(counterfactual)
         end_time = time.time()
@@ -43,8 +45,8 @@ class IJUICE:
                 sort_potential_justifiers.append((potential_justifiers[i], dist))
         sort_potential_justifiers.sort(key=lambda x: x[1])
         sort_potential_justifiers = [i[0] for i in sort_potential_justifiers]
-        if len(sort_potential_justifiers) > 100:
-            sort_potential_justifiers = sort_potential_justifiers[:100]
+        if len(sort_potential_justifiers) > self.t:
+            sort_potential_justifiers = sort_potential_justifiers[:self.t]
         return sort_potential_justifiers
 
     def nn_list(self, counterfactual):
@@ -59,8 +61,8 @@ class IJUICE:
             # print(f'Justifier {i+1}: Length permutations: {len_permutations}')
         permutations_potential_justifiers.sort(key=lambda x: x[1])
         permutations_potential_justifiers = [i[0] for i in permutations_potential_justifiers]
-        if len(permutations_potential_justifiers) > 10:
-            permutations_potential_justifiers = permutations_potential_justifiers[:10]
+        if len(permutations_potential_justifiers) > self.k:
+            permutations_potential_justifiers = permutations_potential_justifiers[:self.k]
         return permutations_potential_justifiers
 
     def Ijuice(self, counterfactual):

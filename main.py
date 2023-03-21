@@ -9,15 +9,12 @@ from address import save_obj, load_obj, results_obj
 
 """
 Instructions to run tests with iJUICE:
-    If you want to test iJUICE or any of the competitors available, do the following: 
-    2. Set the variable "num_instances" (line 34) equal to 50 or a number of instances desired to study [num_instances = 50].
-    3. Set the variable "datasets" equal to the list of datasets desired for running the tests. The variable "methods" can be a list containing any of the methods.
-    4. Run tester.py: this stores the num_instances undesired class test instances indices.
-    5. In maceTest.py (located in Competitors/MACE/) set the variable "datasets" equal to the "datasets" variable in tester.py.
-    6. In maceTest.py set the variable "only_indices" equal to True [only_indices = True].
-    7. Run maceTest.py: this stores the matching undesired class indices of both MACE and iJUICE (the total amount of indices may be lower than num_instances).
-    8. Run maceTest.py with variable "only_indices" equal to False [only_indices = False]: this runs the algorithm and prints the times and CF for all matching undesired instances.
-    9. Run tester.py with mace among the methods.
+    If you want to test iJUICE (or any of the competitors available), do the following: 
+    1. Set the variable "num_instances" (line 31) equal to 50 or a number of instances desired to study [num_instances = 50].
+    2. Set the variable "datasets" equal to the list of datasets desired for running the tests. 
+    3. Set the variable "methods" to be a list containing "ijuice" and the name of the methods you want to test together with the iJUICE method.
+    4. Run tester.py
+    5. Run plotter.py to print the obtained counterfactuals from iJUICE.
 """
 
 datasets = ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease'] # ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
@@ -27,6 +24,8 @@ step = 0.01
 train_fraction = 0.7
 distance_type = ['L1_L0'] # ['euclidean','L1','L_inf','L1_L0','L1_L0_L_inf','prob']
 lagranges = [0.5]    # np.linspace(start=0, stop=1, num=11)
+t = 100   # Number of closest instances to consider for the iJUICE algorithm
+k = 10    # Number of training observations that are close used to build the graph
 
 if __name__ == '__main__':
 
