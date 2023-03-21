@@ -13,7 +13,7 @@ Instructions to run tests with iJUICE:
     1. Set the variable "num_instances" (line 31) equal to 50 or a number of instances desired to study [num_instances = 50].
     2. Set the variable "datasets" equal to the list of datasets desired for running the tests. 
     3. Set the variable "methods" to be a list containing "ijuice" and the name of the methods you want to test together with the iJUICE method.
-    4. Run tester.py
+    4. Run main.py
     5. Run plotter.py to print the obtained counterfactuals from iJUICE.
 """
 
