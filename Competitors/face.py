@@ -13,7 +13,7 @@ import copy
 # import Dijkstra's shortest path algorithm
 from scipy.sparse import csgraph, csr_matrix
 # import graph building methods
-from nnt import near_neigh
+from Competitors.nnt import near_neigh
 from sklearn.neighbors import kneighbors_graph, radius_neighbors_graph
 
 class FACE:

@@ -4,7 +4,7 @@ import networkx as nx
 import gurobipy as gp
 from gurobipy import GRB, tuplelist
 from evaluator_constructor import distance_calculation, verify_feasibility
-from nnt import nn_for_juice
+from Competitors.nnt import nn_for_juice
 import time
 from scipy.stats import norm
 
@@ -142,14 +142,6 @@ class IJUICE:
                             value = [potential_justifier_k[i]]
                         feat_checked.extend([i])
                     elif feat_i in data.cat_enc_cols:
-                        # idx_cat_i = data.idx_cat_cols_dict[feat_i[:-2]]
-                        # nn_cat_idx = list(potential_justifier_k[idx_cat_i])
-                        # if any(item in idx_cat_i for item in nonzero_index):
-                        #     ioi_cat_idx = list(normal_x[idx_cat_i])
-                        #     value = [nn_cat_idx, ioi_cat_idx]
-                        # else:
-                        #     value = [nn_cat_idx]
-                        # feat_checked.extend(idx_cat_i)
                         idx_cat_i = data.idx_cat_cols_dict[feat_i[:-4]]
                         nn_cat_idx = list(potential_justifier_k[idx_cat_i])
                         if any(item in idx_cat_i for item in nonzero_index):
@@ -196,11 +188,10 @@ class IJUICE:
         """
         graph_nodes = []
         for k in range(len(self.potential_justifiers)):
-            # print(f'Neighbor {k+1}, Length: {len(graph_nodes)}')
             feat_possible_values_k = self.pot_justifier_feat_possible_values[k]
             permutations = product(*feat_possible_values_k)
             for i in permutations:
-                perm_i = self.make_array(i)                     # 
+                perm_i = self.make_array(i)
                 if model.model.predict(perm_i.reshape(1, -1)) != self.ioi_label and \
                     not any(np.array_equal(perm_i, x) for x in graph_nodes) and \
                     not any(np.array_equal(perm_i, x) for x in self.potential_justifiers):
@@ -322,7 +313,7 @@ class IJUICE:
             """
             set_I = list(self.C.keys())   
             cf = opt_model.addVars(set_I, vtype=GRB.BINARY, name='Counterfactual')   # Node chosen as destination
-            source = opt_model.addVars(set_I, vtype=GRB.BINARY, name='Justifiers')       # Nodes chosen as sources (justifier points)
+            source = opt_model.addVars(set_I, vtype=GRB.BINARY, name='Justifiers')   # Nodes chosen as sources (justifier points)
             edge = gp.tupledict()
             
             """
@@ -340,7 +331,7 @@ class IJUICE:
                     opt_model.addConstr(source[v] == 0)
             opt_model.addConstr(source.sum() >= 1)
             opt_model.addConstr(cf.sum() == 1)
-            opt_model.setObjective(cf.prod(self.C)*self.lagrange - source.sum()/len_justifiers*(1-self.lagrange), GRB.MINIMIZE)  # cf.prod(self.C) - source.sum()/len_justifiers
+            opt_model.setObjective(cf.prod(self.C)*self.lagrange - source.sum()/len_justifiers*(1-self.lagrange), GRB.MINIMIZE)
             list_excluded_nodes = list(np.setdiff1d(set_I, list(G.nodes)))
             for v in list_excluded_nodes:
                 opt_model.addConstr(source[v] == 0)

@@ -7,6 +7,20 @@ from evaluator_constructor import Evaluator
 from counterfactual_constructor import Counterfactual
 from address import save_obj, load_obj, results_obj
 
+"""
+Instructions to run tests:
+    If you want to test iJUICE with MACE as competitor, do the following: 
+    1. Set the variable "prepare_for_mace" (line 25) equal to true [prepare_for_mace = True].
+    2. Set the variable "num_instances" (lines 38 and 48) equal to 50 or a number of instances desired to study [num_instances = 50].
+    3. Set the variable "datasets" equal to the list of datasets desired for running the tests. The variable "methods" can be a list containing any of the methods.
+    4. Run tester.py: this stores the num_instances undesired class test instances indices.
+    5. In maceTest.py (located in Competitors/MACE/) set the variable "datasets" equal to the "datasets" variable in tester.py.
+    6. In maceTest.py set the variable "only_indices" equal to True [only_indices = True].
+    7. Run maceTest.py: this stores the matching undesired class indices of both MACE and iJUICE (the total amount of indices may be lower than num_instances).
+    8. Run maceTest.py with variable "only_indices" equal to False [only_indices = False]: this runs the algorithm and prints the times and CF for all matching undesired instances.
+    9. Run tester.py with mace among the methods.
+"""
+
 datasets = ['adult','kdd_census','german'] # ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
 methods = ['ijuice'] # ['nn','mo','ft','rt','gs','face','dice','mace','cchvae','juice','ijuice']
 seed_int = 54321
@@ -15,20 +29,6 @@ train_fraction = 0.7
 distance_type = ['L1_L0'] # ['euclidean','L1','L_inf','L1_L0','L1_L0_L_inf','prob']
 lagranges = [0.5]    # np.linspace(start=0, stop=1, num=11)
 prepare_for_mace = False
-
-"""
-Instructions to run tests:
-    1. Set prepare_for_mace = True
-    2. Set num_instances = 50
-    3. Set the datasets to the datasets desired for running the tests. Method can be any
-    4. Run tester.py: this stores the undesired class test instances indices only
-    5. In maceTest.py set the datasets equal to the datasets in tester.py
-    6. In maceTest.py set only_indices = True
-    7. Run maceTest.py: this stores the matching undesired indices of both MACE and normal frameworks
-    8. Run maceTest.py with only_indices = False: this runs the algorithm and prints the times and CF for all matching undesired instances
-    9. Run tester.py with mace among the methods.
-    10. Run plotter
-"""
 
 if __name__ == '__main__':
 

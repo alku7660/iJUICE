@@ -212,7 +212,7 @@ if __name__ == '__main__':
     approach_try = ['MACE_eps_1e-2']
     process_id_try = '0'
     only_indices = False
-    extra = True # This is to get only extra indices for additional testing.
+    extra = False # This is to get only extra indices for additional testing.
     for i in range(len(dataset_try)):
         model_class_try = [dataset_model_dict[dataset_try[i]]] 
         gen_cf_for_try = dataset_undesired_class[dataset_try[i]]

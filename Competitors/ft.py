@@ -9,7 +9,7 @@ import time
 import numpy as np
 import copy
 from evaluator_constructor import distance_calculation
-from nnt import near_neigh
+from Competitors.nnt import near_neigh
 
 # Adapted from https://github.com/upura/featureTweakPy
 

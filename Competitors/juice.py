@@ -1,5 +1,6 @@
 """
 JUstIfied CounterFactual Explanations (JUICE)
+Original implementation available at: https://github.com/alku7660/JUICE
 """
 
 """
@@ -8,7 +9,7 @@ Imports
 
 import time
 import numpy as np
-from nnt import near_neigh, nn_for_juice
+from Competitors.nnt import near_neigh, nn_for_juice
 from itertools import permutations
 from evaluator_constructor import distance_calculation
 

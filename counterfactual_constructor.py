@@ -1,13 +1,13 @@
-from nnt import NN
-from mo import MO
-from ft import FT
-from rt import RT
-from gs import GS
-from face import FACE
-from dice import DICE
-from mace import MACE
-from cchvae import CCHVAE
-from juice import JUICE
+from Competitors.nnt import NN
+from Competitors.mo import MO
+from Competitors.ft import FT
+from Competitors.rt import RT
+from Competitors.gs import GS
+from Competitors.face import FACE
+from Competitors.dice import DICE
+from Competitors.mace import MACE
+from Competitors.cchvae import CCHVAE
+from Competitors.juice import JUICE
 from ijuice import IJUICE
 
 

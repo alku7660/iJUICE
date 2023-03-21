@@ -3,7 +3,7 @@
 # Code may be found at GitHub repository:
 # https://github.com/thibaultlaugel/growingspheres/blob/master/growingspheres/growingspheres.py
 
-from gs_support import generate_ball, generate_sphere, generate_ring
+from Competitors.gs_support import generate_ball, generate_sphere, generate_ring
 from itertools import combinations
 import numpy as np
 from sklearn.metrics.pairwise import pairwise_distances
