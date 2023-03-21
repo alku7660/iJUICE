@@ -122,7 +122,6 @@ def feasibility_justification_time_plots(metric_name):
         dataset = dataset_name(datasets[i])
         all_metric_measures = []
         for k in range(len(methods)):
-            method = method_name(methods[k])
             if methods[k] == 'ijuice':
                 dist = 'L1_L0'
             else:
@@ -163,7 +162,6 @@ def ablation_lagrange_plot():
     start = 0
     end = 1.1
     for i in range(len(distances)):
-        dist = distance_name(distances[i])
         for j in range(len(datasets)):
             dataset = dataset_name(datasets[j])
             justifier_ratio_mean_list = []
@@ -310,7 +308,6 @@ def print_instances(dataset, distance):
 
     data = load_dataset(dataset, train_fraction, seed_int, step)
     eval = load_obj(f'{dataset}_ijuice_{distance}_1.pkl')
-    model = Model(data)
     max_justification_idx = max(eval.justifier_ratio, key=eval.justifier_ratio.get)
     ioi = eval.normal_x_dict[max_justification_idx]
     ioi_original = eval.x_dict[max_justification_idx]
@@ -335,6 +332,6 @@ def print_instances(dataset, distance):
 # feasibility_justification_time_plots('justification')
 # feasibility_justification_time_plots('time')
 # ablation_lagrange_plot()
-print_instances('adult','prob')
+print_instances('adult','L1_L0')
 
 
