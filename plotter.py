@@ -12,7 +12,6 @@ import matplotlib.pyplot as plt
 plt.rcParams.update({'font.size': 10})
 import matplotlib.patches as mpatches
 from matplotlib.ticker import FormatStrFormatter
-import pickle
 from data_constructor import load_dataset
 # from autorank import autorank, plot_stats
 from address import results_plots, load_obj
