@@ -308,30 +308,49 @@ def print_instances_ijuice(dataset, distance, lagrange):
 
     data = load_dataset(dataset, train_fraction, seed_int, step)
     eval = load_obj(f'{dataset}_ijuice_{distance}_{lagrange}.pkl')
-    max_justification_idx = max(eval.justifier_ratio, key=eval.justifier_ratio.get)
-    ioi = eval.normal_x_dict[max_justification_idx]
-    ioi_original = eval.x_dict[max_justification_idx]
-    cf = eval.x_cf_dict[max_justification_idx]
-    justifiers = eval.justifiers_dict[max_justification_idx]
-    potential_justifiers = find_potential_justifiers(data, ioi, ioi_label=0)
-    nn_potential_justifiers = nn_list(data, ioi, potential_justifiers)
-    justifiers_original = []
-    for i in justifiers:
-        justifier_original = data.inverse(nn_potential_justifiers[i-1])
-        justifiers_original.extend(justifier_original)
-    justifiers_original = pd.DataFrame(data=justifiers_original, columns=data.features)
-    print('IOI:')
-    print(ioi_original)
-    print('CF:')
-    print(cf)
-    print('Justifiers:')
-    print(justifiers_original)
+    for idx in eval.x_dict.keys():    
+        ioi = eval.normal_x_dict[idx]
+        ioi_original = eval.x_dict[idx]
+        cf = eval.x_cf_dict[idx]
+        justifiers = eval.justifiers_dict[idx]
+        potential_justifiers = find_potential_justifiers(data, ioi, ioi_label=0)
+        nn_potential_justifiers = nn_list(data, ioi, potential_justifiers)
+        justifiers_original = []
+        for i in justifiers:
+            justifier_original = data.inverse(nn_potential_justifiers[i-1])
+            justifiers_original.extend(justifier_original)
+        justifiers_original = pd.DataFrame(data=justifiers_original, columns=data.features)
+        print('IOI:')
+        print(ioi_original)
+        print('CF:')
+        print(cf)
+        print('Justifiers:')
+        print(justifiers_original)
+
+def print_instances(dataset, method, distance, lagrange):
+    if method == 'ijuice':
+        print_instances_ijuice(dataset, distance, lagrange)
+    else:
+        eval = load_obj(f'{dataset}_{method}_{distance}_{lagrange}.pkl')
+        indices = eval.x_dict.keys()
+        for idx in indices:
+            ioi_original = eval.x_dict[idx]
+            cf = eval.x_cf_dict[idx]
+            print('==========================================')
+            print('IOI index:')
+            print(idx)
+            print('IOI:')
+            print(ioi_original)
+            print('CF:')
+            print(cf)
+            print('==========================================')
+
 
 # proximity_plots()
 # feasibility_justification_time_plots('feasibility')
 # feasibility_justification_time_plots('justification')
 # feasibility_justification_time_plots('time')
 # ablation_lagrange_plot()
-print_instances_ijuice('adult','L1_L0',0.5)
+print_instances('adult','method','L1_L0', 0.5)
 
 
