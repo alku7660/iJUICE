@@ -198,7 +198,7 @@ def ablation_lagrange_plot():
     fig.subplots_adjust(left=0.09, bottom=0.1, right=0.875, top=0.9, wspace=0.475, hspace=0.2)
     fig.savefig(f'{results_plots}lagrange_ablation_plot.pdf')
 
-def print_instances(dataset, distance):
+def print_instances_ijuice(dataset, distance, lagrange):
 
     def find_potential_justifiers(data, ioi, ioi_label):
         """
@@ -307,7 +307,7 @@ def print_instances(dataset, distance):
         return value
 
     data = load_dataset(dataset, train_fraction, seed_int, step)
-    eval = load_obj(f'{dataset}_ijuice_{distance}_1.pkl')
+    eval = load_obj(f'{dataset}_ijuice_{distance}_{lagrange}.pkl')
     max_justification_idx = max(eval.justifier_ratio, key=eval.justifier_ratio.get)
     ioi = eval.normal_x_dict[max_justification_idx]
     ioi_original = eval.x_dict[max_justification_idx]
@@ -332,6 +332,6 @@ def print_instances(dataset, distance):
 # feasibility_justification_time_plots('justification')
 # feasibility_justification_time_plots('time')
 # ablation_lagrange_plot()
-print_instances('adult','L1_L0')
+print_instances_ijuice('adult','L1_L0',0.5)
 
 
