@@ -26,6 +26,8 @@ methods = ['nn','mo','ft','rt','gs','face','dice','mace','cchvae','juice','ijuic
 lagranges = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
 colors_list = ['red', 'blue', 'green', 'purple', 'lightgreen', 'tab:brown', 'orange']
 mean_prop = dict(marker='D', markeredgecolor='firebrick', markerfacecolor='firebrick', markersize=2)
+general_distance = 'euclidean'
+general_lagrange = 1
 step = 0.01
 train_fraction = 0.7
 seed_int = 54321
@@ -178,43 +180,6 @@ def feasibility_justification_time_plots(metric_name):
     fig.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.96, wspace=0.15, hspace=0.4)
     fig.savefig(f'{results_plots}{metric_name}_plot.pdf')
 
-def scatter_proximity_var(var):
-    """
-    Scatter plot between distance and feasibility (evidences trade-off between feasibility and distance)
-    """
-    fig, ax = plt.subplots(nrows=2, ncols=3, figsize=(1.1,1.6))
-    for i in range(len(datasets)):
-        dataset = dataset_name(datasets[i])
-        legend_elements = create_legend_distance()
-        method_mean_var = []
-        for k in range(len(methods)):
-            method = method_name(methods[k])
-            eval = load_obj(f'{datasets[i]}_{methods[k]}_{general_distance}_{general_lagrange}.pkl')
-            if var == 'feasibility':
-                metric_measures = list(eval.feasibility_dict.values())
-            elif var == 'justification':
-                metric_measures = list(eval.justifier_ratio.values())
-            new_metric_measures = []
-            for n in metric_measures:
-                if n:
-                    value = 1
-                else:
-                    value = 0
-                new_metric_measures.extend([value])
-            metric_measures = new_metric_measures
-            method_mean_var.append(np.mean(metric_measures))
-        for j in range(len(distances)):
-            method_mean_distance = []
-            distance = distance_name(distances[j])
-            for k in range(len(methods)):
-                method = method_name(methods[k])
-                eval = load_obj(f'{datasets[i]}_{methods[k]}_{general_distance}_{general_lagrange}.pkl')
-                distance_measures = [eval.proximity_dict[idx][distances[j]] for idx in eval.proximity_dict.keys()]
-                method_mean_distance.append(np.mean(distance_measures))
-            ax.scatter(x=method_mean_distance, y=method_mean_var, color=colors_list[j])
-        ax.legend(handles=legend_elements)
-        fig.savefig(f'{results_plots}_scatter_proximity_{var}_plot.pdf')
-
 def ablation_lagrange_plot():
     """
     Obtains an ablation plot where both the distances and the justifier ratio are plotted for iJUICE
@@ -229,7 +194,7 @@ def ablation_lagrange_plot():
             justifier_ratio_mean_list = []
             distance_mean_list = []
             for lagrange in lagranges:
-                eval = load_obj(f'{datasets[j]}_ijuice_{distances[i]}_{lagrange}.pkl')
+                eval = load_obj(f'{datasets[j]}/{datasets[j]}_ijuice_{distances[i]}_{lagrange}.pkl')
                 eval_extra = load_obj(f'{datasets[j]}_ijuice_{distances[i]}_{lagrange}_extra.pkl')
                 justifier_ratio_mean = np.mean(list(eval.justifier_ratio.values())+list(eval_extra.justifier_ratio.values()))
                 print(f'Dataset: {dataset.upper()}, # of instances: {len(list(eval.justifier_ratio.values()))}')
@@ -396,10 +361,7 @@ def print_instances(dataset, distance):
 # feasibility_justification_time_plots('feasibility')
 # feasibility_justification_time_plots('justification')
 # feasibility_justification_time_plots('time')
-# scatter_proximity_var('feasibility')
-# scatter_proximity_var('justification')
 # ablation_lagrange_plot()
-# count_instances()
 print_instances('adult','prob')
 
 
