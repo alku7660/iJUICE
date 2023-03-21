@@ -351,6 +351,6 @@ def print_instances(dataset, method, distance, lagrange):
 # feasibility_justification_time_plots('justification')
 # feasibility_justification_time_plots('time')
 # ablation_lagrange_plot()
-print_instances('german','ijuice','L1_L0', 0.5)
+print_instances('adult','ijuice','L1_L0', 0.5)
 
 
