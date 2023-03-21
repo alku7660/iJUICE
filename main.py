@@ -30,7 +30,7 @@ k = 10    # Number of training observations that are close used to build the gra
 if __name__ == '__main__':
 
     for data_str in datasets:
-        num_instances = 20 # data.test_df.shape[0]
+        num_instances = 10 # data.test_df.shape[0]
         data = load_dataset(data_str, train_fraction, seed_int, step)
         model = Model(data)
         data.undesired_test(model)

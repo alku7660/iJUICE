@@ -200,126 +200,12 @@ def ablation_lagrange_plot():
 
 def print_instances_ijuice(dataset, distance, lagrange):
 
-    def find_potential_justifiers(data, ioi, ioi_label):
-        """
-        Finds the set of training observations belonging to, and predicted as, the counterfactual class
-        """
-        train_np = data.transformed_train_np
-        train_target = data.train_target
-        potential_justifiers = train_np[train_target != ioi_label]
-        sort_potential_justifiers = []
-        for i in range(potential_justifiers.shape[0]):
-            dist = distance_calculation(potential_justifiers[i], ioi, data, type=distance)
-            sort_potential_justifiers.append((potential_justifiers[i], dist))
-        sort_potential_justifiers.sort(key=lambda x: x[1])
-        sort_potential_justifiers = [i[0] for i in sort_potential_justifiers]
-        if len(sort_potential_justifiers) > 100:
-            sort_potential_justifiers = sort_potential_justifiers[:100]
-        return sort_potential_justifiers
-
-    def nn_list(data, ioi, potential_justifiers):
-        """
-        Method that gets the list of training observations labeled as cf-label with respect to the cf, ordered based on graph nodes size
-        """
-        permutations_potential_justifiers = []
-        for i in range(len(potential_justifiers)):
-            possible_feat_values_justifier_i = get_feat_possible_values(data, ioi, points=[potential_justifiers[i]])[0]
-            len_permutations = len(list(product(*possible_feat_values_justifier_i)))
-            permutations_potential_justifiers.append((potential_justifiers[i], len_permutations))
-        permutations_potential_justifiers.sort(key=lambda x: x[1])
-        permutations_potential_justifiers = [i[0] for i in permutations_potential_justifiers]
-        if len(permutations_potential_justifiers) > 10:
-            permutations_potential_justifiers = permutations_potential_justifiers[:10]
-        return permutations_potential_justifiers
-    
-    def get_feat_possible_values(data, ioi, points):
-        """
-        Method that obtains the features possible values
-        """
-        pot_justifier_feat_possible_values = {}
-        normal_x = ioi
-        for k in range(len(points)):
-            potential_justifier_k = points[k]
-            v = normal_x - potential_justifier_k
-            nonzero_index = list(np.nonzero(v)[0])
-            feat_checked = []
-            feat_possible_values = []
-            for i in range(len(normal_x)):
-                if i not in feat_checked:
-                    feat_i = data.processed_features[i]
-                    if feat_i in data.bin_enc_cols:
-                        if i in nonzero_index:
-                            value = [potential_justifier_k[i], normal_x[i]]
-                        else:
-                            value = [potential_justifier_k[i]]
-                        feat_checked.extend([i])
-                    elif feat_i in data.cat_enc_cols:
-                        idx_cat_i = data.idx_cat_cols_dict[feat_i[:-4]]
-                        nn_cat_idx = list(potential_justifier_k[idx_cat_i])
-                        if any(item in idx_cat_i for item in nonzero_index):
-                            ioi_cat_idx = list(normal_x[idx_cat_i])
-                            value = [nn_cat_idx, ioi_cat_idx]
-                        else:
-                            value = [nn_cat_idx]
-                        feat_checked.extend(idx_cat_i)
-                    elif feat_i in data.ordinal:
-                        if i in nonzero_index:
-                            values_i = list(data.processed_feat_dist[feat_i].keys())
-                            max_val_i, min_val_i = max(normal_x[i], potential_justifier_k[i]), min(normal_x[i], potential_justifier_k[i])
-                            value = [j for j in values_i if j <= max_val_i and j >= min_val_i]
-                        else:
-                            value = [potential_justifier_k[i]]
-                        feat_checked.extend([i])
-                    elif feat_i in data.continuous:
-                        if i in nonzero_index:
-                            max_val_i, min_val_i = max(normal_x[i], potential_justifier_k[i]), min(normal_x[i], potential_justifier_k[i])
-                            value = continuous_feat_values(i, min_val_i, max_val_i, data)
-                        else:
-                            value = [potential_justifier_k[i]]
-                        feat_checked.extend([i])
-                    feat_possible_values.append(value)
-            pot_justifier_feat_possible_values[k] = feat_possible_values
-        return pot_justifier_feat_possible_values
-
-    def continuous_feat_values(i, min_val, max_val, data):
-        """
-        Method that defines how to discretize the continuous features
-        """
-        sorted_feat_i = list(np.sort(data.transformed_train_np[:,i][(data.transformed_train_np[:,i] >= min_val) & (data.transformed_train_np[:,i] <= max_val)]))
-        value = list(np.unique(sorted_feat_i))
-        if len(value) <= 100:
-            if min_val not in value:
-                value = [min_val] + value
-            if max_val not in value:
-                value = value + [max_val]
-            return value
-        else:
-            mean_val, std_val = np.mean(data.transformed_train_np[:,i]), np.std(data.transformed_train_np[:,i])
-            percentiles_range = list(np.linspace(0, 1, 101))
-            value = []
-            for perc in percentiles_range:
-                value.append(norm.ppf(perc, loc=mean_val, scale=std_val))
-            value = [val for val in value if val >= min_val and val <= max_val]
-            if min_val not in value:
-                value = [min_val] + value
-            if max_val not in value:
-                value = value + [max_val]
-        return value
-
-    data = load_dataset(dataset, train_fraction, seed_int, step)
     eval = load_obj(f'{dataset}_ijuice_{distance}_{lagrange}.pkl')
     for idx in eval.x_dict.keys():    
         ioi = eval.normal_x_dict[idx]
         ioi_original = eval.x_dict[idx]
         cf = eval.x_cf_dict[idx]
-        justifiers = eval.justifiers_dict[idx]
-        potential_justifiers = find_potential_justifiers(data, ioi, ioi_label=0)
-        nn_potential_justifiers = nn_list(data, ioi, potential_justifiers)
-        justifiers_original = []
-        for i in justifiers:
-            justifier_original = data.inverse(nn_potential_justifiers[i-1])
-            justifiers_original.extend(justifier_original)
-        justifiers_original = pd.DataFrame(data=justifiers_original, columns=data.features)
+        justifiers_original = eval.justifiers_dict[idx] 
         print('IOI:')
         print(ioi_original)
         print('CF:')

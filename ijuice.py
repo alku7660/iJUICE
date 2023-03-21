@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from itertools import product
 import networkx as nx
 import gurobipy as gp
@@ -22,6 +23,7 @@ class IJUICE:
         self.normal_x_cf, self.justifiers, self.justifier_ratio = self.Ijuice(counterfactual)
         end_time = time.time()
         self.run_time = end_time - start_time
+        self.justifiers = self.transform_dataframe(counterfactual)
 
     def find_potential_justifiers(self, counterfactual, ijuice_search=False):
         """
@@ -301,7 +303,7 @@ class IJUICE:
             else:
                 sol_x_idx = min(potential_CF, key=potential_CF.get)
                 sol_x = self.all_nodes[sol_x_idx - 1]
-            justifiers = [sol_x]
+            justifiers = [sol_x_idx]
         else:
             """
             MODEL
@@ -349,11 +351,12 @@ class IJUICE:
                     if self.F[i]:
                         potential_CF[i] = self.C[i]
                 if len(potential_CF) == 0:
-                    sol_x = self.find_potential_justifiers(counterfactual, ijuice_search=True)[0]
+                    sol_x_idx = 0
+                    sol_x = self.find_potential_justifiers(counterfactual, ijuice_search=True)[sol_x_idx]
                 else:
                     sol_x_idx = min(potential_CF, key=potential_CF.get)
                     sol_x = self.all_nodes[sol_x_idx - 1]
-                justifiers = [sol_x]
+                justifiers = [sol_x_idx]
             else:
                 for i in self.C.keys():
                     if cf[i].x > 0:
@@ -381,3 +384,15 @@ class IJUICE:
         justifier_ratio = len(justifiers)/len(self.potential_justifiers)
         print(f'Justifier Ratio (%): {np.round(justifier_ratio*100, 2)}')
         return sol_x, justifiers, justifier_ratio
+
+    def transform_dataframe(self, counterfactual):
+        """
+        Transforms the justifiers into dataframe
+        """
+        justifiers_original = []
+        for idx in range(len(self.justifiers)):
+            instance_idx = self.justifiers[idx]
+            justifier_original = counterfactual.data.inverse(self.potential_justifiers[instance_idx - 1])
+            justifiers_original.extend(justifier_original)
+        justifiers_original = pd.DataFrame(data=justifiers_original, columns=counterfactual.data.features)
+        return justifiers_original
