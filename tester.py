@@ -7,20 +7,19 @@ from evaluator_constructor import Evaluator
 from counterfactual_constructor import Counterfactual
 from address import save_obj, load_obj, results_obj
 
-datasets = ['student','oulad','law','heart','synthetic_athlete','synthetic_disease'] # ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
-methods = [] # ['nn','mo','ft','rt','gs','face','dice','mace','cchvae','juice']
+datasets = ['adult','kdd_census','german'] # ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
+methods = ['ijuice'] # ['nn','mo','ft','rt','gs','face','dice','mace','cchvae','juice','ijuice']
 seed_int = 54321
 step = 0.01
 train_fraction = 0.7
-distance_type = [] # ['euclidean','L1','L_inf','L1_L0','L1_L0_L_inf','prob']
-lagranges = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]    # np.linspace(start=0, stop=1, num=11)
-num_instances = 20 # data.test_df.shape[0]
+distance_type = ['L1_L0'] # ['euclidean','L1','L_inf','L1_L0','L1_L0_L_inf','prob']
+lagranges = [0.5]    # np.linspace(start=0, stop=1, num=11)
 prepare_for_mace = False
 
 """
 Instructions to run tests:
     1. Set prepare_for_mace = True
-    2. Set num_instances = 30
+    2. Set num_instances = 50
     3. Set the datasets to the datasets desired for running the tests. Method can be any
     4. Run tester.py: this stores the undesired class test instances indices only
     5. In maceTest.py set the datasets equal to the datasets in tester.py
