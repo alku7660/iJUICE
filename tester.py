@@ -35,7 +35,7 @@ if __name__ == '__main__':
 
     if prepare_for_mace:
         for data_str in datasets:
-            num_instances = 20 # data.test_df.shape[0]
+            num_instances = 50 # data.test_df.shape[0]
             data = load_dataset(data_str, train_fraction, seed_int, step)
             model = Model(data)
             data.undesired_test(model)
@@ -45,7 +45,7 @@ if __name__ == '__main__':
 
     else:
         for data_str in datasets:
-            num_instances = 30 # data.test_df.shape[0]
+            num_instances = 50 # data.test_df.shape[0]
             data = load_dataset(data_str, train_fraction, seed_int, step)
             model = Model(data)
             data.undesired_test(model)
@@ -53,9 +53,7 @@ if __name__ == '__main__':
             mace_df = load_obj(f'{data_str}/{data_str}_mace_df.pkl')
             mace_cf_df = load_obj(f'{data_str}/{data_str}_mace_cf_df.pkl')
             mace_df_idx = list(mace_cf_df.index)
-            # num_instances = num_instances if num_instances <= data.undesired_transformed_test_df.shape[0] else data.undesired_transformed_test_df.shape[0]
             num_instances = num_instances if num_instances <= len(mace_df_idx) else len(mace_df_idx)
-            # print(f'Dataset {data_str} test size: {data.test_df.shape[0]}')
             print(f'Dataset {data_str} num instances: {num_instances}')
             for method_str in methods:
                 for typ in distance_type:
