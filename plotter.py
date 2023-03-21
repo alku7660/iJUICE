@@ -20,12 +20,7 @@ from model_constructor import Model
 from evaluator_constructor import distance_calculation, verify_feasibility
 from itertools import product
 from scipy.stats import norm
-# from tester import datasets, methods, distance_type, lagranges 
 
-# datasets = ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
-# methods = ['nn','mo','ft','rt','gs','face','dice','mace','cchvae','juice','ijuice']
-# general_distance = 'L1_L0'
-# general_lagrange = 1
 datasets = ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
 distances = ['L1_L0','L1_L0_L_inf','prob']
 methods = ['nn','mo','ft','rt','gs','face','dice','mace','cchvae','juice','ijuice']
@@ -169,20 +164,10 @@ def feasibility_justification_time_plots(metric_name):
                 metric_measures = new_metric_measures
             elif metric_name == 'justification':
                 metric_measures = list(eval.justifier_ratio.values()) + list(eval_extra.justifier_ratio.values())
-                # new_metric_measures = []
-                # for n in metric_measures:
-                #     if n > 0.01:
-                #         val = 1
-                #     else:
-                #         val = 0
-                #     new_metric_measures.append(val)
-                # metric_measures = new_metric_measures
             elif metric_name == 'time':
                 metric_measures = list(eval.time_dict.values())
                 if isinstance(metric_measures[0], np.ndarray):
                     metric_measures = [list(i)[0] for i in metric_measures]
-                if methods[k] in ['nn','mo','ft','rt']:
-                    metric_measures = [0.5*i for i in metric_measures]
             all_metric_measures.append(metric_measures)
         ax[i].boxplot(all_metric_measures, showmeans=True, meanprops=mean_prop, showfliers=False)
         ax[i].set_xticklabels([method_name(i) for i in methods], rotation=25)
@@ -334,14 +319,6 @@ def print_instances(dataset, distance):
                             value = [potential_justifier_k[i]]
                         feat_checked.extend([i])
                     elif feat_i in data.cat_enc_cols:
-                        # idx_cat_i = data.idx_cat_cols_dict[feat_i[:-2]]
-                        # nn_cat_idx = list(potential_justifier_k[idx_cat_i])
-                        # if any(item in idx_cat_i for item in nonzero_index):
-                        #     ioi_cat_idx = list(normal_x[idx_cat_i])
-                        #     value = [nn_cat_idx, ioi_cat_idx]
-                        # else:
-                        #     value = [nn_cat_idx]
-                        # feat_checked.extend(idx_cat_i)
                         idx_cat_i = data.idx_cat_cols_dict[feat_i[:-4]]
                         nn_cat_idx = list(potential_justifier_k[idx_cat_i])
                         if any(item in idx_cat_i for item in nonzero_index):
