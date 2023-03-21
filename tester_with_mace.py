@@ -8,13 +8,13 @@ from counterfactual_constructor import Counterfactual
 from address import save_obj, load_obj, results_obj
 
 """
-Instructions to run tests:
+Instructions to run tests with the MACE method:
     If you want to test iJUICE with MACE as competitor, do the following: 
     1. Set the variable "prepare_for_mace" (line 25) equal to true [prepare_for_mace = True].
     2. Set the variable "num_instances" (lines 38 and 48) equal to 50 or a number of instances desired to study [num_instances = 50].
     3. Set the variable "datasets" equal to the list of datasets desired for running the tests. The variable "methods" can be a list containing any of the methods.
     4. Run tester.py: this stores the num_instances undesired class test instances indices.
-    5. In maceTest.py (located in Competitors/MACE/) set the variable "datasets" equal to the "datasets" variable in tester.py.
+    5. In maceTest.py (located in Competitors/MACE/) set the variable "datasets" equal to the "datasets" variable in tester.py [Simply define datasets = same list as in here].
     6. In maceTest.py set the variable "only_indices" equal to True [only_indices = True].
     7. Run maceTest.py: this stores the matching undesired class indices of both MACE and iJUICE (the total amount of indices may be lower than num_instances).
     8. Run maceTest.py with variable "only_indices" equal to False [only_indices = False]: this runs the algorithm and prints the times and CF for all matching undesired instances.
