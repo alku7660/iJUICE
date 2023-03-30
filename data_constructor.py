@@ -19,6 +19,7 @@ class Dataset:
         self.categorical = categorical
         self.ordinal = ordinal
         self.continuous = continuous
+        self.numerical = ordinal + continuous
         self.features = binary + categorical + ordinal + continuous
         self.df = df[self.features + self.label_name]
         self.step = step
