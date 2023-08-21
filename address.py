@@ -5,6 +5,7 @@ dataset_dir = str(path_here)+'/Datasets/'
 results_grid_search = str(path_here)+'/Results/grid_search/'
 results_obj = str(path_here)+'/Results/obj/'
 results_plots = str(path_here)+'/Results/plots/'
+results_k_definition = str(path_here)+'/Results/k_definition/'
 
 def save_obj(evaluator_obj, file_address, file_name):
     """
