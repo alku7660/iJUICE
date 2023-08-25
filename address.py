@@ -14,10 +14,10 @@ def save_obj(evaluator_obj, file_address, file_name):
     with open(file_address+file_name, 'wb') as output:
         pickle.dump(evaluator_obj, output, pickle.HIGHEST_PROTOCOL)
 
-def load_obj(file_name):
+def load_obj(file_name, file_address):
     """
     Method to read an Evaluator object containing the evaluation results for all the instances of a given dataset
     """
-    with open(results_obj+file_name, 'rb') as input:
+    with open(file_address+file_name, 'rb') as input:
         evaluator_obj = pickle.load(input)
     return evaluator_obj
