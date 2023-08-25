@@ -20,7 +20,7 @@ class Evaluator():
         self.data_cols = data.processed_features
         self.x_dict, self.normal_x_dict = {}, {}
         self.normal_x_cf_dict, self.x_cf_dict = {}, {}
-        self.proximity_dict, self.feasibility_dict, self.justifiers_dict, self.justifier_ratio, self.time_dict = {}, {}, {}, {}, {}
+        self.proximity_dict, self.sparsity_dict, self.feasibility_dict, self.actionability_dict, self.justifiers_dict, self.justifier_ratio, self.time_dict = {}, {}, {}, {}, {}, {}, {}
 
     def add_specific_x_data(self, counterfactual):
         """
@@ -47,6 +47,10 @@ class Evaluator():
         L1_L0_L_inf = distance_calculation(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data, 'L1_L0_L_inf')
         prob = distance_calculation(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data, 'prob')
         self.proximity_dict[counterfactual.ioi.idx] = {'euclidean':L2, 'L1':L1, 'L_inf':Linf, 'L1_L0':L1_L0, 'L1_L0_L_inf':L1_L0_L_inf, 'prob':prob}
+        sparsity = distance_calculation(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data, 'sparsity')
+        self.sparsity_dict[counterfactual.ioi.idx] = sparsity
+        actionability = verify_actionability(counterfactual.ioi.normal_x, counterfactual.cf_method.normal_x_cf, counterfactual.data)
+        self.actionability_dict[counterfactual.ioi.idx] = actionability
         if self.method_name == 'ijuice':
             self.justifiers_dict[counterfactual.ioi.idx], self.justifier_ratio[counterfactual.ioi.idx] = counterfactual.cf_method.justifiers, counterfactual.cf_method.justifier_ratio
         else:
@@ -163,6 +167,9 @@ def distance_calculation(x, y, data, type='euclidean'):
         distance = L1_L0_L_inf(x, y, x_original, y_original, data)
     elif type == 'prob':
         distance = max_percentile_shift(x_original, y_original, data)
+    elif type == 'sparsity':
+        L1_distance, L0_distance = L1_L0(x, y, x_original, y_original, data)
+        distance = L0_distance
     return distance
 
 def verify_feasibility(x, cf, data):
@@ -200,24 +207,14 @@ def verify_feasibility(x, cf, data):
         feasibility = False
     return feasibility
 
-def sparsity(x, cf, data):
+def verify_actionability(x, cf, data):
     """
-    Function that calculates sparsity for a given counterfactual according to x
-    Sparsity: 1 - the fraction of features changed in the cf. Takes the value of 1 if the number of changed features is 1.
-    Input data: The data object with the feature information regarding plausibility, mutability, directionality
-    Input x: The (could be normalized) instance of interest
-    Input cf: The (could be normalized) counterfactual instance        
+    Indicates whether the cf is actionable with respect to the data mutability information
     """
-    unchanged_features = np.sum(np.equal(x,cf))
-    categories_feat_changed = data.feat_cat[np.where(np.equal(x,cf) == False)[0]]
-    len_categories_feat_changed_unique = len([i for i in np.unique(categories_feat_changed) if 'cat' in i])
-    unchanged_features += len_categories_feat_changed_unique
-    n_changed = len(x) - unchanged_features
-    if n_changed == 1:
-        cf_sparsity = 1.000
-    else:
-        cf_sparsity = np.round_(1 - n_changed/len(x),3)
-    return cf_sparsity
+    actionability = True
+    if not np.array_equal(x[np.where(data.feat_mutable == 0)], cf[np.where(data.feat_mutable == 0)]):
+        actionability = False
+    return actionability
 
 def verify_justification(cf, counterfactual):
     """
