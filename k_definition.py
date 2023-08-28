@@ -40,7 +40,7 @@ def estimate_outliers(data, type, neighbors):
     outliers = data.transformed_train_np[original_data_idx_outliers]
     return outliers
 
-datasets = ['credit','compass','diabetes','student','oulad','law','heart','synthetic_disease'] # ,'adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_disease'
+datasets = ['adult','kdd_census','diabetes','oulad',] # ,'adult','kdd_census','diabetes','oulad','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_disease'
 distance_type = ['L1_L0','L1_L0_L_inf','prob']
 
 for data_str in datasets:
