@@ -4,7 +4,18 @@ from sklearn.neighbors import LocalOutlierFactor
 from evaluator_constructor import distance_calculation
 from data_constructor import load_dataset
 from main import train_fraction, seed_int, step
-from address import results_k_definition, save_obj, load_obj
+from address import results_k_definition, dataset_dir, save_obj, load_obj
+from sklearn.neural_network import MLPClassifier 
+import matplotlib
+matplotlib.rcParams['mathtext.fontset'] = 'stix'
+matplotlib.rcParams['font.family'] = 'STIXGeneral'
+import matplotlib.pyplot as plt
+plt.rcParams.update({'font.size': 10})
+import matplotlib.patches as mpatches
+from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.ticker import LinearLocator
+import seaborn as sns
+color_cmap=sns.diverging_palette(30, 250, l=65, center="dark", as_cmap=True)
 
 def get_idx_cf(data):
     """
@@ -40,17 +51,128 @@ def estimate_outliers(data, type, neighbors):
     outliers = data.transformed_train_np[original_data_idx_outliers]
     return outliers
 
-datasets = ['adult','kdd_census','diabetes','oulad',] # ,'adult','kdd_census','diabetes','oulad','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_disease'
-distance_type = ['L1_L0','L1_L0_L_inf','prob']
+def class_0_points():
+    """
+    Creates the points for class 0
+    """
+    square1nx, square1ny = 8, 8
+    square1x_limit_bot, square1x_limit_top = 0, 0.7
+    square1y_limit_bot, square1y_limit_top = 0, 0.7
+    square1x_coord, square1y_coord = np.linspace(square1x_limit_bot, square1x_limit_top, square1nx), np.linspace(square1y_limit_bot, square1y_limit_top, square1ny)
+    square1x, square1y = np.meshgrid(square1x_coord, square1y_coord)
+    square1 = np.vstack([square1x.ravel(), square1y.ravel()]).T
+    
+    square2nx, square2ny = 2, 3
+    square2x_limit_bot, square2x_limit_top = 0, 0.1
+    square2y_limit_bot, square2y_limit_top = 0.8, 1.0
+    square2x_coord, square2y_coord = np.linspace(square2x_limit_bot, square2x_limit_top, square2nx), np.linspace(square2y_limit_bot, square2y_limit_top, square2ny)
+    square2x, square2y = np.meshgrid(square2x_coord, square2y_coord)
+    square2 = np.vstack([square2x.ravel(), square2y.ravel()]).T
 
-for data_str in datasets:
-    data = load_dataset(data_str, train_fraction, seed_int, step)
-    idx_counterfactuals = get_idx_cf(data)
-    save_obj(idx_counterfactuals, results_k_definition, f'idx_counterfactuals_{data_str}')
-    for type in distance_type:
-        dist = calculate_cf_train_distance_matrix(data, idx_counterfactuals, type)
-        save_obj(dist, results_k_definition, f'dist_matrix_{data_str}_{type}')
-        print(f'Dataset: {data_str}, Distance: {type}, Total instances: {data.train_target[np.where(data.train_target == 1 - data.undesired_class)[0]].shape[0]}')
+    square3 = np.array([[0.6,0.8], [0.7,0.8], [0.8,0.8], [0.9,0.8], [1.0,0.8]])
+
+    square4nx, square4ny = 3, 4
+    square4x_limit_bot, square4x_limit_top = 0.8, 0.1
+    square4y_limit_bot, square4y_limit_top = 0.4, 0.7
+    square4x_coord, square4y_coord = np.linspace(square4x_limit_bot, square4x_limit_top, square4nx), np.linspace(square4y_limit_bot, square4y_limit_top, square4ny)
+    square4x, square4y = np.meshgrid(square4x_coord, square4y_coord)
+    square4 = np.vstack([square4x.ravel(), square4y.ravel()]).T
+
+    all_squares = np.concatenate((square1, square2, square3, square4), axis=0)
+    return all_squares
+
+def class_1_points(seed):
+    """
+    Creates the points for class 1
+    """
+    np.random.seed(seed)
+
+    size_blob1 = 3
+    size_blob2 = 5
+    size_blob3 = 100
+
+    blob1_x = np.random.normal(loc=0.7, scale=0.1, size=size_blob1)
+    blob1_y = np.random.normal(loc=0.9, scale=0.1, size=size_blob1)
+    blob1 = np.concatenate((blob1_x, blob1_y), axis=1)
+
+    blob2_x = np.random.normal(loc=0.3, scale=0.1, size=size_blob2)
+    blob2_y = np.random.normal(loc=0.9, scale=0.1, size=size_blob2)
+    blob2 = np.concatenate((blob2_x, blob2_y), axis=1)
+    
+    blob3_x = np.random.normal(loc=0.3, scale=0.1, size=size_blob3)
+    blob3_y = np.random.normal(loc=0.9, scale=0.1, size=size_blob3)
+    blob3 = np.concatenate((blob3_x, blob3_y), axis=1)
+
+    all_blobs = np.concatenate((blob1, blob2, blob3), axis=0)
+    return all_blobs
+
+def point_of_interest():
+    """
+    Returns the point of interest
+    """
+    point = np.array([0.6,0.75])
+    return point
+
+def training_set():
+    """
+    Returns the training dataset
+    """
+    class0 = class_0_points()
+    class1 = class_1_points()
+    target0, target1 = np.zeros(class0.shape[0]), np.ones(class1.shape[0])
+    X = np.concatenate((class0, class1), axis=0)
+    Y = np.concatenate((target0, target1), axis=0)
+    return X, Y
+
+def train_model(X, Y, seed):
+    """
+    Trains a simple Neural Network model to obtain a classifier distinguishing between the two classes 
+    """
+    np.random.seed(seed)
+    f = MLPClassifier([5, 10, 20, 10, 5], activation='logistic', solver='adam')
+    f.fit(X, Y)
+    return f
+
+def store_training_set():
+    """
+    Stores the dataset created
+    """
+    X, Y = training_set()
+    df = pd.DataFrame(data=X, columns=['x','y'])
+    df['label'] = Y
+    df.to_csv(f'{dataset_dir}synthetic_2d/synthetic_2d.csv')
+    print('Dataset created')
+
+def plot_dataset(f, X, Y, ioi):
+    """
+    Plots the 2D dataset
+    """
+    fig_2d, ax_2d = plt.subplots(figsize=(2, 2))
+    N = 1000
+    all_x = np.linspace(0, 1, N)
+    all_y = np.linspace(0, 1, N)
+    mesh = np.meshgrid(all_x, all_y)
+    all_y = f.predict(mesh)
+    X_label1 = X[np.where(Y == 1)[0]]
+    Y_label1 = Y[np.where(Y == 1)[0]]
+
+    ax_2d.scatter(mesh[:,0], mesh[:,1], s=10, c=all_y, cmap=color_cmap)
+    ax_2d.scatter(X_label1[:,0], X_label1[:,1], s=10, c=Y_label1, cmap=color_cmap, linewidths=0.4, edgecolors='blue')
+    ax_2d.scatter(ioi[0], ioi[1], s=16, c='red', marker='x')
+    fig_2d.subplots_adjust(left=0.05, bottom=0.01, right=0.99, top=0.95, wspace=0.02, hspace=0.0)
+    fig_2d.savefig(f'{results_cf_plots_dir}2d_{idx}.pdf')
+
+# datasets = ['adult','kdd_census','diabetes','oulad',] # ,'adult','kdd_census','diabetes','oulad','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_disease'
+# distance_type = ['L1_L0','L1_L0_L_inf','prob']
+
+# for data_str in datasets:
+#     data = load_dataset(data_str, train_fraction, seed_int, step)
+#     idx_counterfactuals = get_idx_cf(data)
+#     save_obj(idx_counterfactuals, results_k_definition, f'idx_counterfactuals_{data_str}')
+#     for type in distance_type:
+#         dist = calculate_cf_train_distance_matrix(data, idx_counterfactuals, type)
+#         save_obj(dist, results_k_definition, f'dist_matrix_{data_str}_{type}')
+#         print(f'Dataset: {data_str}, Distance: {type}, Total instances: {data.train_target[np.where(data.train_target == 1 - data.undesired_class)[0]].shape[0]}')
 
 
 # for data_str in datasets:
@@ -65,3 +187,8 @@ for data_str in datasets:
 #             suggested_k = len(outliers) + 1
 #             pandas_results_type.loc[type, neighbors] = suggested_k
 #     pandas_results_type.to_csv(results_k_definition+'k_definition.csv')
+
+
+
+
+
