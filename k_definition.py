@@ -4,7 +4,7 @@ from sklearn.neighbors import LocalOutlierFactor
 from evaluator_constructor import distance_calculation
 from data_constructor import load_dataset
 from main import train_fraction, seed_int, step
-from address import results_k_definition, dataset_dir, save_obj, load_obj
+from address import results_k_definition, results_plots, dataset_dir, save_obj, load_obj
 from sklearn.neural_network import MLPClassifier 
 import matplotlib
 matplotlib.rcParams['mathtext.fontset'] = 'stix'
@@ -15,6 +15,7 @@ import matplotlib.patches as mpatches
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.ticker import LinearLocator
 import seaborn as sns
+from main import seed_int
 color_cmap=sns.diverging_palette(30, 250, l=65, center="dark", as_cmap=True)
 
 def get_idx_cf(data):
@@ -160,7 +161,12 @@ def plot_dataset(f, X, Y, ioi):
     ax_2d.scatter(X_label1[:,0], X_label1[:,1], s=10, c=Y_label1, cmap=color_cmap, linewidths=0.4, edgecolors='blue')
     ax_2d.scatter(ioi[0], ioi[1], s=16, c='red', marker='x')
     fig_2d.subplots_adjust(left=0.05, bottom=0.01, right=0.99, top=0.95, wspace=0.02, hspace=0.0)
-    fig_2d.savefig(f'{results_cf_plots_dir}2d_{idx}.pdf')
+    fig_2d.savefig(f'{results_plots}synthetic_2d.pdf')
+
+X, Y = training_set(seed_int)
+f = train_model(X, Y, seed_int)
+ioi = point_of_interest()
+plot_dataset(f, X, Y, ioi)
 
 # datasets = ['adult','kdd_census','diabetes','oulad',] # ,'adult','kdd_census','diabetes','oulad','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_disease'
 # distance_type = ['L1_L0','L1_L0_L_inf','prob']
