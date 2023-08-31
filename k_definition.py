@@ -79,7 +79,9 @@ def class_0_points():
     square4x, square4y = np.meshgrid(square4x_coord, square4y_coord)
     square4 = np.vstack([square4x.ravel(), square4y.ravel()]).T
 
-    all_squares = np.concatenate((square1, square2, square3, square4), axis=0)
+    square5 = np.array([[0.4,0.8], [0.4,0.9], [0.4,1.0], [0.5,0.8], [0.5,0.9], [0.5,1.0]])
+
+    all_squares = np.concatenate((square1, square2, square3, square4, square5), axis=0)
     return all_squares
 
 def class_1_points(seed):
@@ -88,20 +90,20 @@ def class_1_points(seed):
     """
     np.random.seed(seed)
 
-    size_blob1 = 3
+    size_blob1 = 2
     size_blob2 = 5
-    size_blob3 = 100
+    size_blob3 = 50
 
-    blob1_x = np.random.normal(loc=0.7, scale=0.1, size=size_blob1)
-    blob1_y = np.random.normal(loc=0.9, scale=0.1, size=size_blob1)
+    blob1_x = np.random.normal(loc=0.8, scale=0.01, size=(size_blob1, 1))
+    blob1_y = np.random.normal(loc=0.9, scale=0.01, size=(size_blob1, 1))
     blob1 = np.concatenate((blob1_x, blob1_y), axis=1)
 
-    blob2_x = np.random.normal(loc=0.3, scale=0.1, size=size_blob2)
-    blob2_y = np.random.normal(loc=0.9, scale=0.1, size=size_blob2)
+    blob2_x = np.random.normal(loc=0.3, scale=0.05, size=(size_blob2, 1))
+    blob2_y = np.random.normal(loc=0.9, scale=0.05, size=(size_blob2, 1))
     blob2 = np.concatenate((blob2_x, blob2_y), axis=1)
     
-    blob3_x = np.random.normal(loc=0.3, scale=0.1, size=size_blob3)
-    blob3_y = np.random.normal(loc=0.9, scale=0.1, size=size_blob3)
+    blob3_x = np.random.normal(loc=0.8, scale=0.05, size=(size_blob3, 1))
+    blob3_y = np.random.normal(loc=0.2, scale=0.05, size=(size_blob3, 1))
     blob3 = np.concatenate((blob3_x, blob3_y), axis=1)
 
     all_blobs = np.concatenate((blob1, blob2, blob3), axis=0)
@@ -111,15 +113,15 @@ def point_of_interest():
     """
     Returns the point of interest
     """
-    point = np.array([0.6,0.75])
+    point = np.array([0.6,0.8])
     return point
 
-def training_set():
+def training_set(seed):
     """
     Returns the training dataset
     """
     class0 = class_0_points()
-    class1 = class_1_points()
+    class1 = class_1_points(seed)
     target0, target1 = np.zeros(class0.shape[0]), np.ones(class1.shape[0])
     X = np.concatenate((class0, class1), axis=0)
     Y = np.concatenate((target0, target1), axis=0)
@@ -130,15 +132,16 @@ def train_model(X, Y, seed):
     Trains a simple Neural Network model to obtain a classifier distinguishing between the two classes 
     """
     np.random.seed(seed)
-    f = MLPClassifier([5, 10, 20, 10, 5], activation='logistic', solver='adam')
+    f = MLPClassifier([100, 200, 500, 200, 100], activation='tanh', solver='adam')
     f.fit(X, Y)
+    print(f'Accuracy of model: {f.score(X, Y)}')
     return f
 
-def store_training_set():
+def store_training_set(seed):
     """
     Stores the dataset created
     """
-    X, Y = training_set()
+    X, Y = training_set(seed)
     df = pd.DataFrame(data=X, columns=['x','y'])
     df['label'] = Y
     df.to_csv(f'{dataset_dir}synthetic_2d/synthetic_2d.csv')
@@ -149,20 +152,34 @@ def plot_dataset(f, X, Y, ioi):
     Plots the 2D dataset
     """
     fig_2d, ax_2d = plt.subplots(figsize=(2, 2))
-    N = 1000
-    all_x = np.linspace(0, 1, N)
-    all_y = np.linspace(0, 1, N)
-    mesh = np.meshgrid(all_x, all_y)
+    N = 100
+    all_x = np.linspace(min(X[:,0]), max(X[:,0]), N)
+    all_y = np.linspace(min(X[:,1]), max(X[:,1]), N)
+    x_grid, y_grid = np.meshgrid(all_x, all_y)
+    mesh = np.vstack((x_grid.ravel(), y_grid.ravel())).T
     all_y = f.predict(mesh)
     X_label1 = X[np.where(Y == 1)[0]]
     Y_label1 = Y[np.where(Y == 1)[0]]
 
     ax_2d.scatter(mesh[:,0], mesh[:,1], s=10, c=all_y, cmap=color_cmap)
-    ax_2d.scatter(X_label1[:,0], X_label1[:,1], s=10, c=Y_label1, cmap=color_cmap, linewidths=0.4, edgecolors='blue')
+    ax_2d.scatter(X_label1[:,0], X_label1[:,1], s=10, c='blue', linewidths=0.5, edgecolors='green')
     ax_2d.scatter(ioi[0], ioi[1], s=16, c='red', marker='x')
+    ax_2d.set_xlim((min(X[:,0]), max(X[:,0])))
+    ax_2d.set_ylim((min(X[:,1]), max(X[:,1])))
+    ax_2d.axes.xaxis.set_visible(True)
+    
+    ax_2d.plot(0.9, 0.95, marker='${}$'.format(1), markersize=8, markeredgecolor='black', markeredgewidth=0.2, label=1, color='black')
+    ax_2d.plot(0.2, 0.95, marker='${}$'.format(2), markersize=8, markeredgecolor='black', markeredgewidth=0.2, label=1, color='black')
+    ax_2d.plot(0.925, 0.4, marker='${}$'.format(3), markersize=8, markeredgecolor='black', markeredgewidth=0.2, label=1, color='black')
+
+    ax_2d.xaxis.set_ticks(ticks=np.arange(0, 1.1, 0.1), labels=['0','','','','','0.5','','','','','1'])
+    ax_2d.yaxis.set_ticks(ticks=np.arange(0, 1.1, 0.1), labels=['0','','','','','0.5','','','','','1'])
     fig_2d.subplots_adjust(left=0.05, bottom=0.01, right=0.99, top=0.95, wspace=0.02, hspace=0.0)
+    fig_2d.tight_layout()
     fig_2d.savefig(f'{results_plots}synthetic_2d.pdf')
 
+
+store_training_set(seed_int)
 X, Y = training_set(seed_int)
 f = train_model(X, Y, seed_int)
 ioi = point_of_interest()
