@@ -886,13 +886,13 @@ def load_dataset(data_str, train_fraction, seed, step):
         df = pd.read_csv(dataset_dir+'synthetic_disease/preprocessed_synthetic_disease.csv', index_col=0)
 
     elif data_str == 'synthetic_2d':
-        binary = ['Smokes']
-        categorical = ['Diet','Stress']
-        ordinal = ['Weight']
-        continuous = ['Age','ExerciseMinutes','SleepHours']
-        input_cols = binary + categorical + ordinal + continuous
-        label = ['Label']
-        df = pd.read_csv(dataset_dir+'synthetic_disease/preprocessed_synthetic_disease.csv', index_col=0)
+        binary = []
+        categorical = []
+        ordinal = []
+        continuous = ['x','y']
+        input_cols = continuous
+        label = ['label']
+        df = pd.read_csv(dataset_dir+'synthetic_2d/synthetic_2d.csv', index_col=0)
 
     data_obj = Dataset(data_str, seed, train_fraction, label, df,
                    binary, categorical, ordinal, continuous, step)

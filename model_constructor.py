@@ -17,7 +17,7 @@ class Model:
         """
         if data_str in ['bank','ionosphere','german','dutch','kdd_census','student','heart']:
             best = 'rf'
-        elif data_str in ['adult','compass','credit','diabetes','german','law','oulad','synthetic_athlete','synthetic_disease']:
+        elif data_str in ['adult','compass','credit','diabetes','german','law','oulad','synthetic_athlete','synthetic_disease','synthetic_2d']:
             best = 'mlp'
         params_best = ast.literal_eval(grid_search_pd.loc[(data_str, best), 'params'])[0]
         params_rf = ast.literal_eval(grid_search_pd.loc[(data_str, 'rf'), 'params'])[0]

@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 from sklearn.neighbors import LocalOutlierFactor
 from evaluator_constructor import distance_calculation
-from data_constructor import load_dataset
 from main import train_fraction, seed_int, step
 from address import results_k_definition, results_plots, dataset_dir, save_obj, load_obj
 from sklearn.neural_network import MLPClassifier 
@@ -15,6 +14,11 @@ import matplotlib.patches as mpatches
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.ticker import LinearLocator
 import seaborn as sns
+from data_constructor import load_dataset
+from model_constructor import Model
+from ioi_constructor import IOI
+from counterfactual_constructor import Counterfactual
+from evaluator_constructor import Evaluator
 from main import seed_int
 color_cmap=sns.diverging_palette(30, 250, l=65, center="dark", as_cmap=True)
 
@@ -178,9 +182,26 @@ def plot_dataset(f, X, Y, ioi):
     fig_2d.tight_layout()
     fig_2d.savefig(f'{results_plots}synthetic_2d.pdf')
 
+def ijuice_varying_k(k_list):
+    t = 100
+    data_str = 'synthetic_2d'
+    method_str = 'ijuice'
+    distance = 'euclidean'
+    lagrange = 0.5
+    data = load_dataset(data_str, train_fraction, seed_int, step)
+    model = Model(data)
+    data.undesired_test(model)
+    eval = Evaluator(data, method_str, distance, lagrange)
+    idx = point_of_interest()
+    ioi = IOI(idx, data, model, distance)
+    for k in k_list:
+        cf_gen = Counterfactual(data, model, method_str, ioi, distance, lagrange, t=t, k=k)
+        eval.add_specific_x_data(cf_gen)
+        print(f'Data {data_str.capitalize()} | Method {method_str.capitalize()} | Type {distance.capitalize()} | lagrange {str(lagrange)} | Instance {ins+1}')
+        save_obj(eval, results_k_definition, f'{data_str}_{method_str}_{distance}_{str(lagrange)}_k_{k}.pkl')
 
-
-
+range_k_values = range(2, 31)
+ijuice_varying_k(range_k_values)
 
 # store_training_set(seed_int)
 # X, Y = training_set(seed_int)
