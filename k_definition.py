@@ -179,11 +179,14 @@ def plot_dataset(f, X, Y, ioi):
     fig_2d.savefig(f'{results_plots}synthetic_2d.pdf')
 
 
-store_training_set(seed_int)
-X, Y = training_set(seed_int)
-f = train_model(X, Y, seed_int)
-ioi = point_of_interest()
-plot_dataset(f, X, Y, ioi)
+
+
+
+# store_training_set(seed_int)
+# X, Y = training_set(seed_int)
+# f = train_model(X, Y, seed_int)
+# ioi = point_of_interest()
+# plot_dataset(f, X, Y, ioi)
 
 # datasets = ['adult','kdd_census','diabetes','oulad',] # ,'adult','kdd_census','diabetes','oulad','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_disease'
 # distance_type = ['L1_L0','L1_L0_L_inf','prob']

@@ -641,6 +641,9 @@ class Dataset:
                     feat_cat.loc[i] = 'cat_1'
                 elif 'Stress' in i:
                     feat_cat.loc[i] = 'cat_2'
+        elif self.name == 'synthetic_2d':
+            for i in feat_list:
+                feat_cat[i] = 'non'
         return feat_cat
 
     def idx_cat_columns(self):
@@ -874,6 +877,15 @@ def load_dataset(data_str, train_fraction, seed, step):
         df = pd.read_csv(dataset_dir+'synthetic_athlete/preprocessed_synthetic_athlete.csv', index_col=0)
     
     elif data_str == 'synthetic_disease':
+        binary = ['Smokes']
+        categorical = ['Diet','Stress']
+        ordinal = ['Weight']
+        continuous = ['Age','ExerciseMinutes','SleepHours']
+        input_cols = binary + categorical + ordinal + continuous
+        label = ['Label']
+        df = pd.read_csv(dataset_dir+'synthetic_disease/preprocessed_synthetic_disease.csv', index_col=0)
+
+    elif data_str == 'synthetic_2d':
         binary = ['Smokes']
         categorical = ['Diet','Stress']
         ordinal = ['Weight']
