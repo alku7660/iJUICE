@@ -99,7 +99,7 @@ class Dataset:
         """
         if self.name in ['compass','credit','german','heart','synthetic_disease','diabetes']:
             undesired_class = 1
-        elif self.name in ['ionosphere','adult','kdd_census','dutch','bank','synthetic_athlete','student','oulad','law']:
+        elif self.name in ['ionosphere','adult','kdd_census','dutch','bank','synthetic_athlete','student','oulad','law','synthetic_2d']:
             undesired_class = 0
         return undesired_class
     
@@ -240,6 +240,9 @@ class Dataset:
                     feat_type.loc[i] = 'ord'
                 elif 'Age' in i or 'ExerciseMinutes' in i or 'SleepHours' in i:
                     feat_type.loc[i] = 'cont'
+        elif self.name == 'synthetic_2d':
+            for i in feat_list:
+                feat_type.loc[i] = 'cont'
         return feat_type
 
     def define_feat_mutability(self):
@@ -333,6 +336,9 @@ class Dataset:
                 else:
                     feat_mutable[i] = 1
         elif self.name == 'synthetic_disease':
+            for i in feat_list:
+                feat_mutable[i] = 1
+        elif self.name == 'synthetic_2d':
             for i in feat_list:
                 feat_mutable[i] = 1
         return feat_mutable
@@ -458,6 +464,9 @@ class Dataset:
                     feat_directionality[i] = 'pos'
                 elif 'ExerciseMinutes' in i or 'SleepHours' in i or 'Weight' in i or 'Diet' in i or 'Stress' in i or 'Smokes' in i:
                     feat_directionality[i] = 'any'
+        elif self.name == 'synthetic_2d':
+            for i in feat_list:
+                feat_directionality[i] = 'any'
         return feat_directionality
 
     def define_feat_step(self):
