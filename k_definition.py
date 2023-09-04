@@ -191,7 +191,7 @@ def ijuice_varying_k(k_list):
     data_str = 'synthetic_2d'
     method_str = 'ijuice'
     distance = 'euclidean'
-    lagrange = 0.1
+    lagrange = 0.01
     data = load_dataset(data_str, train_fraction, seed_int, step)
     model = Model(data)
     data.undesired_test(model)

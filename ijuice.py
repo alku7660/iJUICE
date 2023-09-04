@@ -355,7 +355,7 @@ class IJUICE:
             OPTIMIZATION AND RESULTS
             """
             opt_model.optimize()
-            time.sleep(0.5)
+            time.sleep(0.25)
             if opt_model.status == 3 or len(self.all_nodes) == len(self.potential_justifiers):
                 sol_x, justifiers = unfeasible_case(self)
             else:
@@ -369,7 +369,7 @@ class IJUICE:
                     if source[i].x > 0.1:
                         justifiers.append(i)
                 print(f'Number of justifiers: {len(justifiers)}')
-                time.sleep(0.5)
+                time.sleep(0.25)
                 for i in self.C.keys():
                     if cf[i].x > 0.1:
                         print(f'cf({i}): {cf[i].x}')
@@ -377,7 +377,7 @@ class IJUICE:
                         print(f'Original IOI: {self.normal_ioi}')
                         print(f'Euclidean Distance: {np.round(np.sqrt(np.sum((self.all_nodes[i - 1] - self.normal_ioi)**2)),3)}')
                         cf_node_idx = i
-                time.sleep(0.5)
+                time.sleep(0.25)
                 for i in justifiers:
                     path = []
                     print(f'Source {i} Path to CF: {output_path(i, cf_node_idx, path=path)}')
