@@ -98,12 +98,12 @@ def class_1_points(seed):
     size_blob2 = 5
     size_blob3 = 50
 
-    blob1_x = np.random.normal(loc=0.8, scale=0.01, size=(size_blob1, 1))
-    blob1_y = np.random.normal(loc=0.9, scale=0.01, size=(size_blob1, 1))
+    blob1_x = np.random.normal(loc=0.8, scale=0.02, size=(size_blob1, 1))
+    blob1_y = np.random.normal(loc=0.9, scale=0.02, size=(size_blob1, 1))
     blob1 = np.concatenate((blob1_x, blob1_y), axis=1)
 
-    blob2_x = np.random.normal(loc=0.3, scale=0.05, size=(size_blob2, 1))
-    blob2_y = np.random.normal(loc=0.9, scale=0.05, size=(size_blob2, 1))
+    blob2_x = np.random.normal(loc=0.3, scale=0.02, size=(size_blob2, 1))
+    blob2_y = np.random.normal(loc=0.9, scale=0.02, size=(size_blob2, 1))
     blob2 = np.concatenate((blob2_x, blob2_y), axis=1)
     
     blob3_x = np.random.normal(loc=0.8, scale=0.05, size=(size_blob3, 1))
