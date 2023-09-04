@@ -56,11 +56,14 @@ class IJUICE:
         Method that gets the list of training observations labeled as cf-label with respect to the cf, ordered based on graph nodes size
         """
         permutations_potential_justifiers = []
-        for i in range(len(self.potential_justifiers)):
-            possible_feat_values_justifier_i = self.get_feat_possible_values(counterfactual.data, obj=self.normal_ioi, points=[self.potential_justifiers[i]])[0]
-            len_permutations = len(list(product(*possible_feat_values_justifier_i)))
-            permutations_potential_justifiers.append((self.potential_justifiers[i], len_permutations))
+        # for i in range(len(self.potential_justifiers)):
+        #     possible_feat_values_justifier_i = self.get_feat_possible_values(counterfactual.data, obj=self.normal_ioi, points=[self.potential_justifiers[i]])[0]
+        #     len_permutations = len(list(product(*possible_feat_values_justifier_i)))
+        #     permutations_potential_justifiers.append((self.potential_justifiers[i], len_permutations))
             # print(f'Justifier {i+1}: Length permutations: {len_permutations}')
+        for i in range(len(self.potential_justifiers)):
+            distance_i = distance_calculation(self.normal_ioi, self.potential_justifiers[i], counterfactual.data)
+            permutations_potential_justifiers.append((self.potential_justifiers[i], distance_i))
         permutations_potential_justifiers.sort(key=lambda x: x[1])
         permutations_potential_justifiers = [i[0] for i in permutations_potential_justifiers]
         if len(permutations_potential_justifiers) > self.k:

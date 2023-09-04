@@ -13,14 +13,14 @@ plt.rcParams.update({'font.size': 10})
 import matplotlib.patches as mpatches
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.ticker import LinearLocator
-import seaborn as sns
+# import seaborn as sns
 from data_constructor import load_dataset
 from model_constructor import Model
 from ioi_constructor import IOI
 from counterfactual_constructor import Counterfactual
 from evaluator_constructor import Evaluator
 from main import seed_int
-color_cmap=sns.diverging_palette(30, 250, l=65, center="dark", as_cmap=True)
+# color_cmap=sns.diverging_palette(30, 250, l=65, center="dark", as_cmap=True)
 
 def get_idx_cf(data):
     """
