@@ -191,17 +191,22 @@ def ijuice_varying_k(k_list):
     data_str = 'synthetic_2d'
     method_str = 'ijuice'
     distance = 'euclidean'
-    lagrange = 0.5
+    lagrange = 0.1
     data = load_dataset(data_str, train_fraction, seed_int, step)
     model = Model(data)
     data.undesired_test(model)
     eval = Evaluator(data, method_str, distance, lagrange)
     idx = 150
     ioi = IOI(idx, data, model, distance)
+    f = model.model
+    x = ioi.x
+    X, Y = data.transformed_train_np, data.train_target
+    plot_dataset(f, X, Y, x)
+    
     for k in k_list:
         cf_gen = Counterfactual(data, model, method_str, ioi, distance, lagrange, t=t, k=k)
         eval.add_specific_x_data(cf_gen)
-        print(f'Data {data_str.capitalize()} | Method {method_str.capitalize()} | Type {distance.capitalize()} | lagrange {str(lagrange)} | Instance {ins+1}')
+        print(f'Data {data_str.capitalize()} | Method {method_str.capitalize()} | Type {distance.capitalize()} | lagrange {str(lagrange)} | K number {k} | Proximity (distance) {eval.proximity_dict[idx]}')
         save_obj(eval, results_k_definition, f'{data_str}_{method_str}_{distance}_{str(lagrange)}_k_{k}.pkl')
 
 range_k_values = range(2, 31)

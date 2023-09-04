@@ -168,8 +168,7 @@ def distance_calculation(x, y, data, type='euclidean'):
     elif type == 'prob':
         distance = max_percentile_shift(x_original, y_original, data)
     elif type == 'sparsity':
-        L1_distance, L0_distance = L1_L0(x, y, x_original, y_original, data)
-        distance = L0_distance
+        distance = L0(x_original, y_original)
     return distance
 
 def verify_feasibility(x, cf, data):
