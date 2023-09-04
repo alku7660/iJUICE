@@ -13,14 +13,14 @@ plt.rcParams.update({'font.size': 10})
 import matplotlib.patches as mpatches
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.ticker import LinearLocator
-# import seaborn as sns
+import seaborn as sns
 from data_constructor import load_dataset
 from model_constructor import Model
 from ioi_constructor import IOI
 from counterfactual_constructor import Counterfactual
 from evaluator_constructor import Evaluator
 from main import seed_int
-# color_cmap=sns.diverging_palette(30, 250, l=65, center="dark", as_cmap=True)
+color_cmap=sns.diverging_palette(30, 250, l=65, center="dark", as_cmap=True)
 
 def get_idx_cf(data):
     """
@@ -117,7 +117,7 @@ def point_of_interest():
     """
     Returns the point of interest
     """
-    point = np.array([0.6,0.8])
+    point = np.array([0.65,0.85])
     return point
 
 def training_set(seed):
@@ -199,9 +199,9 @@ def ijuice_varying_k(k_list):
     idx = 150
     ioi = IOI(idx, data, model, distance)
     f = model.model
-    x = ioi.x
+    x = ioi.x[0]
     X, Y = data.transformed_train_np, data.train_target
-    plot_dataset(f, X, Y, x)
+    # plot_dataset(f, X, Y, x)
     
     for k in k_list:
         cf_gen = Counterfactual(data, model, method_str, ioi, distance, lagrange, t=t, k=k)
