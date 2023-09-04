@@ -204,10 +204,10 @@ def ijuice_varying_k(k_list):
         print(f'Data {data_str.capitalize()} | Method {method_str.capitalize()} | Type {distance.capitalize()} | lagrange {str(lagrange)} | Instance {ins+1}')
         save_obj(eval, results_k_definition, f'{data_str}_{method_str}_{distance}_{str(lagrange)}_k_{k}.pkl')
 
-# range_k_values = range(2, 31)
-# ijuice_varying_k(range_k_values)
+range_k_values = range(2, 31)
+ijuice_varying_k(range_k_values)
 
-store_data_set(seed_int)
+# store_data_set(seed_int)
 # X, Y = training_set(seed_int)
 # f = train_model(X, Y, seed_int)
 # ioi = point_of_interest()

@@ -23,8 +23,11 @@ class Dataset:
         self.features = binary + categorical + ordinal + continuous
         self.df = df[self.features + self.label_name]
         self.step = step
-        self.train_df, self.test_df, self.train_target, self.test_target = train_test_split(self.df, self.df[self.label_name], train_size=self.train_fraction, random_state=self.seed)
-        self.train_df, self.train_target = self.balance_train_data()
+        if data_str != 'synthetic_2d':
+            self.train_df, self.test_df, self.train_target, self.test_target = train_test_split(self.df, self.df[self.label_name], train_size=self.train_fraction, random_state=self.seed)
+            self.train_df, self.train_target = self.balance_train_data()
+        else:
+            self.train_df, self.test_df, self.train_target, self.test_target = df.iloc[:df.shape[0]-1,:-1], df.iloc[-1,:-1], df.iloc[:df.shape[0]-1,-1], df.iloc[-1,-1] 
         self.bin_enc, self.cat_enc, self.bin_cat_enc, self.scaler = self.encoder_scaler_fit()
         self.bin_enc_cols, self.cat_enc_cols, self.bin_cat_enc_cols = self.encoder_scaler_cols()
         self.processed_features = list(self.bin_enc_cols) + list(self.cat_enc_cols) + self.ordinal + self.continuous
