@@ -13,14 +13,14 @@ plt.rcParams.update({'font.size': 10})
 import matplotlib.patches as mpatches
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.ticker import LinearLocator
-import seaborn as sns
+# import seaborn as sns
 from data_constructor import load_dataset
 from model_constructor import Model
 from ioi_constructor import IOI
 from counterfactual_constructor import Counterfactual
 from evaluator_constructor import Evaluator
 from main import seed_int
-color_cmap=sns.diverging_palette(30, 250, l=65, center="dark", as_cmap=True)
+# color_cmap=sns.diverging_palette(30, 250, l=65, center="dark", as_cmap=True)
 
 def get_idx_cf(data):
     """
@@ -141,11 +141,15 @@ def train_model(X, Y, seed):
     print(f'Accuracy of model: {f.score(X, Y)}')
     return f
 
-def store_training_set(seed):
+def store_data_set(seed):
     """
     Stores the dataset created
     """
     X, Y = training_set(seed)
+    ioi = point_of_interest().reshape(1, 2)
+    ioi_label = np.array([0])
+    X = np.concatenate((X, ioi), axis=0)
+    Y = np.concatenate((Y, ioi_label), axis=0)
     df = pd.DataFrame(data=X, columns=['x','y'])
     df['label'] = Y
     df.to_csv(f'{dataset_dir}synthetic_2d/synthetic_2d.csv')
@@ -200,10 +204,10 @@ def ijuice_varying_k(k_list):
         print(f'Data {data_str.capitalize()} | Method {method_str.capitalize()} | Type {distance.capitalize()} | lagrange {str(lagrange)} | Instance {ins+1}')
         save_obj(eval, results_k_definition, f'{data_str}_{method_str}_{distance}_{str(lagrange)}_k_{k}.pkl')
 
-range_k_values = range(2, 31)
-ijuice_varying_k(range_k_values)
+# range_k_values = range(2, 31)
+# ijuice_varying_k(range_k_values)
 
-# store_training_set(seed_int)
+store_data_set(seed_int)
 # X, Y = training_set(seed_int)
 # f = train_model(X, Y, seed_int)
 # ioi = point_of_interest()
