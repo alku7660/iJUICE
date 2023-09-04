@@ -1,5 +1,6 @@
 dataset,model,params,score
 synthetic_2d,mlp,"[{'activation': 'tanh', 'hidden_layer_sizes': (100, 200, 500, 200, 100), 'solver': 'adam'}]",1.000000000
+synthetic_2d,rf,"[{'max_depth': 10, 'min_samples_leaf': 5, 'min_samples_split': 2, 'n_estimators': 200}]",1.000000000
 synthetic_disease,mlp,"[{'activation': 'relu', 'hidden_layer_sizes': (20, 20, 10), 'solver': 'adam'}]",0.776095947
 synthetic_disease,rf,"[{'max_depth': 10, 'min_samples_leaf': 5, 'min_samples_split': 2, 'n_estimators': 200}]",0.776079404
 synthetic_athlete,mlp,"[{'activation': 'tanh', 'hidden_layer_sizes': (20, 50, 10), 'solver': 'sgd'}]",0.713584627
