@@ -196,7 +196,7 @@ def ijuice_varying_k(k_list):
     model = Model(data)
     data.undesired_test(model)
     eval = Evaluator(data, method_str, distance, lagrange)
-    idx = point_of_interest()
+    idx = 150
     ioi = IOI(idx, data, model, distance)
     for k in k_list:
         cf_gen = Counterfactual(data, model, method_str, ioi, distance, lagrange, t=t, k=k)

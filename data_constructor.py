@@ -27,7 +27,7 @@ class Dataset:
             self.train_df, self.test_df, self.train_target, self.test_target = train_test_split(self.df, self.df[self.label_name], train_size=self.train_fraction, random_state=self.seed)
             self.train_df, self.train_target = self.balance_train_data()
         else:
-            self.train_df, self.test_df, self.train_target, self.test_target = df.iloc[:df.shape[0]-1,:-1], df.iloc[-1,:-1], df.iloc[:df.shape[0]-1,-1], df.iloc[-1,-1] 
+            self.train_df, self.test_df, self.train_target, self.test_target = df.iloc[:df.shape[0]-1,:-1], df.iloc[-1,:-1].to_frame().T, df.iloc[:df.shape[0]-1,-1], df.iloc[-1,-1]
         self.bin_enc, self.cat_enc, self.bin_cat_enc, self.scaler = self.encoder_scaler_fit()
         self.bin_enc_cols, self.cat_enc_cols, self.bin_cat_enc_cols = self.encoder_scaler_cols()
         self.processed_features = list(self.bin_enc_cols) + list(self.cat_enc_cols) + self.ordinal + self.continuous
@@ -687,6 +687,10 @@ class Dataset:
         """
         Method that changes the targets to numpy if they are dataframes
         """
+        if isinstance(self.train_target, float):
+            train_target = np.array([self.train_target])
+        if isinstance(self.test_target, float):
+            test_target = np.array([self.test_target])
         if isinstance(self.train_target, pd.Series) or isinstance(self.train_target, pd.DataFrame):
             train_target = self.train_target.to_numpy().reshape((len(self.train_target.to_numpy()),))
         if isinstance(self.test_target, pd.Series) or isinstance(self.test_target, pd.DataFrame):
