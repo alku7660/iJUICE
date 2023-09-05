@@ -203,7 +203,7 @@ def plot_k_definition(data_str, distance, range_k):
     Plots the results of the definition of K for the synthetic 2d dataset
     """
     method_str = 'ijuice'
-    lagrange = 0.1
+    lagrange = 0.01
     proximity = []
     justifier_ratio = []
     for k in range_k:

@@ -209,7 +209,7 @@ def ijuice_varying_k(idx, data_str, distance, k_list):
 idx = 150 # 150 for synthetic_2d, 0 for the others
 data_str = 'synthetic_2d' # 'synthetic_2d', 'dutch', 'diabetes', 'oulad', 'athlete'
 distance = 'euclidean' # 'euclidean', 'L1_L0'
-range_k_values = range(1, 51) # 'range(1, 58)', 'range(1, 21)' 
+range_k_values = range(51, 58) # 'range(1, 58)', 'range(1, 21)' 
 ijuice_varying_k(idx, data_str, distance, range_k_values)
 
 # store_data_set(seed_int)
