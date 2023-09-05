@@ -378,8 +378,10 @@ def verify_justification(cf, counterfactual):
         A = tuplelist()
         for i in range(1, len(all_nodes) + 1):
             node_i = all_nodes[i - 1]
-            for j in range(i + 1, len(all_nodes) + 1):
+            for j in range(1, len(all_nodes) + 1):
                 node_j = all_nodes[j - 1]
+                if np.array_equal(node_i, node_j):
+                    continue
                 vector_ij = node_j - node_i
                 nonzero_index = list(np.nonzero(vector_ij)[0])
                 feat_nonzero = [data.processed_features[l] for l in nonzero_index]
