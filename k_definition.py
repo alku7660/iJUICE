@@ -206,10 +206,10 @@ def ijuice_varying_k(idx, data_str, distance, k_list):
         print(f'Data {data_str.capitalize()} | Method {method_str.capitalize()} | Type {distance.capitalize()} | lagrange {str(lagrange)} | K number {k} | Proximity (distance) {eval.proximity_dict[idx]}')
         save_obj(eval, results_k_definition, f'{data_str}_{method_str}_{distance}_{str(lagrange)}_k_{k}.pkl')
 
-idx = 150 # 150 for synthetic_2d, 0 for the others
-data_str = 'synthetic_2d' # 'synthetic_2d', 'dutch', 'diabetes', 'oulad', 'athlete'
-distance = 'euclidean' # 'euclidean', 'L1_L0'
-range_k_values = range(51, 58) # 'range(1, 58)', 'range(1, 21)' 
+idx = 0 # 150 for synthetic_2d, 0 for the others
+data_str = 'dutch' # 'synthetic_2d', 'dutch', 'diabetes', 'oulad', 'athlete'
+distance = 'L1_L0' # 'euclidean', 'L1_L0'
+range_k_values = range(1, 21) # 'range(1, 58)', 'range(1, 21)' 
 ijuice_varying_k(idx, data_str, distance, range_k_values)
 
 # store_data_set(seed_int)
