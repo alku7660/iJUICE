@@ -14,7 +14,7 @@ import matplotlib.patches as mpatches
 from matplotlib.ticker import FormatStrFormatter
 from data_constructor import load_dataset
 # from autorank import autorank, plot_stats
-from address import results_plots, load_obj
+from address import results_plots, load_obj, results_k_definition
 from model_constructor import Model
 from evaluator_constructor import distance_calculation, verify_feasibility
 from itertools import product
@@ -198,6 +198,37 @@ def ablation_lagrange_plot():
     fig.subplots_adjust(left=0.09, bottom=0.1, right=0.875, top=0.9, wspace=0.475, hspace=0.2)
     fig.savefig(f'{results_plots}lagrange_ablation_plot.pdf')
 
+def plot_k_definition_synthetic_2d(data_str, range_k):
+    """
+    Plots the results of the definition of K for the synthetic 2d dataset
+    """
+    method_str = 'ijuice'
+    distance = 'euclidean'
+    lagrange = 0.1
+    proximity = []
+    justifier_ratio = []
+    for k in range_k:
+        eval = load_obj(f'{data_str}_{method_str}_{distance}_{str(lagrange)}_k_{k}.pkl', results_k_definition)
+        proximities = [eval.proximity_dict[idx][distance] for idx in eval.proximity_dict.keys()]
+        mean_proximity = np.mean(proximities)
+        justifier_ratio_mean = np.mean(list(eval.justifier_ratio.values()))
+        proximity.append(mean_proximity)
+        justifier_ratio.append(justifier_ratio_mean)
+    fig, ax = plt.subplots()
+    ax.plot(range_k, justifier_ratio)
+    secax = ax.twinx()
+    secax.plot(range_k, proximity, color='#BF616A')
+    ax.yaxis.set_tick_params(labelcolor='#5E81AC')
+    secax.yaxis.set_tick_params(labelcolor='#BF616A')
+    ax.grid(axis='both', linestyle='--', alpha=0.4)
+    fig.suptitle(f'Distance and Justification Ratio vs. $k$')
+    fig.supxlabel(f'$k$ Parameter')
+    fig.supylabel(f'Justification Ratio', color='#5E81AC')
+    fig.text(0.965, 0.5, 'Average Distance (Euclidean)', color='#BF616A', va='center', rotation='vertical')
+    fig.subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.95)
+    # fig.tight_layout()
+    fig.savefig(f'{results_k_definition}{data_str}_{distance}_k_definition_plot.pdf')
+
 def print_instances_ijuice(dataset, distance, lagrange):
 
     eval = load_obj(f'{dataset}_ijuice_{distance}_{lagrange}.pkl')
@@ -237,6 +268,12 @@ def print_instances(dataset, method, distance, lagrange):
 # feasibility_justification_time_plots('justification')
 # feasibility_justification_time_plots('time')
 # ablation_lagrange_plot()
-print_instances('adult','ijuice','L1_L0', 0.5)
+data_str='synthetic_2d'
+range_k_values = range(1, 41)
+plot_k_definition_synthetic_2d(data_str, range_k_values)
+# print_instances('adult','ijuice','L1_L0', 0.5)
+
+
+
 
 

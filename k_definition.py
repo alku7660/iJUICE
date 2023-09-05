@@ -186,12 +186,12 @@ def plot_dataset(f, X, Y, ioi):
     fig_2d.tight_layout()
     fig_2d.savefig(f'{results_plots}synthetic_2d.pdf')
 
-def ijuice_varying_k(k_list):
+def ijuice_synthetic_2d_varying_k(k_list):
     t = 100
     data_str = 'synthetic_2d'
     method_str = 'ijuice'
     distance = 'euclidean'
-    lagrange = 0.01
+    lagrange = 0.1
     data = load_dataset(data_str, train_fraction, seed_int, step)
     model = Model(data)
     data.undesired_test(model)
@@ -209,8 +209,8 @@ def ijuice_varying_k(k_list):
         print(f'Data {data_str.capitalize()} | Method {method_str.capitalize()} | Type {distance.capitalize()} | lagrange {str(lagrange)} | K number {k} | Proximity (distance) {eval.proximity_dict[idx]}')
         save_obj(eval, results_k_definition, f'{data_str}_{method_str}_{distance}_{str(lagrange)}_k_{k}.pkl')
 
-range_k_values = range(2, 31)
-ijuice_varying_k(range_k_values)
+range_k_values = range(41, 53)
+ijuice_synthetic_2d_varying_k(range_k_values)
 
 # store_data_set(seed_int)
 # X, Y = training_set(seed_int)
