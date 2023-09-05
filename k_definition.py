@@ -209,7 +209,13 @@ def ijuice_synthetic_2d_varying_k(k_list):
         print(f'Data {data_str.capitalize()} | Method {method_str.capitalize()} | Type {distance.capitalize()} | lagrange {str(lagrange)} | K number {k} | Proximity (distance) {eval.proximity_dict[idx]}')
         save_obj(eval, results_k_definition, f'{data_str}_{method_str}_{distance}_{str(lagrange)}_k_{k}.pkl')
 
-range_k_values = range(41, 53)
+def ijuice_real_datasets_varying_k(data_str, k_list):
+    """
+    Ablation on parameter k
+    """
+    
+
+range_k_values = range(1, 53)
 ijuice_synthetic_2d_varying_k(range_k_values)
 
 # store_data_set(seed_int)
