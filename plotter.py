@@ -198,12 +198,11 @@ def ablation_lagrange_plot():
     fig.subplots_adjust(left=0.09, bottom=0.1, right=0.875, top=0.9, wspace=0.475, hspace=0.2)
     fig.savefig(f'{results_plots}lagrange_ablation_plot.pdf')
 
-def plot_k_definition_synthetic_2d(data_str, range_k):
+def plot_k_definition(data_str, distance, range_k):
     """
     Plots the results of the definition of K for the synthetic 2d dataset
     """
     method_str = 'ijuice'
-    distance = 'euclidean'
     lagrange = 0.1
     proximity = []
     justifier_ratio = []
@@ -224,7 +223,7 @@ def plot_k_definition_synthetic_2d(data_str, range_k):
     fig.suptitle(f'Distance and Justification Ratio vs. $k$')
     fig.supxlabel(f'$k$ Parameter')
     fig.supylabel(f'Justification Ratio', color='#5E81AC')
-    fig.text(0.965, 0.5, 'Average Distance (Euclidean)', color='#BF616A', va='center', rotation='vertical')
+    fig.text(0.965, 0.5, f'Average Distance ({distance_name(distance)})', color='#BF616A', va='center', rotation='vertical')
     fig.subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.95)
     # fig.tight_layout()
     fig.savefig(f'{results_k_definition}{data_str}_{distance}_k_definition_plot.pdf')
@@ -269,8 +268,9 @@ def print_instances(dataset, method, distance, lagrange):
 # feasibility_justification_time_plots('time')
 # ablation_lagrange_plot()
 data_str='synthetic_2d'
-range_k_values = range(1, 41)
-plot_k_definition_synthetic_2d(data_str, range_k_values)
+distance='euclidean'
+range_k_values = range(1, 58)
+plot_k_definition(data_str, distance, range_k_values)
 # print_instances('adult','ijuice','L1_L0', 0.5)
 
 

@@ -186,21 +186,18 @@ def plot_dataset(f, X, Y, ioi):
     fig_2d.tight_layout()
     fig_2d.savefig(f'{results_plots}synthetic_2d.pdf')
 
-def ijuice_synthetic_2d_varying_k(k_list):
+def ijuice_varying_k(idx, data_str, distance, k_list):
     t = 100
-    data_str = 'synthetic_2d'
     method_str = 'ijuice'
-    distance = 'euclidean'
     lagrange = 0.1
     data = load_dataset(data_str, train_fraction, seed_int, step)
     model = Model(data)
     data.undesired_test(model)
     eval = Evaluator(data, method_str, distance, lagrange)
-    idx = 150
     ioi = IOI(idx, data, model, distance)
-    f = model.model
-    x = ioi.x[0]
-    X, Y = data.transformed_train_np, data.train_target
+    # f = model.model
+    # x = ioi.x[0]
+    # X, Y = data.transformed_train_np, data.train_target
     # plot_dataset(f, X, Y, x)
     
     for k in k_list:
@@ -209,14 +206,11 @@ def ijuice_synthetic_2d_varying_k(k_list):
         print(f'Data {data_str.capitalize()} | Method {method_str.capitalize()} | Type {distance.capitalize()} | lagrange {str(lagrange)} | K number {k} | Proximity (distance) {eval.proximity_dict[idx]}')
         save_obj(eval, results_k_definition, f'{data_str}_{method_str}_{distance}_{str(lagrange)}_k_{k}.pkl')
 
-def ijuice_real_datasets_varying_k(data_str, k_list):
-    """
-    Ablation on parameter k
-    """
-    
-
-range_k_values = range(1, 53)
-ijuice_synthetic_2d_varying_k(range_k_values)
+idx = 0 # 150 for synthetic_2d, 0 for the others
+data_str = 'dutch' # 'synthetic_2d', 'dutch', 'diabetes', 'oulad', 'athlete'
+distance = 'L1_L0' # 'euclidean', 'L1_L0'
+range_k_values = range(1, 21) # 'range(1, 58)', 'range(1, 21)' 
+ijuice_varying_k(idx, data_str, distance, range_k_values)
 
 # store_data_set(seed_int)
 # X, Y = training_set(seed_int)
