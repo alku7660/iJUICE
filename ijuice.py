@@ -288,15 +288,19 @@ class IJUICE:
         """
         Method that finds iJUICE CF using an optimization package
         """
-        def output_path(node, cf_node, path=[]):
+        def output_path(node, cf_node, checked, path=[]):
             """
             Function that prints the connection paths from a justifier towards the found CF
             """
-            path.extend([node])
-            if cf_node == node:
+            if node not in checked:
+                path.extend([node])
+                checked.extend([node])
+                if cf_node == node:
+                    return path
+                new_node = [j for j in G.successors(node) if edge[node,j].x >= 0.9][0]
+                return output_path(new_node, cf_node, checked, path)
+            else:
                 return path
-            new_node = [j for j in G.successors(node) if edge[node,j].x >= 0.9][0]
-            return output_path(new_node, cf_node, path)
 
         def unfeasible_case(self):
             """
@@ -382,7 +386,8 @@ class IJUICE:
                 time.sleep(0.25)
                 for i in justifiers:
                     path = []
-                    print(f'Source {i} Path to CF: {output_path(i, cf_node_idx, path=path)}')
+                    checked = []
+                    print(f'Source {i} Path to CF: {output_path(i, cf_node_idx, checked, path=path)}')
                     time.sleep(0.25)
         justifier_ratio = len(justifiers)/len(self.potential_justifiers)
         print(f'Justifier Ratio (%): {np.round(justifier_ratio*100, 2)}')

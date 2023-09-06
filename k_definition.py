@@ -186,7 +186,7 @@ def plot_dataset(f, X, Y, ioi):
     fig_2d.tight_layout()
     fig_2d.savefig(f'{results_plots}synthetic_2d.pdf')
 
-def ijuice_varying_k(idx, data_str, distance, k_list):
+def ijuice_varying_k(data_str, distance, k_list, idx=None):
     t = 100
     method_str = 'ijuice'
     lagrange = 0.01
@@ -194,6 +194,8 @@ def ijuice_varying_k(idx, data_str, distance, k_list):
     model = Model(data)
     data.undesired_test(model)
     eval = Evaluator(data, method_str, distance, lagrange)
+    if idx is None:
+        idx = list(data.test_df.index)[0]
     ioi = IOI(idx, data, model, distance)
     # f = model.model
     # x = ioi.x[0]
@@ -207,10 +209,10 @@ def ijuice_varying_k(idx, data_str, distance, k_list):
         save_obj(eval, results_k_definition, f'{data_str}_{method_str}_{distance}_{str(lagrange)}_k_{k}.pkl')
 
 idx = 0 # 150 for synthetic_2d, 0 for the others
-data_str = 'dutch' # 'synthetic_2d', 'dutch', 'diabetes', 'oulad', 'athlete'
+data_str = 'adult' # 'synthetic_2d', 'dutch', 'diabetes', 'oulad', 'athlete'
 distance = 'L1_L0' # 'euclidean', 'L1_L0'
-range_k_values = range(1, 21) # 'range(1, 58)', 'range(1, 21)' 
-ijuice_varying_k(idx, data_str, distance, range_k_values)
+range_k_values = range(1, 31) # 'range(1, 58)', 'range(1, 21)' 
+ijuice_varying_k(data_str, distance, range_k_values)
 
 # store_data_set(seed_int)
 # X, Y = training_set(seed_int)
