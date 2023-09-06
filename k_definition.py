@@ -195,7 +195,7 @@ def ijuice_varying_k(data_str, distance, k_list, idx=None):
     data.undesired_test(model)
     eval = Evaluator(data, method_str, distance, lagrange)
     if idx is None:
-        idx = list(data.test_df.index)[0]
+        idx = list(data.test_df.index)[1]
     ioi = IOI(idx, data, model, distance)
     # f = model.model
     # x = ioi.x[0]
