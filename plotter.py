@@ -226,7 +226,7 @@ def plot_k_definition(data_str, distance, range_k):
     fig.text(0.965, 0.5, f'Average Distance ({distance_name(distance)})', color='#BF616A', va='center', rotation='vertical')
     fig.subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.95)
     # fig.tight_layout()
-    fig.savefig(f'{results_k_definition}{data_str}_{distance}_k_definition_plot.pdf')
+    fig.savefig(f'{results_k_definition}k_definition_{data_str}.pdf')
 
 def print_instances_ijuice(dataset, distance, lagrange):
 
