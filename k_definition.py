@@ -210,6 +210,38 @@ def ijuice_varying_k(data_str, distance, k_list, idx=None):
         print(f'Data {data_str.capitalize()} | Method {method_str.capitalize()} | Type {distance.capitalize()} | lagrange {str(lagrange)} | K number {k} | Proximity (distance) {eval.proximity_dict[idx]}')
         save_obj(eval, results_k_definition, f'{data_str}_{method_str}_{distance}_{str(lagrange)}_k_{k}.pkl')
 
+def get_desired_class_training_instances(data):
+    """
+    Gets the desired class training instances in array
+    """
+    X = data.transformed_train_np
+    y = data.train_target
+    undesired = data.undesired_class
+    X_desired = X[np.where(y != undesired)[0]]
+    return X_desired
+
+def desired_class_training_outliers(X_desired):
+    """
+    Indicates which of the training instances in the desired class are outliers
+    """
+    KDE = KernelDensity(kernel='gaussian')
+    KDE.fit(X_desired)
+    score_X_desired = KDE.score_samples(X_desired)
+    return score_X_desired
+
+def find_outliers_with_threshold(X_desired, X_desired_likelihood, T = 0.05):
+    """
+    Finds the least likely instances under the treshold specified
+    """
+    number_instances = int(X_desired_likelihood.shape[0]*T)
+    likelihood_list = []
+    for i in range(X_desired_likelihood.shape[0]):
+        likelihood_list.append((i, X_desired_likelihood[i]))
+    likelihood_list.sort(key=lambda x: x[1])
+    indices_list = [i[0] for i in likelihood_list]
+    least_likely_indices_list = indices_list[:number_instances]
+    return least_likely_indices_list
+
 def single_justification_anomaly(data_str, distance, num_instances):
     """
     Calculates the CFs through JUICE algorithm and finds how many are justified by outliers
@@ -218,6 +250,9 @@ def single_justification_anomaly(data_str, distance, num_instances):
     method_str = 'juice'
     lagrange = 0.01
     data = load_dataset(data_str, train_fraction, seed_int, step)
+    X_desired = get_desired_class_training_instances(data)
+    X_desired_likelihood = desired_class_training_outliers(X_desired)
+
     model = Model(data)
     data.undesired_test(model)
     idx_list = [data.undesired_transformed_test_df.index[ins] for ins in range(num_instances)]
