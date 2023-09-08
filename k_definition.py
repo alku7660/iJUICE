@@ -263,10 +263,13 @@ def single_justification_anomaly(data_str, distance, num_instances=None):
     total_number_instances = len(idx_list)
     total_outlier_justifiers = 0
     counter = 1
+    print(f'Total instances to investigate: {len(idx_list)}')
     for idx in idx_list:
         print(f'Instance counter: {counter}')
         ioi = IOI(idx, data, model, distance)
+        print(f'IOI created. Generating CF object...')
         cf_gen = Counterfactual(data, model, method_str, ioi, distance, lagrange, t=t, k=1)
+        print(f'CF object created. Finding CF instance...')
         nn_cf, cf_total_time = nn_for_juice(cf_gen)
         if any(np.array_equal(nn_cf, x) for x in X_desired_outliers):
             total_outlier_justifiers += 1
@@ -280,13 +283,13 @@ def store_anomaly_justification_result(distance):
     """
     Method that stores the results of the anomaly justification ratio study
     """
-    ratio_outliers = {}
-    datasets = ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
+    datasets = ['german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease'] #'adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease'
     for data_str in datasets:
+        ratio_outliers = {}
         ratio_outlier_justification = single_justification_anomaly(data_str, distance)
-        ratio_outliers[data_str] = ratio_outlier_justification
-    df_ratio_outliers = pd.DataFrame.from_dict(ratio_outliers)
-    df_ratio_outliers.to_csv(results_k_definition+'ratio_outlier_justification.csv')
+        ratio_outliers[data_str] = [ratio_outlier_justification]
+        df_ratio_outliers = pd.DataFrame.from_dict(ratio_outliers)
+        df_ratio_outliers.to_csv(results_k_definition+f'{data_str}_ratio_outlier_justification.csv')
 
 idx = 0 # 150 for synthetic_2d, 0 for the others
 data_str = 'adult' # 'synthetic_2d', 'dutch', 'diabetes', 'oulad', 'athlete'
