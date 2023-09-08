@@ -4,7 +4,9 @@ from sklearn.neighbors import LocalOutlierFactor
 from evaluator_constructor import distance_calculation
 from main import train_fraction, seed_int, step
 from address import results_k_definition, results_plots, dataset_dir, save_obj, load_obj
-from sklearn.neural_network import MLPClassifier 
+from sklearn.neural_network import MLPClassifier
+from sklearn.neighbors import KernelDensity
+from Competitors.nnt import nn_for_juice
 import matplotlib
 matplotlib.rcParams['mathtext.fontset'] = 'stix'
 matplotlib.rcParams['font.family'] = 'STIXGeneral'
@@ -207,6 +209,23 @@ def ijuice_varying_k(data_str, distance, k_list, idx=None):
         eval.add_specific_x_data(cf_gen)
         print(f'Data {data_str.capitalize()} | Method {method_str.capitalize()} | Type {distance.capitalize()} | lagrange {str(lagrange)} | K number {k} | Proximity (distance) {eval.proximity_dict[idx]}')
         save_obj(eval, results_k_definition, f'{data_str}_{method_str}_{distance}_{str(lagrange)}_k_{k}.pkl')
+
+def single_justification_anomaly(data_str, distance, num_instances):
+    """
+    Calculates the CFs through JUICE algorithm and finds how many are justified by outliers
+    """
+    t = 100
+    method_str = 'juice'
+    lagrange = 0.01
+    data = load_dataset(data_str, train_fraction, seed_int, step)
+    model = Model(data)
+    data.undesired_test(model)
+    idx_list = [data.undesired_transformed_test_df.index[ins] for ins in range(num_instances)]
+    for idx in idx_list:
+        ioi = IOI(idx, data, model, distance)
+        cf_gen = Counterfactual(data, model, method_str, ioi, distance, lagrange, t=t, k=1)
+        nn_cf, cf_total_time = nn_for_juice(cf_gen)
+    
 
 idx = 0 # 150 for synthetic_2d, 0 for the others
 data_str = 'adult' # 'synthetic_2d', 'dutch', 'diabetes', 'oulad', 'athlete'
