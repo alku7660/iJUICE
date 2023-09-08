@@ -283,7 +283,7 @@ def store_anomaly_justification_result(distance):
     """
     Method that stores the results of the anomaly justification ratio study
     """
-    datasets = ['synthetic_disease'] #'adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease'
+    datasets = ['compass'] #'adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease'
     for data_str in datasets:
         ratio_outliers = {}
         ratio_outlier_justification = single_justification_anomaly(data_str, distance)
