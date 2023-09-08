@@ -248,14 +248,16 @@ def verify_justification(cf, counterfactual):
         if len(potential_justifiers) > 100:
             potential_justifiers = potential_justifiers[:100]
         permutations_potential_justifiers = []
-        # for i in range(len(potential_justifiers)):
-        #     possible_feat_values_justifier_i = get_feat_possible_values(data, cf, [potential_justifiers[i]])[0]
-        #     len_permutations = len(list(product(*possible_feat_values_justifier_i)))
-            # permutations_potential_justifiers.append((potential_justifiers[i], len_permutations))
-            # print(f'Justifier {i+1}: Length permutations: {len_permutations}')
-        for i in range(len(potential_justifiers)):
-            distance_i = distance_calculation(cf, potential_justifiers[i], counterfactual.data)
-            permutations_potential_justifiers.append((potential_justifiers[i], distance_i))
+        if counterfactual.priority == 'permutations':
+            for i in range(len(potential_justifiers)):
+                possible_feat_values_justifier_i = get_feat_possible_values(data, cf, [potential_justifiers[i]])[0]
+                len_permutations = len(list(product(*possible_feat_values_justifier_i)))
+                permutations_potential_justifiers.append((potential_justifiers[i], len_permutations))
+                # print(f'Justifier {i+1}: Length permutations: {len_permutations}')
+        elif counterfactual.priority == 'distance':
+            for i in range(len(potential_justifiers)):
+                distance_i = distance_calculation(cf, potential_justifiers[i], counterfactual.data)
+                permutations_potential_justifiers.append((potential_justifiers[i], distance_i))
         permutations_potential_justifiers.sort(key=lambda x: x[1])
         permutations_potential_justifiers = [i[0] for i in permutations_potential_justifiers]
         if len(permutations_potential_justifiers) > 10:
