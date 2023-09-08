@@ -249,35 +249,41 @@ def single_justification_anomaly(data_str, distance, num_instances=None):
     t = 100
     method_str = 'juice'
     lagrange = 0.01
+    print(f'Loading Dataset: {data_str} and model...')
     data = load_dataset(data_str, train_fraction, seed_int, step)
+    model = Model(data)
+    data.undesired_test(model)
     if num_instances is None:
-        num_instances = data.test_df.shape[0]
+        num_instances = data.undesired_transformed_test_df.shape[0]
     X_desired = get_desired_class_training_instances(data)
     X_desired_likelihood = desired_class_training_outliers(X_desired)
     indices_outliers = find_outliers_with_threshold(X_desired, X_desired_likelihood)
     X_desired_outliers = X_desired[indices_outliers]
-    model = Model(data)
-    data.undesired_test(model)
     idx_list = [data.undesired_transformed_test_df.index[ins] for ins in range(num_instances)]
     total_number_instances = len(idx_list)
     total_outlier_justifiers = 0
+    counter = 1
     for idx in idx_list:
+        print(f'Instance counter: {counter}')
         ioi = IOI(idx, data, model, distance)
         cf_gen = Counterfactual(data, model, method_str, ioi, distance, lagrange, t=t, k=1)
         nn_cf, cf_total_time = nn_for_juice(cf_gen)
         if any(np.array_equal(nn_cf, x) for x in X_desired_outliers):
             total_outlier_justifiers += 1
+            print(f'Outlier justifier found!, Total so far: {total_outlier_justifiers}')
+        counter += 1
     ratio_outlier_justifier = total_outlier_justifiers / total_number_instances
+    print(f'Ratio for Dataset {data_str}: {ratio_outlier_justifier}')
     return ratio_outlier_justifier
 
-def store_anomaly_justification_result(distance, num_instances=None):
+def store_anomaly_justification_result(distance):
     """
     Method that stores the results of the anomaly justification ratio study
     """
     ratio_outliers = {}
     datasets = ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
     for data_str in datasets:
-        ratio_outlier_justification = single_justification_anomaly(data_str, distance, num_instances)
+        ratio_outlier_justification = single_justification_anomaly(data_str, distance)
         ratio_outliers[data_str] = ratio_outlier_justification
     df_ratio_outliers = pd.DataFrame.from_dict(ratio_outliers)
     df_ratio_outliers.to_csv(results_k_definition+'ratio_outlier_justification.csv')
