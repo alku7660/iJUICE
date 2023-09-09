@@ -6,7 +6,7 @@ from Competitors.gs import GS
 from Competitors.face import FACE
 from Competitors.dice import DICE
 from Competitors.mace import MACE
-from Competitors.cchvae import CCHVAE
+# from Competitors.cchvae import CCHVAE
 from Competitors.juice import JUICE
 from ijuice import IJUICE
 
@@ -46,8 +46,8 @@ class Counterfactual:
             cf_method = DICE(self)
         elif self.method == 'mace':
             cf_method = MACE(self)
-        elif self.method == 'cchvae':
-            cf_method = CCHVAE(self)
+        # elif self.method == 'cchvae':
+            # cf_method = CCHVAE(self)
         elif self.method == 'juice':
             cf_method = JUICE(self)
         elif self.method == 'ijuice':

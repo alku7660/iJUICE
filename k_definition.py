@@ -254,7 +254,7 @@ def single_justification_anomaly(data_str, distance, num_instances=None):
     model = Model(data)
     data.undesired_test(model)
     if num_instances is None:
-        num_instances = data.undesired_transformed_test_df.shape[0]
+        num_instances = data.undesired_transformed_test_df.shape[0] if data.undesired_transformed_test_df.shape[0] < 501 else 500
     X_desired = get_desired_class_training_instances(data)
     X_desired_likelihood = desired_class_training_outliers(X_desired)
     indices_outliers = find_outliers_with_threshold(X_desired, X_desired_likelihood)
