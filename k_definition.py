@@ -254,7 +254,7 @@ def single_justification_anomaly(data_str, distance, num_instances=None):
     model = Model(data)
     data.undesired_test(model)
     if num_instances is None:
-        num_instances = data.undesired_transformed_test_df.shape[0] if data.undesired_transformed_test_df.shape[0] < 501 else 500
+        num_instances = data.undesired_transformed_test_df.shape[0] if data.undesired_transformed_test_df.shape[0] < 201 else 200
     X_desired = get_desired_class_training_instances(data)
     X_desired_likelihood = desired_class_training_outliers(X_desired)
     indices_outliers = find_outliers_with_threshold(X_desired, X_desired_likelihood)
@@ -283,7 +283,7 @@ def store_anomaly_justification_result(distance):
     """
     Method that stores the results of the anomaly justification ratio study
     """
-    datasets = ['bank'] #'adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease'
+    datasets = ['diabetes'] #'adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease'
     for data_str in datasets:
         ratio_outliers = {}
         ratio_outlier_justification = single_justification_anomaly(data_str, distance)
@@ -295,8 +295,8 @@ idx = 0 # 150 for synthetic_2d, 0 for the others
 data_str = 'oulad' # 'synthetic_2d', 'dutch', 'diabetes', 'oulad', 'athlete'
 distance = 'L1_L0' # 'euclidean', 'L1_L0'
 range_k_values = range(1, 31) # 'range(1, 58)', 'range(1, 21)' 
-ijuice_varying_k(data_str, distance, range_k_values)
-# store_anomaly_justification_result(distance)
+# ijuice_varying_k(data_str, distance, range_k_values)
+store_anomaly_justification_result(distance)
 
 # store_data_set(seed_int)
 # X, Y = training_set(seed_int)
