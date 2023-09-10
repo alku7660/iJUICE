@@ -23,7 +23,7 @@ class Counterfactual:
         self.lagrange = lagrange
         self.t = t
         self.k = k
-        # self.cf_method = self.select_cf_method()
+        self.cf_method = self.select_cf_method()
 
     def select_cf_method(self):
         """

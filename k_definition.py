@@ -205,7 +205,7 @@ def ijuice_varying_k(data_str, distance, k_list, idx=None):
     # plot_dataset(f, X, Y, x)
     
     for k in k_list:
-        cf_gen = Counterfactual(data, model, method_str, ioi, distance, lagrange, t=t, k=k)
+        cf_gen = Counterfactual(data, model, method_str, ioi, distance, lagrange, t=t, k=k, priority='distance')
         eval.add_specific_x_data(cf_gen)
         print(f'Data {data_str.capitalize()} | Method {method_str.capitalize()} | Type {distance.capitalize()} | lagrange {str(lagrange)} | K number {k} | Proximity (distance) {eval.proximity_dict[idx]}')
         save_obj(eval, results_k_definition, f'{data_str}_{method_str}_{distance}_{str(lagrange)}_k_{k}.pkl')
@@ -292,11 +292,11 @@ def store_anomaly_justification_result(distance):
         df_ratio_outliers.to_csv(results_k_definition+f'{data_str}_ratio_outlier_justification.csv')
 
 idx = 0 # 150 for synthetic_2d, 0 for the others
-data_str = 'adult' # 'synthetic_2d', 'dutch', 'diabetes', 'oulad', 'athlete'
+data_str = 'oulad' # 'synthetic_2d', 'dutch', 'diabetes', 'oulad', 'athlete'
 distance = 'L1_L0' # 'euclidean', 'L1_L0'
 range_k_values = range(1, 31) # 'range(1, 58)', 'range(1, 21)' 
-# ijuice_varying_k(data_str, distance, range_k_values)
-store_anomaly_justification_result(distance)
+ijuice_varying_k(data_str, distance, range_k_values)
+# store_anomaly_justification_result(distance)
 
 # store_data_set(seed_int)
 # X, Y = training_set(seed_int)
