@@ -404,14 +404,15 @@ def verify_justification(cf, counterfactual):
                         values = continuous_feat_values(nonzero_index, min_val_i, max_val_i, data)
                         try:
                             values_idx = int(np.where(np.isclose(values, node_i[nonzero_index]))[0])
-                            if values_idx > 0:
-                                values_idx_inf = values_idx - 1
-                            else:
-                                values_idx_inf = 0
-                            if values_idx < len(values) - 1:
+                            if values_idx == 0:
+                                values_idx_inf = values_idx
                                 values_idx_sup = values_idx + 1
-                            else:
+                            elif values_idx == len(values) - 1:
+                                values_idx_inf = values_idx - 1
                                 values_idx_sup = values_idx
+                            else:
+                                values_idx_inf = values_idx - 1
+                                values_idx_sup = values_idx + 1
                         except:
                             if node_i[nonzero_index] < values[0]:
                                 values_idx_inf, values_idx_sup = 0, 0

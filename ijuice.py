@@ -267,18 +267,6 @@ class IJUICE:
                             else:
                                 value_node_i_idx_inf = value_node_i_idx - 1
                                 value_node_i_idx_sup = value_node_i_idx + 1
-                            # if value_node_i_idx > 0:
-                            #     value_node_i_idx_inf = value_node_i_idx - 1
-                            #     value_node_i_idx_sup = value_node_i_idx
-                            # else:
-                            #     value_node_i_idx_inf = value_node_i_idx
-                            #     value_node_i_idx_sup = value_node_i_idx + 1
-                            # if value_node_i_idx < len(values) - 1:
-                            #     value_node_i_idx_inf = value_node_i_idx
-                            #     value_node_i_idx_sup = value_node_i_idx + 1
-                            # else:
-                            #     value_node_i_idx_inf = value_node_i_idx -1
-                            #     value_node_i_idx_sup = value_node_i_idx
                         except:
                             if node_i[nonzero_index] < values[0]:
                                 value_node_i_idx_inf, value_node_i_idx_sup = 0, 0
