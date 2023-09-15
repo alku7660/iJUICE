@@ -330,9 +330,9 @@ def print_instances(dataset, method, distance, lagrange):
 # feasibility_justification_time_plots('justification')
 # feasibility_justification_time_plots('time')
 # ablation_lagrange_plot()
-data_str='adult'
+data_str='synthetic_athlete'
 distance='L1_L0'
-range_k_values = range(1, 22)
+range_k_values = range(1, 23)
 plot_k_definition(data_str, distance, range_k_values)
 # print_instances('adult','ijuice','L1_L0', 0.5)
 
