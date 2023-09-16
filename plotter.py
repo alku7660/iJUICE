@@ -295,11 +295,11 @@ def plot_anomaly_justification_probability():
     fig, ax = plt.subplots()
     dataset_name(data_str)
     ax.bar(datasets_name, anomaly_justification_ratio_list)
-    fig.suptitle(f'Distance and Justification Ratio vs. $k$')
-    fig.supxlabel(f'$k$ Parameter')
-    fig.supylabel(f'Justification Ratio', color='#5E81AC')
-    fig.text(0.965, 0.5, f'Average Distance ({distance_name(distance)})', color='#BF616A', va='center', rotation='vertical')
-    fig.subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.95)    
+    ax.set_title(f'Risk of Outlier Justification from Single Justification per Dataset')
+    ax.set_xlabel(f'Dataset')
+    ax.set_ylabel(f'Fraction of justifiers that are outliers')
+    fig.subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.95)
+    fig.savefig(f'{results_k_definition}anomaly_justification_ratio_plot.pdf')    
 
 
 # proximity_plots()
