@@ -168,55 +168,6 @@ def calculate_sparsity(x, cf):
     """
     return len(np.where(x != cf)[0])
 
-def sparsity_plots(metric_name):
-    """
-    Obtains a 7x2 sparsity plots for all datasets
-    """
-    fig, ax = plt.subplots(nrows=7, ncols=2, sharex=False, sharey=True, figsize=(7,10))
-    ax = ax.flatten()
-    for i in range(len(datasets)):
-        dataset = dataset_name(datasets[i])
-        all_metric_measures = []
-        for k in range(len(methods)):
-            if methods[k] == 'ijuice':
-                dist = 'L1_L0'
-            else:
-                dist = 'euclidean'
-            eval = load_obj(f'{datasets[i]}_{methods[k]}_{dist}_1.pkl')
-            if metric_name == 'sparsity':
-                new_metric_measures = [] 
-                keys_index_instances = list(eval.x_dict.keys())
-                for idx in keys_index_instances:
-                    x = eval.x_dict[idx]
-                    x_cf = eval.x_cf_dict[idx]
-                    metric_measures = calculate_sparsity(x, x_cf)
-                    new_metric_measures.append(metric_measures)
-                
-                
-                for n in metric_measures:
-                    if n:
-                        value = 1
-                    else:
-                        value = 0
-                    new_metric_measures.extend([value])
-                metric_measures = new_metric_measures
-            elif metric_name == 'justification':
-                metric_measures = list(eval.justifier_ratio.values())
-            elif metric_name == 'time':
-                metric_measures = list(eval.time_dict.values())
-                if isinstance(metric_measures[0], np.ndarray):
-                    metric_measures = [list(i)[0] for i in metric_measures]
-            all_metric_measures.append(metric_measures)
-        ax[i].boxplot(all_metric_measures, showmeans=True, meanprops=mean_prop, showfliers=False)
-        ax[i].set_xticklabels([method_name(i) for i in methods], rotation=25)
-        ax[i].set_ylabel(dataset)
-        ax[i].grid(axis='y', linestyle='--', alpha=0.4)
-        if metric_name == 'time':
-            ax[i].set_yscale('log')
-    plt.suptitle(f'{metric_name.capitalize()} (s)' if metric_name == 'time' else metric_name.capitalize())
-    fig.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.96, wspace=0.15, hspace=0.4)
-    fig.savefig(f'{results_plots}{metric_name}_plot.pdf')
-
 def ablation_lagrange_plot():
     """
     Obtains an ablation plot where both the distances and the justifier ratio are plotted for iJUICE
