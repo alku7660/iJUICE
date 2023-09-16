@@ -314,7 +314,7 @@ def plot_anomaly_justification_probability():
 # feasibility_justification_time_plots('justification')
 # feasibility_justification_time_plots('time')
 # ablation_lagrange_plot()
-data_str='synthetic_athlete'
+data_str='oulad'
 distance='L1_L0'
 range_k_values = range(1, 23)
 # plot_k_definition(data_str, distance, range_k_values)
