@@ -275,6 +275,32 @@ def print_instances(dataset, method, distance, lagrange):
             print(cf)
             print('==========================================')
 
+def read_anomaly_justification_ratio(data_str):
+    """
+    Reads the anomaly justification ratio from the dataset
+    """
+    df = pd.read_csv(f'{results_k_definition}{data_str}_ratio_outlier_justification.csv')
+    return df.values
+
+def plot_anomaly_justification_probability():
+    """
+    Plots the anomaly justification probability for all datasets
+    """
+    anomaly_justification_ratio_list = []
+    datasets_name = []
+    for data_str in datasets:
+        anomaly_justification_ratio = read_anomaly_justification_ratio(data_str)
+        anomaly_justification_ratio_list.append(anomaly_justification_ratio)
+        datasets_name.append(dataset_name(data_str))
+    fig, ax = plt.subplots()
+    dataset_name(data_str)
+    ax.bar(datasets_name, anomaly_justification_ratio_list)
+    fig.suptitle(f'Distance and Justification Ratio vs. $k$')
+    fig.supxlabel(f'$k$ Parameter')
+    fig.supylabel(f'Justification Ratio', color='#5E81AC')
+    fig.text(0.965, 0.5, f'Average Distance ({distance_name(distance)})', color='#BF616A', va='center', rotation='vertical')
+    fig.subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.95)    
+
 
 # proximity_plots()
 # feasibility_justification_time_plots('feasibility')
