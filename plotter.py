@@ -20,7 +20,7 @@ from evaluator_constructor import distance_calculation, verify_feasibility
 from itertools import product
 from scipy.stats import norm
 
-datasets = ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
+datasets = ['adult','synthetic_athlete','bank','kdd_census','compass','credit','diabetes','synthetic_disease','dutch','german','heart','law','oulad','student']
 distances = ['L1_L0','L1_L0_L_inf','prob']
 methods = ['nn','mo','ft','rt','gs','face','dice','cchvae','juice','ijuice'] # 'mace'
 lagranges = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
@@ -168,55 +168,6 @@ def calculate_sparsity(x, cf):
     """
     return len(np.where(x != cf)[0])
 
-def sparsity_plots(metric_name):
-    """
-    Obtains a 7x2 sparsity plots for all datasets
-    """
-    fig, ax = plt.subplots(nrows=7, ncols=2, sharex=False, sharey=True, figsize=(7,10))
-    ax = ax.flatten()
-    for i in range(len(datasets)):
-        dataset = dataset_name(datasets[i])
-        all_metric_measures = []
-        for k in range(len(methods)):
-            if methods[k] == 'ijuice':
-                dist = 'L1_L0'
-            else:
-                dist = 'euclidean'
-            eval = load_obj(f'{datasets[i]}_{methods[k]}_{dist}_1.pkl')
-            if metric_name == 'sparsity':
-                new_metric_measures = [] 
-                keys_index_instances = list(eval.x_dict.keys())
-                for idx in keys_index_instances:
-                    x = eval.x_dict[idx]
-                    x_cf = eval.x_cf_dict[idx]
-                    metric_measures = calculate_sparsity(x, x_cf)
-                    new_metric_measures.append(metric_measures)
-                
-                
-                for n in metric_measures:
-                    if n:
-                        value = 1
-                    else:
-                        value = 0
-                    new_metric_measures.extend([value])
-                metric_measures = new_metric_measures
-            elif metric_name == 'justification':
-                metric_measures = list(eval.justifier_ratio.values())
-            elif metric_name == 'time':
-                metric_measures = list(eval.time_dict.values())
-                if isinstance(metric_measures[0], np.ndarray):
-                    metric_measures = [list(i)[0] for i in metric_measures]
-            all_metric_measures.append(metric_measures)
-        ax[i].boxplot(all_metric_measures, showmeans=True, meanprops=mean_prop, showfliers=False)
-        ax[i].set_xticklabels([method_name(i) for i in methods], rotation=25)
-        ax[i].set_ylabel(dataset)
-        ax[i].grid(axis='y', linestyle='--', alpha=0.4)
-        if metric_name == 'time':
-            ax[i].set_yscale('log')
-    plt.suptitle(f'{metric_name.capitalize()} (s)' if metric_name == 'time' else metric_name.capitalize())
-    fig.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.96, wspace=0.15, hspace=0.4)
-    fig.savefig(f'{results_plots}{metric_name}_plot.pdf')
-
 def ablation_lagrange_plot():
     """
     Obtains an ablation plot where both the distances and the justifier ratio are plotted for iJUICE
@@ -324,6 +275,39 @@ def print_instances(dataset, method, distance, lagrange):
             print(cf)
             print('==========================================')
 
+def read_anomaly_justification_ratio(data_str):
+    """
+    Reads the anomaly justification ratio from the dataset
+    """
+    df = pd.read_csv(f'{results_k_definition}{data_str}_ratio_outlier_justification.csv', index_col=0)
+    return float(df.values[0])
+
+def plot_anomaly_justification_probability():
+    """
+    Plots the anomaly justification probability for all datasets
+    """
+    anomaly_justification_ratio_list = []
+    datasets_name = []
+    datasets_sample_size = [500,100,500,150,235,500,250,100,200,126,45,100,200,50]
+    for data_idx in range(len(datasets)):
+        data_str = datasets[data_idx]
+        anomaly_justification_ratio = read_anomaly_justification_ratio(data_str)
+        anomaly_justification_ratio_list.append(anomaly_justification_ratio)
+        datasets_name.append(f'{dataset_name(data_str)} ({datasets_sample_size[data_idx]})')
+    print(np.dot(datasets_sample_size,anomaly_justification_ratio_list)/np.sum(datasets_sample_size))
+    fig, ax = plt.subplots()
+    dataset_name(data_str)
+    anomaly_justification_ratio_array = np.array(anomaly_justification_ratio_list)
+    ax.bar(datasets_name, anomaly_justification_ratio_array)
+    ax.grid(axis='y', linestyle='--', alpha=0.4)
+    ax.set_xticklabels(datasets_name, rotation=30)
+    ax.yaxis.set_ticks(ticks=np.arange(0, 0.55, 0.05), labels=['0','0.05','0.10','0.15','0.20','0.25','0.30','0.35','0.40','0.45','0.50'])
+    ax.set_title(f'Risk of Anomaly Justification from Single Justification per Dataset')
+    ax.set_xlabel(f'Dataset (Sample size)')
+    ax.set_ylabel(f'Fraction of Single Anomaly Justifiers')
+    fig.subplots_adjust(left=0.1, bottom=0.18, right=0.98, top=0.95)
+    fig.savefig(f'{results_k_definition}anomaly_justification_ratio_plot.pdf')    
+
 
 # proximity_plots()
 # feasibility_justification_time_plots('feasibility')
@@ -333,8 +317,9 @@ def print_instances(dataset, method, distance, lagrange):
 data_str='oulad'
 distance='L1_L0'
 range_k_values = range(1, 23)
-plot_k_definition(data_str, distance, range_k_values)
+# plot_k_definition(data_str, distance, range_k_values)
 # print_instances('adult','ijuice','L1_L0', 0.5)
+plot_anomaly_justification_probability()
 
 
 
