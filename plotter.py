@@ -20,7 +20,7 @@ from evaluator_constructor import distance_calculation, verify_feasibility
 from itertools import product
 from scipy.stats import norm
 
-datasets = ['adult','kdd_census','german','dutch','bank','credit','compass','diabetes','student','oulad','law','heart','synthetic_athlete','synthetic_disease']
+datasets = ['adult','synthetic_athlete','bank','kdd_census','compass','credit','diabetes','synthetic_disease','dutch','german','heart','law','oulad','student']
 distances = ['L1_L0','L1_L0_L_inf','prob']
 methods = ['nn','mo','ft','rt','gs','face','dice','cchvae','juice','ijuice'] # 'mace'
 lagranges = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
@@ -279,8 +279,8 @@ def read_anomaly_justification_ratio(data_str):
     """
     Reads the anomaly justification ratio from the dataset
     """
-    df = pd.read_csv(f'{results_k_definition}{data_str}_ratio_outlier_justification.csv')
-    return df.values
+    df = pd.read_csv(f'{results_k_definition}{data_str}_ratio_outlier_justification.csv', index_col=0)
+    return float(df.values[0])
 
 def plot_anomaly_justification_probability():
     """
@@ -288,17 +288,24 @@ def plot_anomaly_justification_probability():
     """
     anomaly_justification_ratio_list = []
     datasets_name = []
-    for data_str in datasets:
+    datasets_sample_size = [500,100,500,150,235,500,250,100,200,126,45,100,200,50]
+    for data_idx in range(len(datasets)):
+        data_str = datasets[data_idx]
         anomaly_justification_ratio = read_anomaly_justification_ratio(data_str)
         anomaly_justification_ratio_list.append(anomaly_justification_ratio)
-        datasets_name.append(dataset_name(data_str))
+        datasets_name.append(f'{dataset_name(data_str)} ({datasets_sample_size[data_idx]})')
+    print(np.dot(datasets_sample_size,anomaly_justification_ratio_list)/np.sum(datasets_sample_size))
     fig, ax = plt.subplots()
     dataset_name(data_str)
-    ax.bar(datasets_name, anomaly_justification_ratio_list)
-    ax.set_title(f'Risk of Outlier Justification from Single Justification per Dataset')
-    ax.set_xlabel(f'Dataset')
-    ax.set_ylabel(f'Fraction of justifiers that are outliers')
-    fig.subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.95)
+    anomaly_justification_ratio_array = np.array(anomaly_justification_ratio_list)
+    ax.bar(datasets_name, anomaly_justification_ratio_array)
+    ax.grid(axis='y', linestyle='--', alpha=0.4)
+    ax.set_xticklabels(datasets_name, rotation=30)
+    ax.yaxis.set_ticks(ticks=np.arange(0, 0.55, 0.05), labels=['0','0.05','0.10','0.15','0.20','0.25','0.30','0.35','0.40','0.45','0.50'])
+    ax.set_title(f'Risk of Anomaly Justification from Single Justification per Dataset')
+    ax.set_xlabel(f'Dataset (Sample size)')
+    ax.set_ylabel(f'Fraction of Single Anomaly Justifiers')
+    fig.subplots_adjust(left=0.1, bottom=0.18, right=0.98, top=0.95)
     fig.savefig(f'{results_k_definition}anomaly_justification_ratio_plot.pdf')    
 
 
@@ -310,8 +317,9 @@ def plot_anomaly_justification_probability():
 data_str='synthetic_athlete'
 distance='L1_L0'
 range_k_values = range(1, 23)
-plot_k_definition(data_str, distance, range_k_values)
+# plot_k_definition(data_str, distance, range_k_values)
 # print_instances('adult','ijuice','L1_L0', 0.5)
+plot_anomaly_justification_probability()
 
 
 
