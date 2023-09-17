@@ -191,7 +191,7 @@ def plot_dataset(f, X, Y, ioi):
 def ijuice_varying_k(data_str, distance, k_list, idx=None):
     t = 100
     method_str = 'ijuice'
-    lagrange = 0.05
+    lagrange = 0.1
     data = load_dataset(data_str, train_fraction, seed_int, step)
     model = Model(data)
     data.undesired_test(model)
@@ -292,9 +292,9 @@ def store_anomaly_justification_result(distance):
         df_ratio_outliers.to_csv(results_k_definition+f'{data_str}_ratio_outlier_justification.csv')
 
 idx = 150 # 150 for synthetic_2d, 0 for the others
-data_str = 'synthetic_2d' # 'synthetic_2d', 'dutch', 'diabetes', 'oulad', 'athlete'
+data_str ='synthetic_2d' # 'synthetic_2d', 'dutch', 'diabetes', 'oulad', 'athlete'
 distance = 'euclidean' # 'euclidean', 'L1_L0'
-range_k_values = range(28, 30) # 'range(1, 58)', 'range(1, 21)' 
+range_k_values = range(35, 58) # 'range(1, 58)', 'range(1, 21)' 
 ijuice_varying_k(data_str, distance, range_k_values, idx)
 # store_anomaly_justification_result(distance)
 

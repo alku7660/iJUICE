@@ -217,7 +217,7 @@ def plot_k_definition(data_str, distance, range_k):
     Plots the results of the definition of K for the synthetic 2d dataset
     """
     method_str = 'ijuice'
-    lagrange = 0.01
+    lagrange = 0.1
     proximity = []
     justifier_ratio = []
     for k in range_k:
@@ -316,7 +316,7 @@ def plot_anomaly_justification_probability():
 # ablation_lagrange_plot()
 data_str='synthetic_2d'
 distance='euclidean'
-range_k_values = range(15, 36)
+range_k_values = range(1, 58)
 plot_k_definition(data_str, distance, range_k_values)
 # print_instances('adult','ijuice','L1_L0', 0.5)
 # plot_anomaly_justification_probability()
