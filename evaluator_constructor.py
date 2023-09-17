@@ -423,7 +423,7 @@ def verify_justification(cf, counterfactual):
                                     if node_i[nonzero_index] <= values[k+1] and node_i[nonzero_index] >= values[k]:
                                         values_idx_inf, values_idx_sup = k, k+1        
                         close_node_j_values = [values[values_idx_inf], values[values_idx_sup]]
-                        if node_j[nonzero_index] <= close_node_j_values[1] and node_j[nonzero_index] >= close_node_j_values[0]:
+                        if close_node_j_values[0] <= node_j[nonzero_index] <= close_node_j_values[1]:
                             A.append((i,j))
                     elif any(item in data.binary for item in feat_nonzero):
                         if np.isclose(np.abs(vector_ij[nonzero_index]),[0,1],atol=toler).any():

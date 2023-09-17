@@ -276,7 +276,7 @@ class IJUICE:
                                 if node_i[nonzero_index] <= values[k+1] and node_i[nonzero_index] >= values[k]:
                                     value_node_i_idx_inf, value_node_i_idx_sup = k, k+1  
                         close_node_j_values = [values[value_node_i_idx_inf], values[value_node_i_idx_sup]]
-                        if any(np.isclose(node_j[nonzero_index], close_node_j_values)):
+                        if close_node_j_values[0] <= node_j[nonzero_index] <= close_node_j_values[1]:
                             A.append((i,j))
                     elif any(item in data.binary for item in feat_nonzero):
                         if np.isclose(np.abs(vector_ij[nonzero_index]), [0,1], atol=toler).any():
