@@ -277,6 +277,7 @@ class IJUICE:
                                     value_node_i_idx_inf, value_node_i_idx_sup = k, k+1  
                         close_node_j_values = [values[value_node_i_idx_inf], values[value_node_i_idx_sup]]
                         if close_node_j_values[0] <= node_j[nonzero_index] <= close_node_j_values[1]:
+                            # if (j,i) not in A:
                             A.append((i,j))
                     elif any(item in data.binary for item in feat_nonzero):
                         if np.isclose(np.abs(vector_ij[nonzero_index]), [0,1], atol=toler).any():
@@ -364,9 +365,6 @@ class IJUICE:
             if opt_model.status == 3 or len(self.all_nodes) == len(self.potential_justifiers):
                 sol_x, justifiers = unfeasible_case(self)
             else:
-                for i in self.C.keys():
-                    if cf[i].x > 0:
-                        sol_x = self.all_nodes[i - 1]
                 print(f'Optimizer solution status: {opt_model.status}') # 1: 'LOADED', 2: 'OPTIMAL', 3: 'INFEASIBLE', 4: 'INF_OR_UNBD', 5: 'UNBOUNDED', 6: 'CUTOFF', 7: 'ITERATION_LIMIT', 8: 'NODE_LIMIT', 9: 'TIME_LIMIT', 10: 'SOLUTION_LIMIT', 11: 'INTERRUPTED', 12: 'NUMERIC', 13: 'SUBOPTIMAL', 14: 'INPROGRESS', 15: 'USER_OBJ_LIMIT'
                 print(f'Solution:')
                 justifiers = []
@@ -377,6 +375,7 @@ class IJUICE:
                 time.sleep(0.25)
                 for i in self.C.keys():
                     if cf[i].x > 0.1:
+                        sol_x = self.all_nodes[i - 1]
                         print(f'cf({i}): {cf[i].x}')
                         print(f'Node {i}: {self.all_nodes[i - 1]}')
                         print(f'Original IOI: {self.normal_ioi}')

@@ -294,7 +294,7 @@ def store_anomaly_justification_result(distance):
 idx = 150 # 150 for synthetic_2d, 0 for the others
 data_str = 'synthetic_2d' # 'synthetic_2d', 'dutch', 'diabetes', 'oulad', 'athlete'
 distance = 'euclidean' # 'euclidean', 'L1_L0'
-range_k_values = range(8, 9) # 'range(1, 58)', 'range(1, 21)' 
+range_k_values = range(28, 30) # 'range(1, 58)', 'range(1, 21)' 
 ijuice_varying_k(data_str, distance, range_k_values, idx)
 # store_anomaly_justification_result(distance)
 
