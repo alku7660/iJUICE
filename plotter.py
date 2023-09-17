@@ -316,7 +316,7 @@ def plot_anomaly_justification_probability():
 # ablation_lagrange_plot()
 data_str='adult'
 distance='L1_L0'
-range_k_values = range(1, 19)
+range_k_values = range(18, 21)
 plot_k_definition(data_str, distance, range_k_values)
 # print_instances('adult','ijuice','L1_L0', 0.5)
 # plot_anomaly_justification_probability()
