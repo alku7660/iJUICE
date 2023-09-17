@@ -314,9 +314,9 @@ def plot_anomaly_justification_probability():
 # feasibility_justification_time_plots('justification')
 # feasibility_justification_time_plots('time')
 # ablation_lagrange_plot()
-data_str='synthetic_2d'
-distance='euclidean'
-range_k_values = range(1, 58)
+data_str='adult'
+distance='L1_L0'
+range_k_values = range(1, 19)
 plot_k_definition(data_str, distance, range_k_values)
 # print_instances('adult','ijuice','L1_L0', 0.5)
 # plot_anomaly_justification_probability()
