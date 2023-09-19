@@ -64,6 +64,8 @@ def dataset_name(name):
         name = 'Athlete'
     elif name == 'synthetic_disease':
         name = 'Disease'
+    elif name == 'synthetic_2d':
+        name = '2D'
     return name
 
 def method_name(method):
@@ -212,35 +214,44 @@ def ablation_lagrange_plot():
     fig.subplots_adjust(left=0.09, bottom=0.1, right=0.875, top=0.9, wspace=0.475, hspace=0.2)
     fig.savefig(f'{results_plots}lagrange_ablation_plot.pdf')
 
-def plot_k_definition(data_str, distance, range_k):
+def plot_k_definition():
     """
     Plots the results of the definition of K for the synthetic 2d dataset
     """
+    fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(6, 3.5), sharey=True)
+    ax = ax.flatten()
+    datasets_k = ['synthetic_2d','adult','synthetic_athlete','oulad'] 
+    lagranges = [0.1, 0.01, 0.01, 0.01]
+    distances = ['euclidean', 'L1_L0', 'L1_L0', 'L1_L0']
+    ranges_k = [range(1,58), range(1,21), range(1,21), range(1,21)] 
     method_str = 'ijuice'
-    lagrange = 0.1
-    proximity = []
-    justifier_ratio = []
-    for k in range_k:
-        eval = load_obj(f'{data_str}_{method_str}_{distance}_{str(lagrange)}_k_{k}.pkl', results_k_definition)
-        proximities = [eval.proximity_dict[idx][distance] for idx in eval.proximity_dict.keys()]
-        mean_proximity = np.mean(proximities)
-        justifier_ratio_mean = np.mean(list(eval.justifier_ratio.values()))
-        proximity.append(mean_proximity)
-        justifier_ratio.append(justifier_ratio_mean)
-    fig, ax = plt.subplots()
-    ax.plot(range_k, justifier_ratio)
-    secax = ax.twinx()
-    secax.plot(range_k, proximity, color='#BF616A')
-    ax.yaxis.set_tick_params(labelcolor='#5E81AC')
-    secax.yaxis.set_tick_params(labelcolor='#BF616A')
-    ax.grid(axis='both', linestyle='--', alpha=0.4)
-    fig.suptitle(f'Distance and Justification Ratio vs. $k$')
-    fig.supxlabel(f'$k$ Parameter')
+    for data_str_idx in range(len(datasets_k)):
+        data_str = datasets_k[data_str_idx]
+        lagrange = lagranges[data_str_idx]
+        distance = distances[data_str_idx]
+        range_k = ranges_k[data_str_idx]
+        proximity = []
+        justifier_ratio = []
+        for k in range_k:
+            eval = load_obj(f'{data_str}_{method_str}_{distance}_{str(lagrange)}_k_{k}.pkl', results_k_definition)
+            proximities = [eval.proximity_dict[idx][distance] for idx in eval.proximity_dict.keys()]
+            mean_proximity = np.mean(proximities)
+            justifier_ratio_mean = np.mean(list(eval.justifier_ratio.values()))
+            proximity.append(mean_proximity)
+            justifier_ratio.append(justifier_ratio_mean)
+        ax[data_str_idx].plot(range_k, justifier_ratio)
+        secax = ax[data_str_idx].twinx()
+        secax.plot(range_k, proximity, color='#BF616A')
+        ax[data_str_idx].yaxis.set_tick_params(labelcolor='#5E81AC')
+        secax.yaxis.set_tick_params(labelcolor='#BF616A')
+        ax[data_str_idx].grid(axis='both', linestyle='--', alpha=0.4)
+        ax[data_str_idx].set_title(f'{dataset_name(data_str)} ({distance_name(distance)})')
+    fig.supxlabel(f'$k$')
     fig.supylabel(f'Justification Ratio', color='#5E81AC')
-    fig.text(0.965, 0.5, f'Average Distance ({distance_name(distance)})', color='#BF616A', va='center', rotation='vertical')
-    fig.subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.95)
+    fig.text(0.96, 0.51, f'Average Distance', color='#BF616A', va='center', rotation='vertical')
+    fig.subplots_adjust(left=0.1, bottom=0.12, right=0.9, top=0.93, wspace=0.175, hspace=0.35)
     # fig.tight_layout()
-    fig.savefig(f'{results_k_definition}k_definition_{data_str}.pdf')
+    fig.savefig(f'{results_k_definition}k_definition.pdf')
 
 def print_instances_ijuice(dataset, distance, lagrange):
 
@@ -288,24 +299,23 @@ def plot_anomaly_justification_probability():
     """
     anomaly_justification_ratio_list = []
     datasets_name = []
-    datasets_sample_size = [500,100,500,150,235,500,250,100,200,126,45,100,200,50]
+    datasets_sample_size = [500,100,500,150,235,500,250,100,200,125,45,100,200,50]
     for data_idx in range(len(datasets)):
         data_str = datasets[data_idx]
         anomaly_justification_ratio = read_anomaly_justification_ratio(data_str)
         anomaly_justification_ratio_list.append(anomaly_justification_ratio)
         datasets_name.append(f'{dataset_name(data_str)} ({datasets_sample_size[data_idx]})')
     print(np.dot(datasets_sample_size,anomaly_justification_ratio_list)/np.sum(datasets_sample_size))
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(5, 3))
     dataset_name(data_str)
     anomaly_justification_ratio_array = np.array(anomaly_justification_ratio_list)
     ax.bar(datasets_name, anomaly_justification_ratio_array)
     ax.grid(axis='y', linestyle='--', alpha=0.4)
-    ax.set_xticklabels(datasets_name, rotation=30)
+    ax.set_xticklabels(datasets_name, rotation=35)
     ax.yaxis.set_ticks(ticks=np.arange(0, 0.55, 0.05), labels=['0','0.05','0.10','0.15','0.20','0.25','0.30','0.35','0.40','0.45','0.50'])
-    ax.set_title(f'Risk of Anomaly Justification from Single Justification per Dataset')
     ax.set_xlabel(f'Dataset (Sample size)')
     ax.set_ylabel(f'Fraction of Single Anomaly Justifiers')
-    fig.subplots_adjust(left=0.1, bottom=0.18, right=0.98, top=0.95)
+    fig.subplots_adjust(left=0.12, bottom=0.3, right=0.98, top=0.95)
     fig.savefig(f'{results_k_definition}anomaly_justification_ratio_plot.pdf')    
 
 
@@ -314,12 +324,12 @@ def plot_anomaly_justification_probability():
 # feasibility_justification_time_plots('justification')
 # feasibility_justification_time_plots('time')
 # ablation_lagrange_plot()
-data_str='synthetic_2d'
-distance='euclidean'
-range_k_values = range(1, 58)
-plot_k_definition(data_str, distance, range_k_values)
+data_str='adult'
+distance='L1_L0'
+range_k_values = range(1, 21)
+# plot_k_definition()
 # print_instances('adult','ijuice','L1_L0', 0.5)
-# plot_anomaly_justification_probability()
+plot_anomaly_justification_probability()
 
 
 
