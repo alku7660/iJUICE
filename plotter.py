@@ -168,6 +168,8 @@ def calculate_sparsity(x, cf):
     """
     Calculates sparsity of the CF with respect to the ioi
     """
+    x = x[0][:-1]
+    x_cf = x_cf[0]
     return len(np.where(x != cf)[0])
 
 def ablation_lagrange_plot():
