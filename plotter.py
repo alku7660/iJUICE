@@ -14,7 +14,7 @@ import matplotlib.patches as mpatches
 from matplotlib.ticker import FormatStrFormatter
 from data_constructor import load_dataset
 # from autorank import autorank, plot_stats
-from address import results_plots, load_obj, results_k_definition
+from address import results_plots, load_obj, results_k_definition, results_obj
 from model_constructor import Model
 from evaluator_constructor import distance_calculation, verify_feasibility
 from itertools import product
@@ -118,6 +118,7 @@ def feasibility_justification_time_sparsity_plots(metric_name):
     """
     Obtains a 5x3 feasibility, justification, and time plots for all datasets
     """
+    lagrange = 1
     fig, ax = plt.subplots(nrows=7, ncols=2, sharex=False, sharey=True, figsize=(7,10))
     ax = ax.flatten()
     for i in range(len(datasets)):
@@ -128,7 +129,7 @@ def feasibility_justification_time_sparsity_plots(metric_name):
                 dist = 'L1_L0'
             else:
                 dist = 'euclidean'
-            eval = load_obj(f'{datasets[i]}_{methods[k]}_{dist}_1.pkl')
+            eval = load_obj(f'{datasets[i]}/{datasets[i]}_{methods[k]}_{dist}_1.pkl', results_obj)
             if metric_name == 'feasibility':
                 metric_measures = list(eval.feasibility_dict.values())
                 new_metric_measures = []
@@ -153,6 +154,14 @@ def feasibility_justification_time_sparsity_plots(metric_name):
                     x_cf = eval.x_cf_dict[idx]
                     sparsity = calculate_sparsity(x, x_cf)
                     metric_measures.append(sparsity)
+                if datasets[i] == 'diabetes' or datasets[i] == 'synthetic_disease' or datasets[i] == 'oulad' or datasets[i] == 'credit' or datasets[i] == 'compass' or datasets[i] == 'german':
+                    eval_extra = load_obj(f'{datasets[i]}/{datasets[i]}_{methods[k]}_{dist}_{lagrange}_extra.pkl', results_obj)
+                    extra_keys_index_instances = list(eval_extra.x_dict.keys())
+                    for idx in extra_keys_index_instances:
+                        x = eval_extra.x_dict[idx]
+                        x_cf = eval_extra.x_cf_dict[idx]
+                        sparsity = calculate_sparsity(x, x_cf)
+                        metric_measures.append(sparsity)
             all_metric_measures.append(metric_measures)
         ax[i].boxplot(all_metric_measures, showmeans=True, meanprops=mean_prop, showfliers=False)
         ax[i].set_xticklabels([method_name(i) for i in methods], rotation=25)
@@ -161,7 +170,7 @@ def feasibility_justification_time_sparsity_plots(metric_name):
         if metric_name == 'time':
             ax[i].set_yscale('log')
     plt.suptitle(f'{metric_name.capitalize()} (s)' if metric_name == 'time' else metric_name.capitalize())
-    fig.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.96, wspace=0.15, hspace=0.4)
+    fig.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.96, wspace=0.15, hspace=0.44)
     fig.savefig(f'{results_plots}{metric_name}_plot.pdf')
 
 def calculate_sparsity(x, cf):
@@ -169,7 +178,7 @@ def calculate_sparsity(x, cf):
     Calculates sparsity of the CF with respect to the ioi
     """
     x = x[0][:-1]
-    x_cf = x_cf[0]
+    cf = cf[0]
     return len(np.where(x != cf)[0])
 
 def ablation_lagrange_plot():
@@ -325,13 +334,14 @@ def plot_anomaly_justification_probability():
 # feasibility_justification_time_plots('feasibility')
 # feasibility_justification_time_plots('justification')
 # feasibility_justification_time_plots('time')
+feasibility_justification_time_sparsity_plots('sparsity')
 # ablation_lagrange_plot()
 data_str='adult'
 distance='L1_L0'
 range_k_values = range(1, 21)
 # plot_k_definition()
 # print_instances('adult','ijuice','L1_L0', 0.5)
-plot_anomaly_justification_probability()
+# plot_anomaly_justification_probability()
 
 
 
