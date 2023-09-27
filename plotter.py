@@ -322,7 +322,8 @@ def plot_anomaly_justification_probability():
     anomaly_justification_ratio_array = np.array(anomaly_justification_ratio_list)
     ax.bar(datasets_name, anomaly_justification_ratio_array)
     ax.grid(axis='y', linestyle='--', alpha=0.4)
-    ax.set_xticklabels(datasets_name, rotation=35)
+    font_dict = {'horizontalalignment':'right'}
+    ax.set_xticklabels(datasets_name, rotation=35, fontdict=font_dict)
     ax.yaxis.set_ticks(ticks=np.arange(0, 0.55, 0.05), labels=['0','0.05','0.10','0.15','0.20','0.25','0.30','0.35','0.40','0.45','0.50'])
     ax.set_xlabel(f'Dataset (Sample size)')
     ax.set_ylabel(f'Fraction of Single Anomaly Justifiers')
@@ -334,14 +335,14 @@ def plot_anomaly_justification_probability():
 # feasibility_justification_time_plots('feasibility')
 # feasibility_justification_time_plots('justification')
 # feasibility_justification_time_plots('time')
-feasibility_justification_time_sparsity_plots('sparsity')
+# feasibility_justification_time_sparsity_plots('sparsity')
 # ablation_lagrange_plot()
 data_str='adult'
 distance='L1_L0'
 range_k_values = range(1, 21)
 # plot_k_definition()
 # print_instances('adult','ijuice','L1_L0', 0.5)
-# plot_anomaly_justification_probability()
+plot_anomaly_justification_probability()
 
 
 
